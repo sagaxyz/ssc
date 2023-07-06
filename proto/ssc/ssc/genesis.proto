@@ -1,0 +1,12 @@
+syntax = "proto3";
+package ssc.ssc;
+
+import "gogoproto/gogo.proto";
+import "ssc/ssc/params.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/ssc/types";
+
+// GenesisState defines the ssc module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

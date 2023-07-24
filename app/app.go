@@ -66,7 +66,6 @@ import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
@@ -108,13 +107,16 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/spf13/cast"
-
+	tendermint "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	sscmodule "github.com/sagaxyz/ssc/x/ssc"
 	sscmodulekeeper "github.com/sagaxyz/ssc/x/ssc/keeper"
 	sscmoduletypes "github.com/sagaxyz/ssc/x/ssc/types"
-	// this line is used by starport scaffolding # stargate/app/moduleImport
+	"github.com/spf13/cast"
 
+	// this line is used by starport scaffolding # stargate/app/moduleImport
+	providermodule "github.com/sagaxyz/ccv/v3/x/ccv/provider"
+	providerkeeper "github.com/sagaxyz/ccv/v3/x/ccv/provider/keeper"
+	providertypes "github.com/sagaxyz/ccv/v3/x/ccv/provider/types"
 	appparams "github.com/sagaxyz/ssc/app/params"
 	"github.com/sagaxyz/ssc/docs"
 )
@@ -171,9 +173,12 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
+
+		tendermint.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		sscmodule.AppModuleBasic{},
+		providermodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -245,13 +250,14 @@ type App struct {
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper         capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper    capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper     capabilitykeeper.ScopedKeeper
+	ScopedICSProviderKeeper capabilitykeeper.ScopedKeeper
 
 	SscKeeper sscmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-
+	ProviderKeeper providerkeeper.Keeper
 	// mm is the module manager
 	mm *module.Manager
 
@@ -298,6 +304,7 @@ func New(
 		capabilitytypes.StoreKey, group.StoreKey, icacontrollertypes.StoreKey, consensusparamtypes.StoreKey,
 		sscmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
+		providertypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -338,7 +345,7 @@ func New(
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	// this line is used by starport scaffolding # stargate/app/scopedKeeper
-
+	scopedProviderKeeper := app.CapabilityKeeper.ScopeToModule(providertypes.ModuleName)
 	// add keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
@@ -529,6 +536,24 @@ func New(
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
+	app.ProviderKeeper = providerkeeper.NewKeeper(
+		appCodec,
+		keys[providertypes.StoreKey],
+		app.GetSubspace(providertypes.ModuleName),
+		scopedProviderKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.StakingKeeper,
+		app.SlashingKeeper,
+		app.AccountKeeper,
+		app.EvidenceKeeper,
+		app.DistrKeeper,
+		app.BankKeeper,
+		authtypes.FeeCollectorName,
+	)
+	providerModule := providermodule.NewAppModule(&app.ProviderKeeper, app.GetSubspace(providertypes.ModuleName))
 	/**** IBC Routing ****/
 
 	// Sealing prevents other modules from creating scoped sub-keepers
@@ -590,7 +615,7 @@ func New(
 		icaModule,
 		sscModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
-
+		providerModule,
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	)
 
@@ -620,6 +645,7 @@ func New(
 		group.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
+		providertypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		sscmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
@@ -646,6 +672,7 @@ func New(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		providertypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		sscmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -677,6 +704,7 @@ func New(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		providertypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		sscmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
@@ -897,7 +925,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(minttypes.ModuleName)
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
-	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable()) //nolint:staticcheck
+	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(gov.ProvideKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)
@@ -905,7 +933,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(sscmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
-
+	paramsKeeper.Subspace(providertypes.ModuleName)
 	return paramsKeeper
 }
 

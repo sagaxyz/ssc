@@ -1,0 +1,64 @@
+{
+    "app_state": {
+        "crisis": {
+            "constant_fee": {
+                "amount": "1000",
+                "denom": "tsaga"
+            }
+        },
+        "escrow": {
+            "params": {
+                "supportedDenom": "tsaga"
+            }
+        },
+        "gov": {
+            "deposit_params": {
+                "min_deposit": [
+                    {
+                        "amount": "10000000",
+                        "denom": "stake"
+                    }
+                ]
+            }
+        },
+        "mint": {
+            "minter": {
+                "annual_provisions": "0.000000000000000000",
+                "inflation": "0.130000000000000000"
+            },
+            "params": {
+                "blocks_per_year": "6311520",
+                "goal_bonded": "0.690000000000000000",
+                "inflation_max": "0.420000000000000000",
+                "inflation_min": "0.100000000000000000",
+                "inflation_rate_change": "0.100000000000000000",
+                "mint_denom": "tsaga"
+            }
+        },
+        "staking": {
+            "params": {
+                "bond_denom": "stake"
+            }
+        },
+        "provider": {
+            "consumer_addition_proposals": [{
+                "binary_hash": "f20ab1432746c146924eaf6644d3f3e62759f64096fe3f347b740af7e0032369",
+                "blocks_per_distribution_transmission": "1500",
+                "ccv_timeout_period": "2419200s",
+                "chain_id": "spc-1",
+                "consumer_redistribution_fraction": "0.75",
+                "description": "Saga Platform Chain",
+                "genesis_hash": "4d897938a69a3809828e70f34c7400ec134817fe34ca4090dbe5991d72fa744c",
+                "historical_entries": "10000",
+                "initial_height": {
+                  "revision_height": "1",
+                  "revision_number": "0"
+                },
+                "spawn_time": "2023-06-28T20:00:00Z",
+                "title": "Launch Saga Platform Chain",
+                "transfer_timeout_period": "3600s",
+                "unbonding_period": "1728000s"
+            }]
+        }
+    }
+}

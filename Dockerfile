@@ -1,5 +1,6 @@
 FROM golang:1.19.0-bullseye AS build-env
 ARG GITHUB_USER
+ARG GITHUB_TOKEN
 
 WORKDIR /root
 
@@ -8,7 +9,7 @@ RUN apt-get install git jq -y
 
 COPY . .
 
-RUN git config --global --add url."https://${GITHUB_USER}:@github.com/".insteadOf "https://github.com/"
+RUN git config --global --add url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 RUN go env -w GOPRIVATE='github.com/sagaxyz/*'
 RUN go build -o /root/ ./...
 RUN cp /root/sscd /usr/bin/sscd

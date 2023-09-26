@@ -113,6 +113,7 @@ import (
 	sscmodule "github.com/sagaxyz/ssc/x/ssc"
 	sscmodulekeeper "github.com/sagaxyz/ssc/x/ssc/keeper"
 	sscmoduletypes "github.com/sagaxyz/ssc/x/ssc/types"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	appparams "github.com/sagaxyz/ssc/app/params"
@@ -120,7 +121,7 @@ import (
 )
 
 const (
-	AccountAddressPrefix = "cosmos"
+	AccountAddressPrefix = "saga"
 	Name                 = "ssc"
 )
 

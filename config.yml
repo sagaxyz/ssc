@@ -1,39 +1,21 @@
 version: 1
 accounts:
-  - name: alice
-    coins:
-      - 20000tsaga
-      - 200000000stake
-  - name: bob
-    coins:
-      - 10000tsaga
-      - 100000000stake
+- name: alice
+  coins:
+  - 20000token
+  - 200000000stake
+- name: bob
+  coins:
+  - 10000token
+  - 100000000stake
 client:
   openapi:
     path: docs/static/openapi.yml
 faucet:
   name: bob
   coins:
-    - 5token
+  - 5token
+  - 100000stake
 validators:
-  - name: alice
-    bonded: 100000000stake
-genesis:
-  app_state:
-    provider:
-      consumer_addition_proposals:
-        - binary_hash: f20ab1432746c146924eaf6644d3f3e62759f64096fe3f347b740af7e0032369
-          blocks_per_distribution_transmission: "1500"
-          ccv_timeout_period: 2419200s
-          chain_id: spc
-          consumer_redistribution_fraction: "0.75"
-          description: saga platform chain
-          genesis_hash: 4d897938a69a3809828e70f34c7400ec134817fe34ca4090dbe5991d72fa744c
-          historical_entries: "10000"
-          initial_height:
-            revision_height: "1"
-            revision_number: "0"
-          spawn_time: "2023-07-11T20:00:00Z"
-          title: Launch SPC
-          transfer_timeout_period: 3600s
-          unbonding_period: 1728000s
+- name: alice
+  bonded: 100000000stake

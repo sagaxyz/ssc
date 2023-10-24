@@ -13,7 +13,7 @@ The purpose of Saga Security Chain (SSC) is to enable validators to join in prov
 
 ## Install
 
-Before installing `sscd`, make sure you have go 1.20 or later installed.
+Before installing `sscd`, make sure you have go 1.19 or later installed.
 
 To install the `sscd` binary:
 

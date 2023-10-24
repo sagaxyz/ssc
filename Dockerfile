@@ -19,5 +19,8 @@ RUN apk add gcompat
 
 EXPOSE 26656
 EXPOSE 26660
+EXPOSE 26657
+EXPOSE 1317
+EXPOSE 9090
 
 CMD ["sscd", "start"]

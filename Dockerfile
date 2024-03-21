@@ -15,7 +15,7 @@ FROM ${RUNNER_IMAGE}
 
 COPY --from=build-env /go/src/github.com/sagaxyz/sagacli/build/sscd /usr/bin/sscd
 
-RUN apk add gcompat
+RUN apk add gcompat bash
 
 EXPOSE 26656
 EXPOSE 26660

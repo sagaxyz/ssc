@@ -11,7 +11,7 @@ PROJECT_NAME   := ssc
 HTTPS_GIT      := https://github.com/sagaxyz/ssc.git
 
 ifeq (,$(VERSION))
-  VERSION := $(shell git describe --exact-match 2>/dev/null)
+  VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
   # if VERSION is empty, then populate it with branch's name and raw commit hash
   ifeq (,$(VERSION))
     VERSION := $(BRANCH)-$(COMMIT)
@@ -54,7 +54,7 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=ssc \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=sscd \
-		  -X github.com/cosmos/cosmos-sdk/version.Version=v0.1.3 \
+		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
 		  -X github.com/cometbft/cometbft/version.TMCoreSemVer=$(TM_VERSION)

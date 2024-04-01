@@ -36,6 +36,7 @@ ifeq ($(LEDGER_ENABLED),true)
     UNAME_S = $(shell uname -s)
     ifeq ($(UNAME_S),OpenBSD)
       $(warning OpenBSD detected, disabling ledger support (https://github.com/cosmos/cosmos-sdk/issues/1988))
+	  LEDGER_ENABLED=false
     else
       GCC = $(shell command -v gcc 2> /dev/null)
       ifeq ($(GCC),)
@@ -74,34 +75,34 @@ build-no_cgo:
 
 # Linux Targets
 build-linux-amd64:
-	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=linux GOARCH=amd64 $(MAKE) build
 
 build-linux-386:
-	LEDGER_ENABLED=false GOOS=linux GOARCH=386 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=linux GOARCH=386 $(MAKE) build
 
 build-linux-arm:
-	LEDGER_ENABLED=false GOOS=linux GOARCH=arm $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=linux GOARCH=arm $(MAKE) build
 
 build-linux-arm64:
-	LEDGER_ENABLED=false GOOS=linux GOARCH=arm64 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=linux GOARCH=arm64 $(MAKE) build
 
 # macOS (Darwin) Targets
 build-darwin-amd64:
-	LEDGER_ENABLED=false GOOS=darwin GOARCH=amd64 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=darwin GOARCH=amd64 $(MAKE) build
 
 build-darwin-arm64: # For M1 Macs
-	LEDGER_ENABLED=false GOOS=darwin GOARCH=arm64 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=darwin GOARCH=arm64 $(MAKE) build
 
 # Windows Targets
 build-windows-amd64:
-	LEDGER_ENABLED=false GOOS=windows GOARCH=amd64 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=windows GOARCH=amd64 $(MAKE) build
 
 build-windows-386:
-	LEDGER_ENABLED=false GOOS=windows GOARCH=386 $(MAKE) build
+	LEDGER_ENABLED=$(LEDGER_ENABLED) GOOS=windows GOARCH=386 $(MAKE) build
 
 install: go.sum
 	@echo "Installing..."
-	go install -mod=readonly $(BUILD_FLAGS) ./...
+	LEDGER_ENABLED=$(LEDGER_ENABLED) go install -mod=readonly $(BUILD_FLAGS) ./...
 
 go-mod-cache: go.sum
 	@echo "Download go modules to local cache"

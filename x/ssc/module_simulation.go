@@ -3,17 +3,18 @@ package ssc
 import (
 	"math/rand"
 
+	"github.com/sagaxyz/ssc/testutil/sample"
+	sscsimulation "github.com/sagaxyz/ssc/x/ssc/simulation"
+	"github.com/sagaxyz/ssc/x/ssc/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/sagaxyz/ssc/testutil/sample"
-	sscsimulation "github.com/sagaxyz/ssc/x/ssc/simulation"
-	"github.com/sagaxyz/ssc/x/ssc/types"
 )
 
-// avoid unused import issue
+// avoid unused import issue.
 var (
 	_ = sample.AccAddress
 	_ = sscsimulation.FindAccount

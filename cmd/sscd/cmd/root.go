@@ -7,11 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	dbm "github.com/cometbft/cometbft-db"
-	tmcfg "github.com/cometbft/cometbft/config"
-	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/sagaxyz/ssc/app"
+	appparams "github.com/sagaxyz/ssc/app/params"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -33,16 +34,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/spf13/cast"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	// this line is used by starport scaffolding # root/moduleImport
 
-	"github.com/sagaxyz/ssc/app"
-	appparams "github.com/sagaxyz/ssc/app/params"
+	dbm "github.com/cometbft/cometbft-db"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
+	"github.com/cometbft/cometbft/libs/log"
+	tmtypes "github.com/cometbft/cometbft/types"
 )
 
-// NewRootCmd creates a new root command for a Cosmos SDK application
+// NewRootCmd creates a new root command for a Cosmos SDK application.
 func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
@@ -147,7 +147,7 @@ func initRootCmd(
 	)
 }
 
-// queryCommand returns the sub-command to send queries to the app
+// queryCommand returns the sub-command to send queries to the app.
 func queryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
@@ -172,7 +172,7 @@ func queryCommand() *cobra.Command {
 	return cmd
 }
 
-// txCommand returns the sub-command to send transactions to the app
+// txCommand returns the sub-command to send transactions to the app.
 func txCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
@@ -224,7 +224,7 @@ type appCreator struct {
 	encodingConfig appparams.EncodingConfig
 }
 
-// newApp creates a new Cosmos SDK app
+// newApp creates a new Cosmos SDK app.
 func (a appCreator) newApp(
 	logger log.Logger,
 	db dbm.DB,
@@ -299,7 +299,7 @@ func (a appCreator) newApp(
 	)
 }
 
-// appExport creates a new simapp (optionally at a given height)
+// appExport creates a new simapp (optionally at a given height).
 func (a appCreator) appExport(
 	logger log.Logger,
 	db dbm.DB,

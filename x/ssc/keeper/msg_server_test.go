@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/sagaxyz/ssc/testutil/keeper"
 	"github.com/sagaxyz/ssc/x/ssc/keeper"
 	"github.com/sagaxyz/ssc/x/ssc/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {

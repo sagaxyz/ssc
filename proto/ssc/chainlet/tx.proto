@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+import "ssc/chainlet/chainlet_params.proto";
+import "ssc/chainlet/chainlet_stack.proto";
+
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc CreateChainletStack(MsgCreateChainletStack)
+      returns (MsgCreateChainletStackResponse);
+  rpc LaunchChainlet(MsgLaunchChainlet) returns (MsgLaunchChainletResponse);
+  rpc UpdateChainletStack(MsgUpdateChainletStack)
+      returns (MsgUpdateChainletStackResponse);
+  rpc DisableChainletStackVersion(MsgDisableChainletStackVersion)
+      returns (MsgDisableChainletStackVersionResponse);
+
+  // this line is used by starport scaffolding # proto/tx/rpc
+  rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
+}
+message MsgCreateChainletStack {
+  string creator = 1;
+  string displayName = 2;
+  string description = 3;
+  string image = 4;
+  string version = 5;
+  string checksum = 6;
+  ChainletStackFees fees = 7 [ (gogoproto.nullable) = false ];
+}
+
+message MsgCreateChainletStackResponse {}
+
+message MsgLaunchChainlet {
+  string creator = 1;
+  repeated string maintainers = 2;
+  string chainletStackName = 3;
+  string chainletStackVersion = 4;
+  string chainId = 5;
+  string chainletName = 6;
+  ChainletParams params = 7 [ (gogoproto.nullable) = false ];
+  bool disableAutomaticStackUpgrades = 8;
+  string denom = 9;
+}
+
+message MsgLaunchChainletResponse {}
+
+message MsgUpdateChainletStack {
+  string creator = 1;
+  string displayName = 2;
+  string image = 3;
+  string version = 4;
+  string checksum = 5;
+}
+
+message MsgUpdateChainletStackResponse {}
+
+message MsgDisableChainletStackVersion {
+  string creator = 1;
+  string displayName = 2;
+  string version = 3;
+}
+message MsgDisableChainletStackVersionResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message
+message MsgUpgradeChainlet {
+  string creator = 1;
+  string chainId = 2;
+  string stackVersion = 3;
+}
+
+message MsgUpgradeChainletResponse {}

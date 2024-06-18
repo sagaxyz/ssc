@@ -1,0 +1,86 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "ssc/chainlet/params.proto";
+import "ssc/chainlet/chainlet_stack.proto";
+import "ssc/chainlet/chainlet.proto";
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ssc/chainlet/params";
+  }
+  // Queries a list of ListChainletStack items.
+  rpc ListChainletStack(QueryListChainletStackRequest)
+      returns (QueryListChainletStackResponse) {
+    option (google.api.http).get = "/ssc/chainlet/list_chainlet_stack";
+  }
+
+  // Queries a list of GetChainletStack items.
+  rpc GetChainletStack(QueryGetChainletStackRequest)
+      returns (QueryGetChainletStackResponse) {
+    option (google.api.http).get =
+        "/ssc/chainlet/get_chainlet_stack/{displayName}";
+  }
+
+  // Queries a list of ListChainlets items.
+  rpc ListChainlets(QueryListChainletsRequest)
+      returns (QueryListChainletsResponse) {
+    option (google.api.http).get = "/ssc/chainlet/list_chainlets";
+  }
+
+  // Queries a list of GetChainlet items.
+  rpc GetChainlet(QueryGetChainletRequest) returns (QueryGetChainletResponse) {
+    option (google.api.http).get = "/ssc/chainlet/get_chainlet/{chainId}";
+  }
+
+  // this line is used by starport scaffolding # 2
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryListChainletStackRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryListChainletStackResponse {
+  repeated ChainletStack ChainletStacks = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetChainletStackRequest { string displayName = 1; }
+
+message QueryGetChainletStackResponse {
+  ChainletStack ChainletStack = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryListChainletsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryListChainletsResponse {
+  repeated Chainlet Chainlets = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetChainletRequest { string chainId = 1; }
+
+message QueryGetChainletResponse {
+  Chainlet Chainlet = 1 [ (gogoproto.nullable) = false ];
+}
+
+// this line is used by starport scaffolding # 3

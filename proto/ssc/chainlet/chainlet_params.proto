@@ -1,0 +1,22 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+import "ssc/chainlet/genesis_account_balances.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+message ChainletParams {
+  uint64 gasLimit = 1;
+
+  // Config.toml params - can be set and modified via a chainlet update
+  bool createEmptyBlocks = 2;
+
+  // Enables deployment access control
+  bool dacEnable = 3;
+  // Genesis accounts and balances
+  GenesisAccountBalances genAcctBalances = 4 [ (gogoproto.nullable) = false ];
+  // Constant EIP-1559 base fee
+  string fixedBaseFee = 5;
+  string feeAccount = 6;
+}

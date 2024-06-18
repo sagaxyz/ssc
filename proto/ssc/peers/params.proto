@@ -1,0 +1,12 @@
+syntax = "proto3";
+package ssc.peers;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/peers/types";
+
+// Params defines the parameters for the module.
+message Params {
+  // Maximum amount of data stored per validator for a specific chainlet
+  uint32 maxData = 1;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package ssc.billing;
+
+option go_package = "github.com/sagaxyz/ssc/x/billing/types";
+
+message ValidatorPayoutHistory {
+
+  string validatorAddress = 1;
+  string epochIdentifier = 2;
+  int32 epochNumber = 3;
+  string epochStartTime = 4;
+  string rewardAmount = 5;
+}

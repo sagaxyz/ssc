@@ -1,0 +1,66 @@
+syntax = "proto3";
+package ssc.billing;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "ssc/billing/params.proto";
+// this line is used by starport scaffolding # 1
+import "ssc/billing/validator_payout_history.proto";
+import "ssc/billing/billing_history.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/billing/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/sagaxyz/ssc/billing/params";
+  }
+  // Queries a list of GetBillingHistory items.
+  rpc GetBillingHistory(QueryGetBillingHistoryRequest)
+      returns (QueryGetBillingHistoryResponse) {
+    option (google.api.http).get =
+        "/sagaxyz/ssc/billing/get_billing_history/{chainId}";
+  }
+
+  // Queries a list of GetValidatorPayoutHistory items.
+  rpc GetValidatorPayoutHistory(QueryGetValidatorPayoutHistoryRequest)
+      returns (QueryGetValidatorPayoutHistoryResponse) {
+    option (google.api.http).get =
+        "/sagaxyz/ssc/billing/get_validator_payout_history/{validatorAddress}";
+  }
+
+  // this line is used by starport scaffolding # 2
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryGetBillingHistoryRequest {
+  string chainId = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryGetBillingHistoryResponse {
+  repeated BillingHistory billhistory = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetValidatorPayoutHistoryRequest {
+  string validatorAddress = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryGetValidatorPayoutHistoryResponse {
+  repeated ValidatorPayoutHistory validatorpayouthistory = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// this line is used by starport scaffolding # 3

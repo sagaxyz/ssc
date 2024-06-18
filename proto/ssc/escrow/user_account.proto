@@ -1,0 +1,13 @@
+syntax = "proto3";
+package ssc.escrow;
+
+option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+message UserAccount {
+
+  repeated string chainlets = 1;
+  repeated cosmos.base.v1beta1.Coin balance = 2
+      [ (gogoproto.nullable) = false ];
+}

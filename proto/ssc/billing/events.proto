@@ -1,0 +1,13 @@
+syntax = "proto3";
+package ssc.billing;
+
+option go_package = "github.com/sagaxyz/ssc/x/billing/types";
+
+message BillingEvent {
+  // option (gogoproto.goproto_stringer) = false;
+  string chainId = 1;
+  string amount = 2;
+  string memo = 3;
+  bool success = 4;
+  bool debit = 5;
+}

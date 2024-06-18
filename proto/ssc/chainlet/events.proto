@@ -1,0 +1,51 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+message EventLaunchChainlet {
+  // option (gogoproto.goproto_stringer) = false;
+  string chainName = 1;
+  string launcher = 2;
+  string chainId = 3;
+  string stack = 4;
+  string stackVersion = 5;
+}
+
+message EventNewChainletStack {
+  // option (gogoproto.goproto_stringer) = false;
+  string creator = 1;
+  string name = 2;
+  string version = 3;
+}
+
+message EventNewChainletStackVersion {
+  // option (gogoproto.goproto_stringer) = false;
+  string name = 1;
+  string version = 2;
+}
+
+message EventChainletStackVersionDisabled {
+  // option (gogoproto.goproto_stringer) = false;
+  string name = 1;
+  string version = 2;
+}
+
+message EventUpdateChainlet {
+  // option (gogoproto.goproto_stringer) = false;
+  string chainId = 1;
+  string stackVersion = 2;
+}
+
+message EventChainletStopped {
+  // option (gogoproto.goproto_stringer) = false;
+  string chainId = 1;
+}
+
+message EventChainletRestarted {
+  // option (gogoproto.goproto_stringer) = false;
+  string chainId = 1;
+  string by = 2;
+}

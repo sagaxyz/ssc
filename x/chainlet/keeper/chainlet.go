@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"reflect"
 
@@ -47,7 +48,7 @@ func (k *Keeper) NewChainlet(ctx sdk.Context, chainlet types.Chainlet) error {
 
 	value := k.cdc.MustMarshal(&chainlet)
 	store.Set(key, value)
-
+	k.incrementChainletCount(ctx)
 	return nil
 }
 
@@ -183,6 +184,23 @@ func (k *Keeper) setChainletInfo(ctx sdk.Context, chainlet *types.Chainlet) {
 	byteLCKey := []byte(chainlet.ChainId)
 	updatedValue := k.cdc.MustMarshal(chainlet)
 	lcStore.Set(byteLCKey, updatedValue)
+}
+
+func (k Keeper) InitializeChainletCount(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(0))
+	store.Set(types.NumChainletsKey, bz)
+}
+
+func (k Keeper) incrementChainletCount(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.NumChainletsKey)
+	count := binary.BigEndian.Uint64(bz)
+	count++
+	bz = make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, count)
+	store.Set(types.NumChainletsKey, bz)
 }
 
 func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {

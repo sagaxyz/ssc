@@ -24,6 +24,7 @@ func NewParams() Params {
 		AutomaticChainletUpgrades:        true,
 		AutomaticChainletUpgradeInterval: 100,
 		LaunchDelay:                      3 * time.Minute,
+		MaxChainlets:                     500,
 	}
 }
 
@@ -37,6 +38,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	psp := paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair([]byte("ChainletStackProtections"), &p.ChainletStackProtections, validateBool),
 		paramtypes.NewParamSetPair([]byte("NEpochDeposit"), &p.NEpochDeposit, validateED),
+		paramtypes.NewParamSetPair([]byte("MaxChainlets"), &p.MaxChainlets, validateUint64),
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgrades"), &p.AutomaticChainletUpgrades, validateBool),
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgradeInterval"), &p.AutomaticChainletUpgradeInterval, validateInt64),
 		paramtypes.NewParamSetPair([]byte("LaunchDelay"), &p.LaunchDelay, validateDuration),
@@ -69,7 +71,7 @@ func validateInt64(v interface{}) error {
 func validateED(v interface{}) error {
 	vv, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("could not unmarshal validator-payout-epoch param for validation")
+		return fmt.Errorf("could not unmarshal EpochDeposit param for validation")
 	}
 	_, err := strconv.Atoi(vv)
 	if err != nil {
@@ -85,6 +87,14 @@ func validateDuration(v interface{}) error {
 	}
 	if vv < 0 {
 		return errors.New("duration negative")
+	}
+	return nil
+}
+
+func validateUint64(v interface{}) error {
+	_, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("param not uint64")
 	}
 	return nil
 }

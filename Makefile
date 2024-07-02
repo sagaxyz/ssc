@@ -574,7 +574,7 @@ rosetta-data:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/sagaxyz/spc
+PACKAGE_NAME:=github.com/sagaxyz/ssc
 GOLANG_CROSS_VERSION  = v1.19
 GOPATH ?= '$(HOME)/go'
 release-dry-run:

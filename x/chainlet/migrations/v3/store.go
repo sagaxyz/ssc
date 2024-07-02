@@ -1,4 +1,4 @@
-package v2
+package v3
 
 import (
 	"fmt"
@@ -12,12 +12,14 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, legacySubspace exported.Subspace) error {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, legacySubspace exported.Subspace, initializeChainletCount func(sdk.Context), incrementChainletCount func(sdk.Context)) error {
+
 	chainletStore := prefix.NewStore(ctx.KVStore(storeKey), []byte(types.ChainletKey))
 
 	// Add default values of new params
 	legacySubspace.Set(ctx, []byte("AutomaticChainletUpgrades"), true)
 	legacySubspace.Set(ctx, []byte("AutomaticChainletUpgradeInterval"), int64(100))
+	legacySubspace.Set(ctx, []byte("MaxChainlets"), uint64(500))
 	var p types.Params
 	legacySubspace.GetParamSet(ctx, &p)
 	err := p.Validate()
@@ -25,6 +27,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 	legacySubspace.SetParamSet(ctx, &p)
+	initializeChainletCount(ctx)
 
 	// Set all existing chainlets to have auto-upgrade enabled
 	iterator := chainletStore.Iterator(nil, nil)
@@ -37,6 +40,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		updated := cdc.MustMarshal(&chainlet)
 		key := iterator.Key()
 		defer chainletStore.Set(key, updated)
+		defer incrementChainletCount(ctx)
 
 		ctx.Logger().Info(fmt.Sprintf("enabled auto-upgrade for chainlet %s", chainlet.ChainId))
 	}

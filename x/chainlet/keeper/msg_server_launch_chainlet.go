@@ -7,7 +7,6 @@ import (
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -19,15 +18,13 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ch, err := k.ListChainlets(goCtx, &types.QueryListChainletsRequest{
-		Pagination: &query.PageRequest{
-			Limit: 1000,
-		},
-	})
+	// get total number of chainlets
+	chainletCountRes, err := k.GetChainletCount(ctx, &types.QueryGetChainletCountRequest{})
 	if err != nil {
 		return nil, err
 	}
-	if len(ch.Chainlets) >= 500 {
+
+	if chainletCountRes.Count >= k.GetParams(ctx).MaxChainlets {
 		return nil, types.ErrTooManyChainlets
 	}
 

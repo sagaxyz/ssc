@@ -15,4 +15,5 @@ message Params {
   // Delays launch to give validators time to set the consumer key
   google.protobuf.Duration launchDelay = 5
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+  uint64 maxChainlets = 6;
 }

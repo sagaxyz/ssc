@@ -14,7 +14,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.47.11
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.4.0
-	github.com/cosmos/interchain-security/v4 v4.2.0
+	github.com/cosmos/interchain-security/v4 v4.1.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4

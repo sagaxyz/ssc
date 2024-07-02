@@ -13,10 +13,12 @@ option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
 
 // Query defines the gRPC querier service.
 service Query {
+
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/ssc/chainlet/params";
   }
+
   // Queries a list of ListChainletStack items.
   rpc ListChainletStack(QueryListChainletStackRequest)
       returns (QueryListChainletStackResponse) {
@@ -42,13 +44,19 @@ service Query {
   }
 
   // this line is used by starport scaffolding # 2
-}
 
+  // Queries a list of GetChainletCount items.
+  rpc GetChainletCount(QueryGetChainletCountRequest)
+      returns (QueryGetChainletCountResponse) {
+    option (google.api.http).get = "/sagaxyz/ssc/chainlet/get_chainlet_count";
+  }
+}
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
+
   // params holds all the parameters of this module.
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
@@ -84,3 +92,6 @@ message QueryGetChainletResponse {
 }
 
 // this line is used by starport scaffolding # 3
+message QueryGetChainletCountRequest {}
+
+message QueryGetChainletCountResponse { uint64 count = 1; }

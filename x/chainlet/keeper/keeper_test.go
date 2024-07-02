@@ -25,9 +25,9 @@ import (
 
 var (
 	fees = types.ChainletStackFees{
-		EpochFee:    "10upsaga",
+		EpochFee:    "10utsaga",
 		EpochLength: "minute",
-		SetupFee:    "10upsaga",
+		SetupFee:    "10utsaga",
 	}
 	addrs = []sdk.AccAddress{
 		sdk.AccAddress("test1"),
@@ -131,4 +131,5 @@ func (s *TestSuite) SetupTest() {
 		s.chainletKeeper.Logger(testCtx.Ctx))
 
 	s.chainletKeeper.SetParams(s.ctx, types.DefaultParams())
+	s.chainletKeeper.InitializeChainletCount(s.ctx)
 }

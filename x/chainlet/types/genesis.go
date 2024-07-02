@@ -9,6 +9,7 @@ const DefaultIndex uint64 = 1
 func DefaultGenesis() *GenesisState {
 	df := DefaultParams()
 	return &GenesisState{
+		NumChainlets: 0,
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: df,
 	}

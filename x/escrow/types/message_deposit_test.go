@@ -18,20 +18,20 @@ func TestMsgDeposit_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgDeposit{
 				Creator: "invalid_address",
-				Amount:  "1000upsaga",
+				Amount:  "1000utsaga",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgDeposit{
 				Creator: sample.AccAddress(),
-				Amount:  "1000upsaga",
+				Amount:  "1000utsaga",
 			},
 		}, {
 			name: "invalid amount",
 			msg: MsgDeposit{
 				Creator: sample.AccAddress(),
-				Amount:  "-1upsaga",
+				Amount:  "-1utsaga",
 			},
 			err: ErrInvalidCoin,
 		},

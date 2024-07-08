@@ -5,7 +5,7 @@ Saga uses [semantic versioning](https://semver.org/) to indicate the stability a
 
 ## Release Branches
 
-Releases are tagged from release branches. The release branch is typically named after the release version, such as `release/v1.1.2` or `release/v2.3.5`. The release branch is created from the `main` branch and contains all the changes that will be included in the release.
+Releases are tagged from release branches. The release branch is typically named after the release version, such as `release/1.1` or `release/2.3`. The release branch is created from the `main` branch and contains all the changes that will be included in the release.
 
 ## Development Branch
 
@@ -13,7 +13,7 @@ The `main` branch is the development branch for SSC. All new features and bug fi
 
 ## Backporting Features and Bug Fixes
 
-Features or bug fixes that are ready to be included in a release must be backported from the `main` branch to the release branch. This is done using Mergify, a CI/CD tool that automates the process of backporting changes. Add the `backport release/x.y.z` label to a pull request (PR) to indicate that it should be backported to the release branch. Mergify will automatically backport the PR when it is merged into the `main` branch.
+Features or bug fixes that are ready to be included in a release must be backported from the `main` branch to the release branch. This is done using Mergify, a CI/CD tool that automates the process of backporting changes. Add the `backport release/x.y` label to a pull request (PR) to indicate that it should be backported to the release branch. Mergify will automatically backport the PR when it is merged into the `main` branch.
 
 ## All PRs Target Main
 
@@ -30,7 +30,7 @@ The process differs depending on whether the release is a `MAJOR`, `MINOR`, or `
 
 ### Major Release
 
-* Freeze the `main` branch.
+* Freeze the `main` branch so as to pend the merging of any patch or minor release PRs.
 * Create a release branch from the `main` branch.
   * Update `.github/mergify.yml` to allow backporting changes to the release branch.
   * Possibly update CI/CD configuration to support the new release.
@@ -50,8 +50,8 @@ The process differs depending on whether the release is a `MAJOR`, `MINOR`, or `
 Once the release is ready, it can be published to the [releases page](https://github.com/sagaxyz/ssc/releases) on GitHub. This involves tagging the release branch with the release version and creating a release announcement. The release anouncement should contain the changelog of the release.
 
 ```bash
-git checkout release/v1.2.4
-git tag v1.2.4 -m "SSC Release v1.2.4
+git checkout release/1.2
+git tag v1.2 -m "SSC Release v1.2
 ```
 
 ## Post-Release Activities

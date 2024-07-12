@@ -120,6 +120,7 @@ import (
 	ccvprovidertypes "github.com/cosmos/interchain-security/v4/x/ccv/provider/types"
 	sscmodule "github.com/sagaxyz/ssc/x/ssc"
 	sscmodulekeeper "github.com/sagaxyz/ssc/x/ssc/keeper"
+	sscmoduletypes "github.com/sagaxyz/ssc/x/ssc/types"
 
 	sagaante "github.com/sagaxyz/saga-sdk/ante"
 	acl "github.com/sagaxyz/saga-sdk/x/acl"
@@ -141,8 +142,6 @@ import (
 	peers "github.com/sagaxyz/ssc/x/peers"
 	peerskeeper "github.com/sagaxyz/ssc/x/peers/keeper"
 	peerstypes "github.com/sagaxyz/ssc/x/peers/types"
-	sagamodule "github.com/sagaxyz/ssc/x/ssc"
-	sscmoduletypes "github.com/sagaxyz/ssc/x/ssc/types"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -204,7 +203,7 @@ var (
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		sagamodule.AppModuleBasic{},
+		sscmodule.AppModuleBasic{},
 		chainletmodule.AppModuleBasic{},
 		epochsmodule.AppModuleBasic{},
 		escrowmodule.AppModuleBasic{},

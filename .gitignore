@@ -6,3 +6,4 @@ release/
 .DS_Store
 build/
 tmp/
+scripts/load_testing/out/

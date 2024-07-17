@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	tmdb "github.com/cometbft/cometbft-db"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
+	"github.com/sagaxyz/ssc/app"
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -16,9 +17,9 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/stretchr/testify/require"
 
-	"github.com/sagaxyz/ssc/app"
+	tmdb "github.com/cometbft/cometbft-db"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 )
 
 type (
@@ -47,7 +48,7 @@ func New(t *testing.T, configs ...Config) *Network {
 }
 
 // DefaultConfig will initialize config for the network with custom application,
-// genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
+// genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig.
 func DefaultConfig() network.Config {
 	var (
 		encoding = app.MakeEncodingConfig()

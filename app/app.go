@@ -7,12 +7,16 @@ import (
 	"os"
 	"path/filepath"
 
+	appparams "github.com/sagaxyz/ssc/app/params"
+	"github.com/sagaxyz/ssc/docs"
+	sscmodule "github.com/sagaxyz/ssc/x/ssc"
+	sscmodulekeeper "github.com/sagaxyz/ssc/x/ssc/keeper"
+	sscmoduletypes "github.com/sagaxyz/ssc/x/ssc/types"
+	"github.com/spf13/cast"
+
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
@@ -89,6 +93,7 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -108,16 +113,11 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/spf13/cast"
 
-	sscmodule "github.com/sagaxyz/ssc/x/ssc"
-	sscmodulekeeper "github.com/sagaxyz/ssc/x/ssc/keeper"
-	sscmoduletypes "github.com/sagaxyz/ssc/x/ssc/types"
-
-	// this line is used by starport scaffolding # stargate/app/moduleImport
-
-	appparams "github.com/sagaxyz/ssc/app/params"
-	"github.com/sagaxyz/ssc/docs"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmos "github.com/cometbft/cometbft/libs/os"
 )
 
 const (
@@ -144,7 +144,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 }
 
 var (
-	// DefaultNodeHome default home directories for the application daemon
+	// DefaultNodeHome default home directories for the application daemon.
 	DefaultNodeHome string
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -178,7 +178,7 @@ var (
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
-	// module account permissions
+	// module account permissions.
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     nil,
 		distrtypes.ModuleName:          nil,
@@ -261,7 +261,7 @@ type App struct {
 	configurator module.Configurator
 }
 
-// New returns a reference to an initialized blockchain app
+// New returns a reference to an initialized blockchain app.
 func New(
 	logger log.Logger,
 	db dbm.DB,
@@ -743,20 +743,20 @@ func New(
 	return app
 }
 
-// Name returns the name of the App
+// Name returns the name of the App.
 func (app *App) Name() string { return app.BaseApp.Name() }
 
-// BeginBlocker application updates every begin block
+// BeginBlocker application updates every begin block.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
-// EndBlocker application updates every end block
+// EndBlocker application updates every end block.
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
-// InitChainer application update at chain initialization
+// InitChainer application update at chain initialization.
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
@@ -766,12 +766,12 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
-// Configurator get app configurator
+// Configurator get app configurator.
 func (app *App) Configurator() module.Configurator {
 	return app.configurator
 }
 
-// LoadHeight loads a particular height
+// LoadHeight loads a particular height.
 func (app *App) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
@@ -811,12 +811,12 @@ func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InterfaceRegistry returns an InterfaceRegistry
+// InterfaceRegistry returns an InterfaceRegistry.
 func (app *App) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
-// TxConfig returns SimApp's TxConfig
+// TxConfig returns SimApp's TxConfig.
 func (app *App) TxConfig() client.TxConfig {
 	return app.txConfig
 }
@@ -888,7 +888,7 @@ func (app *App) RegisterNodeService(clientCtx client.Context) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
 }
 
-// initParamsKeeper init params keeper and its subspaces
+// initParamsKeeper init params keeper and its subspaces.
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
@@ -910,12 +910,12 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	return paramsKeeper
 }
 
-// SimulationManager returns the app SimulationManager
+// SimulationManager returns the app SimulationManager.
 func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
-// ModuleManager returns the app ModuleManager
+// ModuleManager returns the app ModuleManager.
 func (app *App) ModuleManager() *module.Manager {
 	return app.mm
 }

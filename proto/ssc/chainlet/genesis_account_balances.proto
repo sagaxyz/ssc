@@ -1,0 +1,11 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+message AccountBalance {
+  string address = 1;
+  string balance = 2;
+}
+
+message GenesisAccountBalances { repeated AccountBalance list = 1; }

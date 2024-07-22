@@ -1,0 +1,76 @@
+package keeper
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v4/x/ccv/provider/types"
+	ccvtypes "github.com/cosmos/interchain-security/v4/x/ccv/types"
+
+	"github.com/sagaxyz/ssc/x/chainlet/types"
+)
+
+func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
+	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
+}
+
+func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+	revision := ibcclienttypes.ParseChainID(chainId)
+	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.ConsumerAdditionProposal{
+		ChainId:                           chainId,
+		InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
+		SpawnTime:                         spawnTime,
+		UnbondingPeriod:                   ccvtypes.DefaultConsumerUnbondingPeriod,
+		CcvTimeoutPeriod:                  ccvtypes.DefaultCCVTimeoutPeriod,
+		TransferTimeoutPeriod:             ccvtypes.DefaultTransferTimeoutPeriod,
+		ConsumerRedistributionFraction:    "0.0",
+		BlocksPerDistributionTransmission: ccvtypes.DefaultBlocksPerDistributionTransmission,
+		HistoricalEntries:                 ccvtypes.DefaultHistoricalEntries,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Enqueue an empty VSC packet
+	valUpdateID := k.providerKeeper.GetValidatorSetUpdateId(ctx)
+	packet := ccvtypes.NewValidatorSetChangePacketData(nil, valUpdateID, nil)
+	k.providerKeeper.AppendPendingVSCPackets(ctx, chainId, packet)
+	k.providerKeeper.IncrementValidatorSetUpdateId(ctx)
+
+	// Send it right after a channel is created
+	k.setPendingVSC(ctx, chainId)
+
+	return nil
+}
+
+// Forces sending queued VSC packets of new chainlets without waiting for the the provider epoch to end.
+func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
+
+	iterator := store.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		chainId := string(iterator.Key())
+
+		// Check if the consumer exists yet
+		_, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainId)
+		if !consumerRegistered {
+			continue
+		}
+
+		// Check if the channel is open
+		channelId, found := k.providerKeeper.GetChainToChannel(ctx, chainId)
+		if !found {
+			continue
+		}
+
+		// Send the queued VSC packet immediately
+		ctx.Logger().Info(fmt.Sprintf("force-sending queued VSC packets to a new chainlet %s", chainId))
+		k.providerKeeper.SendVSCPacketsToChain(ctx, chainId, channelId)
+		defer store.Delete(iterator.Key())
+	}
+}

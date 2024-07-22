@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ssc.billing;
+
+option go_package = "github.com/sagaxyz/ssc/x/billing/types";
+
+message BillingHistory {
+
+  string chainletOwner = 1;
+  string chainletName = 2;
+  string chainletId = 3;
+  string chainletStackName = 4;
+  string epochIdentifier = 5;
+  int32 epochNumber = 6;
+  string epochStartTime = 7;
+  string billedAmount = 8;
+}

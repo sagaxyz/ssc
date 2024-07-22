@@ -1,0 +1,12 @@
+syntax = "proto3";
+package ssc.escrow;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
+
+// Params defines the parameters for the module.
+message Params {
+  // option (gogoproto.goproto_stringer) = false;
+  string supportedDenom = 1;
+}

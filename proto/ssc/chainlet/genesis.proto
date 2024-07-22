@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+import "ssc/chainlet/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+// GenesisState defines the chainlet module's genesis state.
+message GenesisState {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+
+  // this line is used by starport scaffolding # genesis/proto/state
+  uint64 numChainlets = 2;
+}

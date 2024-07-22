@@ -1,0 +1,19 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+// Params defines the parameters for the module.
+message Params {
+  bool chainletStackProtections = 1;
+  string nEpochDeposit = 2;
+  bool automaticChainletUpgrades = 3;
+  int64 automaticChainletUpgradeInterval = 4;
+  // Delays launch to give validators time to set the consumer key
+  google.protobuf.Duration launchDelay = 5
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+  uint64 maxChainlets = 6;
+}

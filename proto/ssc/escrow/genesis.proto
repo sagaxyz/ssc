@@ -1,0 +1,14 @@
+syntax = "proto3";
+package ssc.escrow;
+
+import "gogoproto/gogo.proto";
+import "ssc/escrow/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
+
+// GenesisState defines the escrow module's genesis state.
+message GenesisState {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // this line is used by starport scaffolding # genesis/proto/state
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+package ssc.escrow;
+
+import "gogoproto/gogo.proto";
+import "ssc/escrow/params.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
+
+message EventDeposit {
+  string user = 1;
+  string chainlet = 2;
+  string amount = 3;
+  string newTotal = 4;
+}
+
+message EventWithdraw {
+  string user = 1;
+  string chainlet = 2;
+  string amount = 3;
+  string remaining = 4;
+}

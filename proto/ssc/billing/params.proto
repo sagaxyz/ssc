@@ -1,0 +1,13 @@
+syntax = "proto3";
+package ssc.billing;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/billing/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  string validator_payout_epoch = 1;
+}

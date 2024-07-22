@@ -1,0 +1,28 @@
+syntax = "proto3";
+package ssc.chainlet;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "ssc/chainlet/chainlet_params.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
+
+enum Status {
+  STATUS_OFFLINE = 0;
+  STATUS_ONLINE = 1;
+}
+
+message Chainlet {
+  google.protobuf.Timestamp spawnTime = 1
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  string launcher = 2;
+  repeated string maintainers = 3;
+  string chainletStackName = 4;
+  string chainletStackVersion = 5;
+  string chainId = 6;
+  string chainletName = 7;
+  string denom = 8;
+  ChainletParams params = 9 [ (gogoproto.nullable) = false ];
+  Status status = 10;
+  bool autoUpgradeStack = 11;
+}

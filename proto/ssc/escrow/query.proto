@@ -1,0 +1,53 @@
+syntax = "proto3";
+package ssc.escrow;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "ssc/escrow/params.proto";
+import "ssc/escrow/chainlet_account.proto";
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/sagaxyz/ssc/escrow/params";
+  }
+  // Queries a list of Balance items.
+  rpc Balance(QueryBalanceRequest) returns (QueryBalanceResponse) {
+    option (google.api.http).get = "/sagaxyz/ssc/escrow/balance/{address}";
+  }
+
+  // Queries a list of GetChainletAccount items.
+  rpc GetChainletAccount(QueryGetChainletAccountRequest)
+      returns (QueryGetChainletAccountResponse) {
+    option (google.api.http).get =
+        "/sagaxyz/ssc/escrow/get_chainlet_account/{chainId}";
+  }
+
+  // this line is used by starport scaffolding # 2
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryBalanceRequest { string address = 1; }
+
+message QueryBalanceResponse { string balance = 1; }
+
+message QueryGetChainletAccountRequest { string chainId = 1; }
+
+message QueryGetChainletAccountResponse {
+  ChainletAccount account = 1 [ (gogoproto.nullable) = false ];
+}
+
+// this line is used by starport scaffolding # 3

@@ -34,8 +34,8 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 				stack.Fees.EpochLength + " and we only bill for epoch length " + epochIdentifier)
 		}
 	}
-	// do this more efficiently later
-	chainlets, err := k.chainletkeeper.ListChainlets(ctxx, &chainlettypes.QueryListChainletsRequest{Pagination: &query.PageRequest{Limit: 5000}})
+
+	chainlets, err := k.chainletkeeper.ListChainlets(ctxx, &chainlettypes.QueryListChainletsRequest{Pagination: &query.PageRequest{Limit: k.chainletkeeper.GetParams(ctx).MaxChainlets}})
 	if err != nil {
 		ctx.Logger().Error("could not list chainlets. Error: " + err.Error())
 		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlets. Error: "+err.Error())
@@ -115,7 +115,10 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return nil
 	}
 
-	validators := k.stakingkeeper.GetValidators(ctx, 100)
+	validators, err := k.stakingkeeper.GetValidators(ctx, 100)
+	if err != nil {
+		return err
+	}
 	numValidators := len(validators)                                  // number of validators
 	moduleAccount := k.accountkeeper.GetModuleAccount(ctx, "billing") // module account address for the billing module
 	moduleAccountBalance := k.bankkeeper.GetAllBalances(ctx, moduleAccount.GetAddress())

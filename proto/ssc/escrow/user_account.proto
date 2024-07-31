@@ -8,6 +8,5 @@ import "cosmos/base/v1beta1/coin.proto";
 message UserAccount {
 
   repeated string chainlets = 1;
-  repeated cosmos.base.v1beta1.Coin balance = 2
-      [ (gogoproto.nullable) = false ];
+  repeated cosmos.base.v1beta1.Coin balance = 2 [(gogoproto.nullable) = false];
 }

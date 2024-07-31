@@ -9,8 +9,8 @@ import (
 
 	types "github.com/cosmos/cosmos-sdk/types"
 	types0 "github.com/cosmos/cosmos-sdk/x/auth/types"
-	types1 "github.com/cosmos/interchain-security/v4/x/ccv/provider/types"
-	types2 "github.com/cosmos/interchain-security/v4/x/ccv/types"
+	types1 "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
+	types2 "github.com/cosmos/interchain-security/v5/x/ccv/types"
 	gomock "github.com/golang/mock/gomock"
 	types3 "github.com/sagaxyz/saga-sdk/x/acl/types"
 	types4 "github.com/sagaxyz/ssc/x/chainlet/types"

@@ -5,4 +5,5 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
 
-message PendingVSC {}
+message PendingVSC {
+}

@@ -10,9 +10,10 @@ message ChainletStack {
   string creator = 1;
   string displayName = 2;
   string description = 3;
-  repeated ChainletStackParams versions = 4 [ (gogoproto.nullable) = false ];
-  ChainletStackFees fees = 5 [ (gogoproto.nullable) = false ];
+  repeated ChainletStackParams versions = 4 [(gogoproto.nullable) = false];
+  ChainletStackFees fees = 5 [(gogoproto.nullable) = false];
 }
+
 
 message ChainletStackFees {
   string epochFee = 1;

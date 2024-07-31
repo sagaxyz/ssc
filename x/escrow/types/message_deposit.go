@@ -26,19 +26,6 @@ func (msg *MsgDeposit) Type() string {
 	return TypeMsgDeposit
 }
 
-func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgDeposit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
@@ -48,8 +35,7 @@ func (msg *MsgDeposit) ValidateBasic() error {
 	if err != nil {
 		return cosmossdkerrors.Wrapf(ErrInvalidCoin, "invalid coin (%s)", msg.Amount)
 	}
-
-	if !coin.Amount.GT(sdk.ZeroInt()) {
+	if !coin.Amount.IsPositive() {
 		return cosmossdkerrors.Wrapf(ErrInvalidCoin, "must send more than 0 coins (%s)", coin.Amount.String())
 	}
 	return nil

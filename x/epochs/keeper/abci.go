@@ -11,8 +11,9 @@ import (
 )
 
 // BeginBlocker of epochs module.
-func (k Keeper) BeginBlocker(ctx sdk.Context) {
+func (k Keeper) BeginBlocker(ctx sdk.Context) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
+
 	k.IterateEpochInfo(ctx, func(index int64, epochInfo types.EpochInfo) (stop bool) {
 		logger := k.Logger(ctx)
 
@@ -62,4 +63,6 @@ func (k Keeper) BeginBlocker(ctx sdk.Context) {
 
 		return false
 	})
+
+	return nil
 }

@@ -3,13 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+func (k *Keeper) BeginBlock(ctx sdk.Context) error {
 	p := k.GetParams(ctx)
-	if p.AutomaticChainletUpgrades && req.Header.Height%p.AutomaticChainletUpgradeInterval == 0 {
+	if p.AutomaticChainletUpgrades && ctx.BlockHeight()%p.AutomaticChainletUpgradeInterval == 0 {
 		ctx.Logger().Debug("checking chainlets for available upgrades")
 
 		err := k.AutoUpgradeChainlets(ctx)
@@ -21,4 +20,5 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	}
 
 	k.ForcePendingVSC(ctx)
+	return nil
 }

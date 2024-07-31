@@ -7,8 +7,8 @@ import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/sagaxyz/ssc/x/peers/types";
 
+
 message Data {
-  google.protobuf.Timestamp updated = 1
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp updated = 1 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
   repeated string addresses = 2;
 }

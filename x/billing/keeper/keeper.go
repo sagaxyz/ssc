@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/sagaxyz/ssc/x/billing/types"
@@ -15,7 +15,6 @@ type (
 	Keeper struct {
 		cdc            codec.BinaryCodec
 		storeKey       storetypes.StoreKey
-		memKey         storetypes.StoreKey
 		paramstore     paramtypes.Subspace
 		bankkeeper     types.BankKeeper
 		escrowkeeper   types.EscrowKeeper
@@ -28,8 +27,7 @@ type (
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
+	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	bankkeeper types.BankKeeper,
 	escrowkeeper types.EscrowKeeper,
@@ -46,7 +44,6 @@ func NewKeeper(
 	return &Keeper{
 		cdc:            cdc,
 		storeKey:       storeKey,
-		memKey:         memKey,
 		paramstore:     ps,
 		bankkeeper:     bankkeeper,
 		escrowkeeper:   escrowkeeper,
@@ -62,7 +59,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k *Keeper) UpdateKeeper(newKeeper interface{}) {
-
 	if newk, ok := newKeeper.(types.ChainletKeeper); ok {
 		k.chainletkeeper = newk
 	} else if newk, ok := newKeeper.(types.EscrowKeeper); ok {

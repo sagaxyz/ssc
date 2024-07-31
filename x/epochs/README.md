@@ -136,7 +136,7 @@ service Query {
 Query the currently running epochInfos
 
 ```sh
-sscd query epochs epoch-infos
+spcd query epochs epoch-infos
 ```
 
 ::: details Example
@@ -168,7 +168,7 @@ epochs:
 Query the current epoch by the specified identifier
 
 ```sh
-sscd query epochs current-epoch [identifier]
+spcd query epochs current-epoch [identifier]
 ```
 
 ::: details Example
@@ -176,7 +176,7 @@ sscd query epochs current-epoch [identifier]
 Query the current `day` epoch:
 
 ```sh
-sscd query epochs current-epoch day
+spcd query epochs current-epoch day
 ```
 
 Which in this example outputs:

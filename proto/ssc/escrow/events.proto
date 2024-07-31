@@ -13,6 +13,7 @@ message EventDeposit {
   string newTotal = 4;
 }
 
+
 message EventWithdraw {
   string user = 1;
   string chainlet = 2;

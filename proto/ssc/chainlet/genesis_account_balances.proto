@@ -8,4 +8,6 @@ message AccountBalance {
   string balance = 2;
 }
 
-message GenesisAccountBalances { repeated AccountBalance list = 1; }
+message GenesisAccountBalances {
+  repeated AccountBalance list = 1;
+}

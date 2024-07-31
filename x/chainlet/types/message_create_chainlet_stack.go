@@ -31,19 +31,6 @@ func (msg *MsgCreateChainletStack) Type() string {
 	return TypeMsgCreateChainletStack
 }
 
-func (msg *MsgCreateChainletStack) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgCreateChainletStack) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgCreateChainletStack) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
@@ -74,8 +61,7 @@ func (msg *MsgCreateChainletStack) ValidateBasic() error {
 	if err != nil {
 		return ErrInvalidCoin
 	}
-
-	if !coin.Amount.GT(sdk.ZeroInt()) {
+	if !coin.Amount.IsPositive() {
 		return ErrInvalidCoin
 	}
 
@@ -83,8 +69,7 @@ func (msg *MsgCreateChainletStack) ValidateBasic() error {
 	if err != nil {
 		return ErrInvalidCoin
 	}
-
-	if !coin.Amount.GT(sdk.ZeroInt()) {
+	if !coin.Amount.IsPositive() {
 		return ErrInvalidCoin
 	}
 

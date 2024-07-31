@@ -3,7 +3,7 @@ package types
 import (
 	"errors"
 	fmt "fmt"
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"cosmossdk.io/store/types"
 	"runtime"
 	"runtime/debug"
 

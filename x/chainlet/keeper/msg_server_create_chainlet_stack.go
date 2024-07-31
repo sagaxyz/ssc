@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dactypes "github.com/sagaxyz/saga-sdk/x/acl/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -19,8 +18,11 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 
 	p := k.GetParams(ctx)
 	if p.ChainletStackProtections {
-		dacAddr := dactypes.NewAddress(dactypes.AddressFormat_ADDRESS_BECH32, msg.Creator)
-		if !k.dacKeeper.Allowed(ctx, dacAddr) {
+		addr, err := sdk.AccAddressFromBech32(msg.Creator)
+		if err != nil {
+			return &types.MsgCreateChainletStackResponse{}, err
+		}
+		if !k.aclKeeper.Allowed(ctx, addr) {
 			return nil, fmt.Errorf("address %s not allowed to create chainlet stacks", msg.Creator)
 		}
 	}
@@ -29,7 +31,7 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 		Image:    msg.Image,
 		Version:  msg.Version,
 		Checksum: msg.Checksum,
-		Enabled: true,
+		Enabled:  true,
 	}
 	metaDataUpsert := []types.ChainletStackParams{metaData}
 	chainletStack := types.ChainletStack{

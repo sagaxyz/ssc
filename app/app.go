@@ -516,6 +516,7 @@ func New(
 		scopedIBCKeeper,
 	)
 
+	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	app.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
 		keys[packetforwardtypes.StoreKey],
@@ -524,7 +525,7 @@ func New(
 		app.DistrKeeper,
 		app.BankKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.GovKeeper.GetAuthority(),
+		govModuleAddress,
 	)
 
 	// Create Transfer Keepers
@@ -597,7 +598,7 @@ func New(
 		app.StakingKeeper,
 		app.MsgServiceRouter(),
 		govConfig,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		govModuleAddress,
 	)
 	// govkeeper.SetLegacyRouter(govRouter)
 

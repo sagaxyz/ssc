@@ -1,17 +1,17 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	ccvprovidertypes "github.com/cosmos/interchain-security/v4/x/ccv/provider/types"
-	ccvtypes "github.com/cosmos/interchain-security/v4/x/ccv/types"
-	dactypes "github.com/sagaxyz/saga-sdk/x/acl/types"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
+	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
-	GetModuleAccount(ctx sdk.Context, moduleName string) types.ModuleAccountI
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 	// Methods imported from account should be defined here
 }
 
@@ -19,7 +19,7 @@ type BankKeeper interface {
 }
 
 type ProviderKeeper interface {
-	HandleConsumerAdditionProposal(ctx sdk.Context, prop *ccvprovidertypes.ConsumerAdditionProposal) error
+	HandleConsumerAdditionProposal(ctx sdk.Context, prop *ccvprovidertypes.MsgConsumerAddition) error
 	AppendPendingVSCPackets(ctx sdk.Context, chainID string, newPackets ...ccvtypes.ValidatorSetChangePacketData)
 	GetValidatorSetUpdateId(ctx sdk.Context) (validatorSetUpdateId uint64)
 	IncrementValidatorSetUpdateId(ctx sdk.Context)
@@ -37,6 +37,6 @@ type EscrowKeeper interface {
 	NewChainletAccount(ctx sdk.Context, address sdk.AccAddress, chainId string, depositAmount sdk.Coin) error
 }
 
-type DacKeeper interface {
-	Allowed(ctx sdk.Context, addr *dactypes.Address) bool
+type AclKeeper interface {
+	Allowed(ctx sdk.Context, addr sdk.AccAddress) bool
 }

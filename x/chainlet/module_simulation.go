@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simappparams "github.com/cosmos/cosmos-sdk/testutil/sims"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -69,14 +68,14 @@ func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.LegacyParamChange 
 }
 
 // RegisterStoreDecoder registers a decoder
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
+//func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
 
 	var weightMsgCreateChainletStack int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCreateChainletStack, &weightMsgCreateChainletStack, nil,
+	simState.AppParams.GetOrGenerate(opWeightMsgCreateChainletStack, &weightMsgCreateChainletStack, nil,
 		func(_ *rand.Rand) {
 			weightMsgCreateChainletStack = defaultWeightMsgCreateChainletStack
 		},
@@ -87,7 +86,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	))
 
 	var weightMsgLaunchChainlet int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgLaunchChainlet, &weightMsgLaunchChainlet, nil,
+	simState.AppParams.GetOrGenerate(opWeightMsgLaunchChainlet, &weightMsgLaunchChainlet, nil,
 		func(_ *rand.Rand) {
 			weightMsgLaunchChainlet = defaultWeightMsgLaunchChainlet
 		},
@@ -98,7 +97,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	))
 
 	var weightMsgUpdateChainletStack int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgUpdateChainletStack, &weightMsgUpdateChainletStack, nil,
+	simState.AppParams.GetOrGenerate(opWeightMsgUpdateChainletStack, &weightMsgUpdateChainletStack, nil,
 		func(_ *rand.Rand) {
 			weightMsgUpdateChainletStack = defaultWeightMsgUpdateChainletStack
 		},
@@ -109,7 +108,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	))
 
 	var weightMsgUpgradeChainlet int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgUpgradeChainlet, &weightMsgUpgradeChainlet, nil,
+	simState.AppParams.GetOrGenerate(opWeightMsgUpgradeChainlet, &weightMsgUpgradeChainlet, nil,
 		func(_ *rand.Rand) {
 			weightMsgUpgradeChainlet = defaultWeightMsgUpgradeChainlet
 		},

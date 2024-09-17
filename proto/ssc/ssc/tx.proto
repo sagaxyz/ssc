@@ -1,7 +1,0 @@
-syntax = "proto3";
-package ssc.ssc;
-
-option go_package = "github.com/sagaxyz/ssc/x/ssc/types";
-
-// Msg defines the Msg service.
-service Msg {}

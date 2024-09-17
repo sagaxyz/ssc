@@ -26,19 +26,6 @@ func (msg *MsgSetPeers) Type() string {
 	return TypeMsgSetPeers
 }
 
-func (msg *MsgSetPeers) GetSigners() []sdk.AccAddress {
-	v, err := sdk.AccAddressFromBech32(msg.Validator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{v}
-}
-
-func (msg *MsgSetPeers) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgSetPeers) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Validator)
 	if err != nil {

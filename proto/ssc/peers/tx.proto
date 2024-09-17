@@ -3,6 +3,7 @@ syntax = "proto3";
 package ssc.peers;
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -10,10 +11,12 @@ option go_package = "github.com/sagaxyz/ssc/x/peers/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc SetPeers(MsgSetPeers) returns (MsgSetPeersResponse);
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 message MsgSetPeers {
+  option (cosmos.msg.v1.signer) = "validator";
   string validator = 1;
   string chainId = 2;
   repeated string peers = 3;

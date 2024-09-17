@@ -5,15 +5,14 @@
 package testutil
 
 import (
+	context "context"
 	reflect "reflect"
 
 	types "github.com/cosmos/cosmos-sdk/types"
-	types0 "github.com/cosmos/cosmos-sdk/x/auth/types"
-	types1 "github.com/cosmos/interchain-security/v4/x/ccv/provider/types"
-	types2 "github.com/cosmos/interchain-security/v4/x/ccv/types"
+	types0 "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
+	types1 "github.com/cosmos/interchain-security/v5/x/ccv/types"
 	gomock "github.com/golang/mock/gomock"
-	types3 "github.com/sagaxyz/saga-sdk/x/acl/types"
-	types4 "github.com/sagaxyz/ssc/x/chainlet/types"
+	types2 "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -40,10 +39,10 @@ func (m *MockAccountKeeper) EXPECT() *MockAccountKeeperMockRecorder {
 }
 
 // GetAccount mocks base method.
-func (m *MockAccountKeeper) GetAccount(ctx types.Context, addr types.AccAddress) types0.AccountI {
+func (m *MockAccountKeeper) GetAccount(ctx context.Context, addr types.AccAddress) types.AccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
-	ret0, _ := ret[0].(types0.AccountI)
+	ret0, _ := ret[0].(types.AccountI)
 	return ret0
 }
 
@@ -54,10 +53,10 @@ func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr interface{}) *gomo
 }
 
 // GetModuleAccount mocks base method.
-func (m *MockAccountKeeper) GetModuleAccount(ctx types.Context, moduleName string) types0.ModuleAccountI {
+func (m *MockAccountKeeper) GetModuleAccount(ctx context.Context, moduleName string) types.ModuleAccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetModuleAccount", ctx, moduleName)
-	ret0, _ := ret[0].(types0.ModuleAccountI)
+	ret0, _ := ret[0].(types.ModuleAccountI)
 	return ret0
 }
 
@@ -114,7 +113,7 @@ func (m *MockProviderKeeper) EXPECT() *MockProviderKeeperMockRecorder {
 }
 
 // AppendPendingVSCPackets mocks base method.
-func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types2.ValidatorSetChangePacketData) {
+func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types1.ValidatorSetChangePacketData) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, chainID}
 	for _, a := range newPackets {
@@ -175,7 +174,7 @@ func (mr *MockProviderKeeperMockRecorder) GetValidatorSetUpdateId(ctx interface{
 }
 
 // HandleConsumerAdditionProposal mocks base method.
-func (m *MockProviderKeeper) HandleConsumerAdditionProposal(ctx types.Context, prop *types1.ConsumerAdditionProposal) error {
+func (m *MockProviderKeeper) HandleConsumerAdditionProposal(ctx types.Context, prop *types0.MsgConsumerAddition) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HandleConsumerAdditionProposal", ctx, prop)
 	ret0, _ := ret[0].(error)
@@ -236,7 +235,7 @@ func (m *MockBillingKeeper) EXPECT() *MockBillingKeeperMockRecorder {
 }
 
 // BillAccount mocks base method.
-func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types4.Chainlet, epochIdentifier, memo string) error {
+func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types2.Chainlet, epochIdentifier, memo string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, epochIdentifier, memo)
 	ret0, _ := ret[0].(error)
@@ -300,31 +299,31 @@ func (mr *MockEscrowKeeperMockRecorder) NewChainletAccount(ctx, address, chainId
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChainletAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).NewChainletAccount), ctx, address, chainId, depositAmount)
 }
 
-// MockDacKeeper is a mock of DacKeeper interface.
-type MockDacKeeper struct {
+// MockAclKeeper is a mock of AclKeeper interface.
+type MockAclKeeper struct {
 	ctrl     *gomock.Controller
-	recorder *MockDacKeeperMockRecorder
+	recorder *MockAclKeeperMockRecorder
 }
 
-// MockDacKeeperMockRecorder is the mock recorder for MockDacKeeper.
-type MockDacKeeperMockRecorder struct {
-	mock *MockDacKeeper
+// MockAclKeeperMockRecorder is the mock recorder for MockAclKeeper.
+type MockAclKeeperMockRecorder struct {
+	mock *MockAclKeeper
 }
 
-// NewMockDacKeeper creates a new mock instance.
-func NewMockDacKeeper(ctrl *gomock.Controller) *MockDacKeeper {
-	mock := &MockDacKeeper{ctrl: ctrl}
-	mock.recorder = &MockDacKeeperMockRecorder{mock}
+// NewMockAclKeeper creates a new mock instance.
+func NewMockAclKeeper(ctrl *gomock.Controller) *MockAclKeeper {
+	mock := &MockAclKeeper{ctrl: ctrl}
+	mock.recorder = &MockAclKeeperMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockDacKeeper) EXPECT() *MockDacKeeperMockRecorder {
+func (m *MockAclKeeper) EXPECT() *MockAclKeeperMockRecorder {
 	return m.recorder
 }
 
 // Allowed mocks base method.
-func (m *MockDacKeeper) Allowed(ctx types.Context, addr *types3.Address) bool {
+func (m *MockAclKeeper) Allowed(ctx types.Context, addr types.AccAddress) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Allowed", ctx, addr)
 	ret0, _ := ret[0].(bool)
@@ -332,7 +331,7 @@ func (m *MockDacKeeper) Allowed(ctx types.Context, addr *types3.Address) bool {
 }
 
 // Allowed indicates an expected call of Allowed.
-func (mr *MockDacKeeperMockRecorder) Allowed(ctx, addr interface{}) *gomock.Call {
+func (mr *MockAclKeeperMockRecorder) Allowed(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allowed", reflect.TypeOf((*MockDacKeeper)(nil).Allowed), ctx, addr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allowed", reflect.TypeOf((*MockAclKeeper)(nil).Allowed), ctx, addr)
 }

@@ -1,16 +1,12 @@
 package cli
 
 import (
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
 	"github.com/sagaxyz/ssc/x/peers/types"
 )
-
-var _ = strconv.Itoa(0)
 
 func CmdQueryPeers() *cobra.Command {
 	cmd := &cobra.Command{

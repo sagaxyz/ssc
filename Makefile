@@ -203,10 +203,10 @@ all: tools build lint test vulncheck
 # .PHONY: build build-linux-amd64 build-linux-arm64 cosmovisor
 
 
-# mocks: $(MOCKS_DIR)
-# 	@go install github.com/golang/mock/mockgen@v1.6.0
-# 	sh ./scripts/mockgen.sh
-# .PHONY: mocks
+mocks: $(MOCKS_DIR)
+	@go install github.com/golang/mock/mockgen@v1.6.0
+	sh ./scripts/mockgen.sh
+.PHONY: mocks
 
 
 # vulncheck: $(BUILDDIR)/

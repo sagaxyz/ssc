@@ -9,13 +9,12 @@ import (
 	reflect "reflect"
 
 	types "github.com/cosmos/cosmos-sdk/types"
-	types0 "github.com/cosmos/cosmos-sdk/x/auth/types"
-	types1 "github.com/cosmos/cosmos-sdk/x/bank/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	types0 "github.com/cosmos/cosmos-sdk/x/bank/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	gomock "github.com/golang/mock/gomock"
-	types3 "github.com/sagaxyz/ssc/x/chainlet/types"
-	types4 "github.com/sagaxyz/ssc/x/epochs/types"
-	types5 "github.com/sagaxyz/ssc/x/escrow/types"
+	types2 "github.com/sagaxyz/ssc/x/chainlet/types"
+	types3 "github.com/sagaxyz/ssc/x/epochs/types"
+	types4 "github.com/sagaxyz/ssc/x/escrow/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -42,10 +41,10 @@ func (m *MockAccountKeeper) EXPECT() *MockAccountKeeperMockRecorder {
 }
 
 // GetAccount mocks base method.
-func (m *MockAccountKeeper) GetAccount(ctx types.Context, addr types.AccAddress) types0.AccountI {
+func (m *MockAccountKeeper) GetAccount(ctx context.Context, addr types.AccAddress) types.AccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
-	ret0, _ := ret[0].(types0.AccountI)
+	ret0, _ := ret[0].(types.AccountI)
 	return ret0
 }
 
@@ -56,10 +55,10 @@ func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr interface{}) *gomo
 }
 
 // GetModuleAccount mocks base method.
-func (m *MockAccountKeeper) GetModuleAccount(ctx types.Context, moduleName string) types0.ModuleAccountI {
+func (m *MockAccountKeeper) GetModuleAccount(ctx context.Context, moduleName string) types.ModuleAccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetModuleAccount", ctx, moduleName)
-	ret0, _ := ret[0].(types0.ModuleAccountI)
+	ret0, _ := ret[0].(types.ModuleAccountI)
 	return ret0
 }
 
@@ -93,10 +92,10 @@ func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 }
 
 // GetAccountsBalances mocks base method.
-func (m *MockBankKeeper) GetAccountsBalances(ctx types.Context) []types1.Balance {
+func (m *MockBankKeeper) GetAccountsBalances(ctx context.Context) []types0.Balance {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountsBalances", ctx)
-	ret0, _ := ret[0].([]types1.Balance)
+	ret0, _ := ret[0].([]types0.Balance)
 	return ret0
 }
 
@@ -107,7 +106,7 @@ func (mr *MockBankKeeperMockRecorder) GetAccountsBalances(ctx interface{}) *gomo
 }
 
 // GetAllBalances mocks base method.
-func (m *MockBankKeeper) GetAllBalances(ctx types.Context, addr types.AccAddress) types.Coins {
+func (m *MockBankKeeper) GetAllBalances(ctx context.Context, addr types.AccAddress) types.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllBalances", ctx, addr)
 	ret0, _ := ret[0].(types.Coins)
@@ -121,7 +120,7 @@ func (mr *MockBankKeeperMockRecorder) GetAllBalances(ctx, addr interface{}) *gom
 }
 
 // GetBalance mocks base method.
-func (m *MockBankKeeper) GetBalance(ctx types.Context, addr types.AccAddress, denom string) types.Coin {
+func (m *MockBankKeeper) GetBalance(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBalance", ctx, addr, denom)
 	ret0, _ := ret[0].(types.Coin)
@@ -135,7 +134,7 @@ func (mr *MockBankKeeperMockRecorder) GetBalance(ctx, addr, denom interface{}) *
 }
 
 // HasBalance mocks base method.
-func (m *MockBankKeeper) HasBalance(ctx types.Context, addr types.AccAddress, amt types.Coin) bool {
+func (m *MockBankKeeper) HasBalance(ctx context.Context, addr types.AccAddress, amt types.Coin) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasBalance", ctx, addr, amt)
 	ret0, _ := ret[0].(bool)
@@ -149,7 +148,7 @@ func (mr *MockBankKeeperMockRecorder) HasBalance(ctx, addr, amt interface{}) *go
 }
 
 // IterateAccountBalances mocks base method.
-func (m *MockBankKeeper) IterateAccountBalances(ctx types.Context, addr types.AccAddress, cb func(types.Coin) bool) {
+func (m *MockBankKeeper) IterateAccountBalances(ctx context.Context, addr types.AccAddress, cb func(types.Coin) bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "IterateAccountBalances", ctx, addr, cb)
 }
@@ -161,7 +160,7 @@ func (mr *MockBankKeeperMockRecorder) IterateAccountBalances(ctx, addr, cb inter
 }
 
 // IterateAllBalances mocks base method.
-func (m *MockBankKeeper) IterateAllBalances(ctx types.Context, cb func(types.AccAddress, types.Coin) bool) {
+func (m *MockBankKeeper) IterateAllBalances(ctx context.Context, cb func(types.AccAddress, types.Coin) bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "IterateAllBalances", ctx, cb)
 }
@@ -173,7 +172,7 @@ func (mr *MockBankKeeperMockRecorder) IterateAllBalances(ctx, cb interface{}) *g
 }
 
 // LockedCoins mocks base method.
-func (m *MockBankKeeper) LockedCoins(ctx types.Context, addr types.AccAddress) types.Coins {
+func (m *MockBankKeeper) LockedCoins(ctx context.Context, addr types.AccAddress) types.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LockedCoins", ctx, addr)
 	ret0, _ := ret[0].(types.Coins)
@@ -187,7 +186,7 @@ func (mr *MockBankKeeperMockRecorder) LockedCoins(ctx, addr interface{}) *gomock
 }
 
 // SendCoinsFromAccountToModule mocks base method.
-func (m *MockBankKeeper) SendCoinsFromAccountToModule(ctx types.Context, senderAddr types.AccAddress, recipientModule string, amt types.Coins) error {
+func (m *MockBankKeeper) SendCoinsFromAccountToModule(ctx context.Context, senderAddr types.AccAddress, recipientModule string, amt types.Coins) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCoinsFromAccountToModule", ctx, senderAddr, recipientModule, amt)
 	ret0, _ := ret[0].(error)
@@ -201,7 +200,7 @@ func (mr *MockBankKeeperMockRecorder) SendCoinsFromAccountToModule(ctx, senderAd
 }
 
 // SendCoinsFromModuleToAccount mocks base method.
-func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins) error {
+func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCoinsFromModuleToAccount", ctx, senderModule, recipientAddr, amt)
 	ret0, _ := ret[0].(error)
@@ -215,7 +214,7 @@ func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderMo
 }
 
 // SendCoinsFromModuleToModule mocks base method.
-func (m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types.Context, senderModule, recipientModule string, amt types.Coins) error {
+func (m *MockBankKeeper) SendCoinsFromModuleToModule(ctx context.Context, senderModule, recipientModule string, amt types.Coins) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCoinsFromModuleToModule", ctx, senderModule, recipientModule, amt)
 	ret0, _ := ret[0].(error)
@@ -229,7 +228,7 @@ func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToModule(ctx, senderMod
 }
 
 // SpendableCoins mocks base method.
-func (m *MockBankKeeper) SpendableCoins(ctx types.Context, addr types.AccAddress) types.Coins {
+func (m *MockBankKeeper) SpendableCoins(ctx context.Context, addr types.AccAddress) types.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SpendableCoins", ctx, addr)
 	ret0, _ := ret[0].(types.Coins)
@@ -243,7 +242,7 @@ func (mr *MockBankKeeperMockRecorder) SpendableCoins(ctx, addr interface{}) *gom
 }
 
 // ValidateBalance mocks base method.
-func (m *MockBankKeeper) ValidateBalance(ctx types.Context, addr types.AccAddress) error {
+func (m *MockBankKeeper) ValidateBalance(ctx context.Context, addr types.AccAddress) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidateBalance", ctx, addr)
 	ret0, _ := ret[0].(error)
@@ -294,10 +293,10 @@ func (mr *MockEscrowKeeperMockRecorder) BillAccount(ctx, amount, chainId, toModu
 }
 
 // GetKprChainletAccount mocks base method.
-func (m *MockEscrowKeeper) GetKprChainletAccount(ctx types.Context, chainId string) (types5.ChainletAccount, error) {
+func (m *MockEscrowKeeper) GetKprChainletAccount(ctx types.Context, chainId string) (types4.ChainletAccount, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetKprChainletAccount", ctx, chainId)
-	ret0, _ := ret[0].(types5.ChainletAccount)
+	ret0, _ := ret[0].(types4.ChainletAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -331,26 +330,13 @@ func (m *MockStakingKeeper) EXPECT() *MockStakingKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetBondedValidatorsByPower mocks base method.
-func (m *MockStakingKeeper) GetBondedValidatorsByPower(ctx types.Context) []types2.Validator {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBondedValidatorsByPower", ctx)
-	ret0, _ := ret[0].([]types2.Validator)
-	return ret0
-}
-
-// GetBondedValidatorsByPower indicates an expected call of GetBondedValidatorsByPower.
-func (mr *MockStakingKeeperMockRecorder) GetBondedValidatorsByPower(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBondedValidatorsByPower", reflect.TypeOf((*MockStakingKeeper)(nil).GetBondedValidatorsByPower), ctx)
-}
-
 // GetValidators mocks base method.
-func (m *MockStakingKeeper) GetValidators(ctx types.Context, maxRetrieve uint32) []types2.Validator {
+func (m *MockStakingKeeper) GetValidators(ctx context.Context, maxRetrieve uint32) ([]types1.Validator, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValidators", ctx, maxRetrieve)
-	ret0, _ := ret[0].([]types2.Validator)
-	return ret0
+	ret0, _ := ret[0].([]types1.Validator)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetValidators indicates an expected call of GetValidators.
@@ -383,10 +369,10 @@ func (m *MockEpochsKeeper) EXPECT() *MockEpochsKeeperMockRecorder {
 }
 
 // GetEpochInfo mocks base method.
-func (m *MockEpochsKeeper) GetEpochInfo(ctx types.Context, identifier string) types4.EpochInfo {
+func (m *MockEpochsKeeper) GetEpochInfo(ctx types.Context, identifier string) types3.EpochInfo {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEpochInfo", ctx, identifier)
-	ret0, _ := ret[0].(types4.EpochInfo)
+	ret0, _ := ret[0].(types3.EpochInfo)
 	return ret0
 }
 
@@ -434,25 +420,25 @@ func (mr *MockChainletKeeperMockRecorder) ChainletExists(ctx, chainId interface{
 }
 
 // GetChainlet mocks base method.
-func (m *MockChainletKeeper) GetChainlet(goCtx context.Context, req *types3.QueryGetChainletRequest) (*types3.QueryGetChainletResponse, error) {
+func (m *MockChainletKeeper) GetChainlet(ctx context.Context, req *types2.QueryGetChainletRequest) (*types2.QueryGetChainletResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChainlet", goCtx, req)
-	ret0, _ := ret[0].(*types3.QueryGetChainletResponse)
+	ret := m.ctrl.Call(m, "GetChainlet", ctx, req)
+	ret0, _ := ret[0].(*types2.QueryGetChainletResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChainlet indicates an expected call of GetChainlet.
-func (mr *MockChainletKeeperMockRecorder) GetChainlet(goCtx, req interface{}) *gomock.Call {
+func (mr *MockChainletKeeperMockRecorder) GetChainlet(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainlet", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainlet), goCtx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainlet", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainlet), ctx, req)
 }
 
 // GetChainletInfo mocks base method.
-func (m *MockChainletKeeper) GetChainletInfo(ctx types.Context, chainId string) (*types3.Chainlet, error) {
+func (m *MockChainletKeeper) GetChainletInfo(ctx types.Context, chainId string) (*types2.Chainlet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChainletInfo", ctx, chainId)
-	ret0, _ := ret[0].(*types3.Chainlet)
+	ret0, _ := ret[0].(*types2.Chainlet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -464,10 +450,10 @@ func (mr *MockChainletKeeperMockRecorder) GetChainletInfo(ctx, chainId interface
 }
 
 // GetChainletStackInfo mocks base method.
-func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, chainId string) (*types3.ChainletStack, error) {
+func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, chainId string) (*types2.ChainletStack, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChainletStackInfo", ctx, chainId)
-	ret0, _ := ret[0].(*types3.ChainletStack)
+	ret0, _ := ret[0].(*types2.ChainletStack)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -479,10 +465,10 @@ func (mr *MockChainletKeeperMockRecorder) GetChainletStackInfo(ctx, chainId inte
 }
 
 // GetParams mocks base method.
-func (m *MockChainletKeeper) GetParams(ctx types.Context) types3.Params {
+func (m *MockChainletKeeper) GetParams(ctx types.Context) types2.Params {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types3.Params)
+	ret0, _ := ret[0].(types2.Params)
 	return ret0
 }
 
@@ -508,33 +494,33 @@ func (mr *MockChainletKeeperMockRecorder) IsChainletStarted(ctx, chainId interfa
 }
 
 // ListChainletStack mocks base method.
-func (m *MockChainletKeeper) ListChainletStack(goCtx context.Context, req *types3.QueryListChainletStackRequest) (*types3.QueryListChainletStackResponse, error) {
+func (m *MockChainletKeeper) ListChainletStack(ctx context.Context, req *types2.QueryListChainletStackRequest) (*types2.QueryListChainletStackResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListChainletStack", goCtx, req)
-	ret0, _ := ret[0].(*types3.QueryListChainletStackResponse)
+	ret := m.ctrl.Call(m, "ListChainletStack", ctx, req)
+	ret0, _ := ret[0].(*types2.QueryListChainletStackResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListChainletStack indicates an expected call of ListChainletStack.
-func (mr *MockChainletKeeperMockRecorder) ListChainletStack(goCtx, req interface{}) *gomock.Call {
+func (mr *MockChainletKeeperMockRecorder) ListChainletStack(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChainletStack", reflect.TypeOf((*MockChainletKeeper)(nil).ListChainletStack), goCtx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChainletStack", reflect.TypeOf((*MockChainletKeeper)(nil).ListChainletStack), ctx, req)
 }
 
 // ListChainlets mocks base method.
-func (m *MockChainletKeeper) ListChainlets(goCtx context.Context, req *types3.QueryListChainletsRequest) (*types3.QueryListChainletsResponse, error) {
+func (m *MockChainletKeeper) ListChainlets(ctx context.Context, req *types2.QueryListChainletsRequest) (*types2.QueryListChainletsResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListChainlets", goCtx, req)
-	ret0, _ := ret[0].(*types3.QueryListChainletsResponse)
+	ret := m.ctrl.Call(m, "ListChainlets", ctx, req)
+	ret0, _ := ret[0].(*types2.QueryListChainletsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListChainlets indicates an expected call of ListChainlets.
-func (mr *MockChainletKeeperMockRecorder) ListChainlets(goCtx, req interface{}) *gomock.Call {
+func (mr *MockChainletKeeperMockRecorder) ListChainlets(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChainlets", reflect.TypeOf((*MockChainletKeeper)(nil).ListChainlets), goCtx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChainlets", reflect.TypeOf((*MockChainletKeeper)(nil).ListChainlets), ctx, req)
 }
 
 // StartExistingChainlet mocks base method.

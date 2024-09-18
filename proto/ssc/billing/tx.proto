@@ -1,12 +1,15 @@
 syntax = "proto3";
 package ssc.billing;
 
+import "cosmos/msg/v1/msg.proto";
+
 // this line is used by starport scaffolding # proto/tx/import
 
 option go_package = "github.com/sagaxyz/ssc/x/billing/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dactypes "github.com/sagaxyz/saga-sdk/x/acl/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -20,9 +19,13 @@ func (k msgServer) DisableChainletStackVersion(goCtx context.Context, msg *types
 
 	p := k.GetParams(ctx)
 	if p.ChainletStackProtections {
-		dacAddr := dactypes.NewAddress(dactypes.AddressFormat_ADDRESS_BECH32, msg.Creator)
-		if !k.dacKeeper.Allowed(ctx, dacAddr) {
-			err = fmt.Errorf("address %s not allowed to modify chainlet stacks", msg.Creator)
+		var addr sdk.AccAddress
+		addr, err = sdk.AccAddressFromBech32(msg.Creator)
+		if err != nil {
+			return
+		}
+		if !k.aclKeeper.Allowed(ctx, addr) {
+			err = fmt.Errorf("address %s not allowed to disable chainlet stacks", msg.Creator)
 			return
 		}
 	}

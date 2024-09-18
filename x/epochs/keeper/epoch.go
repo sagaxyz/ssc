@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/store/prefix"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/sagaxyz/ssc/x/epochs/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GetEpochInfo returns epoch info by identifier.
@@ -66,9 +66,9 @@ func (k Keeper) DeleteEpochInfo(ctx sdk.Context, identifier string) {
 
 // IterateEpochInfo iterate through epochs.
 func (k Keeper) IterateEpochInfo(ctx sdk.Context, fn func(index int64, epochInfo types.EpochInfo) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixEpoch)
 
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixEpoch)
+	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
 
 	i := int64(0)

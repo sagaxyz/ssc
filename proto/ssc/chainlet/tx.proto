@@ -3,6 +3,7 @@ syntax = "proto3";
 package ssc.chainlet;
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 import "ssc/chainlet/chainlet_params.proto";
 import "ssc/chainlet/chainlet_stack.proto";
 
@@ -12,6 +13,7 @@ option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc CreateChainletStack(MsgCreateChainletStack)
       returns (MsgCreateChainletStackResponse);
   rpc LaunchChainlet(MsgLaunchChainlet) returns (MsgLaunchChainletResponse);
@@ -24,6 +26,7 @@ service Msg {
   rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
 }
 message MsgCreateChainletStack {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string displayName = 2;
   string description = 3;
@@ -36,6 +39,7 @@ message MsgCreateChainletStack {
 message MsgCreateChainletStackResponse {}
 
 message MsgLaunchChainlet {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   repeated string maintainers = 2;
   string chainletStackName = 3;
@@ -50,6 +54,7 @@ message MsgLaunchChainlet {
 message MsgLaunchChainletResponse {}
 
 message MsgUpdateChainletStack {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string displayName = 2;
   string image = 3;
@@ -60,6 +65,7 @@ message MsgUpdateChainletStack {
 message MsgUpdateChainletStackResponse {}
 
 message MsgDisableChainletStackVersion {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string displayName = 2;
   string version = 3;
@@ -68,6 +74,7 @@ message MsgDisableChainletStackVersionResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
 message MsgUpgradeChainlet {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string chainId = 2;
   string stackVersion = 3;

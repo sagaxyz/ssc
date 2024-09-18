@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dactypes "github.com/sagaxyz/saga-sdk/x/acl/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -19,9 +18,12 @@ func (k msgServer) UpdateChainletStack(goCtx context.Context, msg *types.MsgUpda
 
 	p := k.GetParams(ctx)
 	if p.ChainletStackProtections {
-		dacAddr := dactypes.NewAddress(dactypes.AddressFormat_ADDRESS_BECH32, msg.Creator)
-		if !k.dacKeeper.Allowed(ctx, dacAddr) {
-			return nil, fmt.Errorf("address %s not allowed to create chainlet stacks", msg.Creator)
+		addr, err := sdk.AccAddressFromBech32(msg.Creator)
+		if err != nil {
+			return nil, err
+		}
+		if !k.aclKeeper.Allowed(ctx, addr) {
+			return nil, fmt.Errorf("address %s not allowed to update chainlet stacks", msg.Creator)
 		}
 	}
 

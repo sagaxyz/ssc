@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ccvprovidertypes "github.com/cosmos/interchain-security/v4/x/ccv/provider/types"
-	ccvtypes "github.com/cosmos/interchain-security/v4/x/ccv/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
+	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -20,7 +20,7 @@ func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
 
 func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
 	revision := ibcclienttypes.ParseChainID(chainId)
-	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.ConsumerAdditionProposal{
+	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
 		ChainId:                           chainId,
 		InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
 		SpawnTime:                         spawnTime,

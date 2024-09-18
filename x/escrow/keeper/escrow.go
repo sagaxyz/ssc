@@ -6,7 +6,7 @@ import (
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/sagaxyz/ssc/x/escrow/types"
@@ -65,7 +65,7 @@ func (k Keeper) deposit(ctx sdk.Context, address sdk.AccAddress, amount sdk.Coin
 	}
 
 	if chainlet.Balance.Amount.Equal(math.ZeroInt()) {
-		chainlet.Shares = sdk.ZeroDec()
+		chainlet.Shares = math.LegacyZeroDec()
 		chainlet.Funders = make(map[string]types.Funder)
 	}
 
@@ -77,7 +77,7 @@ func (k Keeper) deposit(ctx sdk.Context, address sdk.AccAddress, amount sdk.Coin
 	// Calculation of shares: https://docs.cosmos.network/v0.47/modules/staking#how-shares-are-calculated
 	// S_j = S * T_j / T
 	// Implementation Example: https://github.com/cosmos/cosmos-sdk/blob/bfba5491f39f0e0af100480a3194a30c2dc4b9c3/x/staking/types/validator.go#L326
-	var newShares sdk.Dec
+	var newShares math.LegacyDec
 	if chainlet.Balance.IsPositive() {
 		newShares = chainlet.Shares.MulInt(amount.Amount).QuoInt(chainlet.Balance.Amount)
 	} else if chainlet.Balance.IsZero() {
@@ -230,16 +230,16 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainId string, to
 	return nil
 }
 
-func ScalingFactor(chainlet types.ChainletAccount) sdk.Dec {
+func ScalingFactor(chainlet types.ChainletAccount) math.LegacyDec {
 	totalPoolShares := chainlet.Shares
 	decCoins, _ := sdk.ParseDecCoin(chainlet.Balance.String())
 	totalDeposit := decCoins.Amount
 	if totalDeposit.IsZero() {
-		return sdk.MustNewDecFromStr("1")
+		return math.LegacyMustNewDecFromStr("1")
 	}
 	return totalPoolShares.Quo(totalDeposit)
 }
 
-func InverseScalingFactor(chainlet types.ChainletAccount) sdk.Dec {
-	return sdk.NewDec(int64(1)).Quo(ScalingFactor(chainlet))
+func InverseScalingFactor(chainlet types.ChainletAccount) math.LegacyDec {
+	return math.LegacyNewDec(int64(1)).Quo(ScalingFactor(chainlet))
 }

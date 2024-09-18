@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package ssc.chainlet;
 
 import "gogoproto/gogo.proto";
@@ -7,6 +8,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "ssc/chainlet/params.proto";
 import "ssc/chainlet/chainlet_stack.proto";
 import "ssc/chainlet/chainlet.proto";
+
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";

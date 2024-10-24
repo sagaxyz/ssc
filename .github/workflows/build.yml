@@ -1,0 +1,47 @@
+name: Compile And Test
+on:
+  push:
+    branches:
+      - "**"
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: github.com/sagaxyz/*
+    steps:
+      - name: Set up access to private Go modules
+        env:
+          GITHUB_USER: ${{ secrets.GH_USER }}
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: "./go.mod"
+          cache: true
+      - run: go version
+
+      - name: Compile
+        run: make build
+
+      - name: Test
+        run: go test ./...
+
+      - name: Happypath
+        run: |
+          export PATH=./build/:$PATH
+          ./scripts/ci/prepare-env.sh
+          ./scripts/happypath.sh
+
+      - name: Restart
+        run: |
+          kill $(pgrep -fi sscd)
+          sleep 5
+          rm -rf ~/.ssc/
+          export PATH=./build/:$PATH
+          ./scripts/ci/prepare-env.sh
+          ./scripts/escrow-chainlet-restart.sh

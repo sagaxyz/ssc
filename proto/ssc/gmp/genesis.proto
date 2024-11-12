@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package ssc.gmp;
+
+import "gogoproto/gogo.proto";
+import "ssc/gmp/params.proto";
+
+option go_package = "github.com/sagaxyz/ssc/x/gmp/types";
+
+// GenesisState defines the gmp module's genesis state.
+message GenesisState {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  string port_id = 2;
+}

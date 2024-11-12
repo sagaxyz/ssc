@@ -1,0 +1,7 @@
+syntax = "proto3";
+package ssc.gmp;
+
+option go_package = "github.com/sagaxyz/ssc/x/gmp/types";
+
+// Msg defines the Msg service.
+service Msg {}

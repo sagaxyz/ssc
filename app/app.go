@@ -149,6 +149,7 @@ import (
 	escrowmodule "github.com/sagaxyz/ssc/x/escrow"
 	escrowmodulekeeper "github.com/sagaxyz/ssc/x/escrow/keeper"
 	escrowmoduletypes "github.com/sagaxyz/ssc/x/escrow/types"
+	"github.com/sagaxyz/ssc/x/gmp"
 	peers "github.com/sagaxyz/ssc/x/peers"
 	peerskeeper "github.com/sagaxyz/ssc/x/peers/keeper"
 	peerstypes "github.com/sagaxyz/ssc/x/peers/types"
@@ -784,8 +785,8 @@ func New(
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
-		AddRoute(ccvprovidertypes.ModuleName, providerModule)
-	ibcRouter.AddRoute(gmpmoduletypes.ModuleName, gmpIBCModule)
+		AddRoute(ccvprovidertypes.ModuleName, providerModule).
+		AddRoute(gmpmoduletypes.ModuleName, gmpIBCModule)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -823,6 +824,7 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(),
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
+		gmp.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		providerModule,
@@ -871,6 +873,7 @@ func New(
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
+		gmpmoduletypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		govtypes.ModuleName,
@@ -902,6 +905,7 @@ func New(
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		gmpmoduletypes.ModuleName,
 		ccvprovidertypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
@@ -947,6 +951,7 @@ func New(
 		crisistypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
+		gmpmoduletypes.ModuleName,
 		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ccvprovidertypes.ModuleName,

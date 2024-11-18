@@ -149,7 +149,6 @@ import (
 	escrowmodule "github.com/sagaxyz/ssc/x/escrow"
 	escrowmodulekeeper "github.com/sagaxyz/ssc/x/escrow/keeper"
 	escrowmoduletypes "github.com/sagaxyz/ssc/x/escrow/types"
-	"github.com/sagaxyz/ssc/x/gmp"
 	peers "github.com/sagaxyz/ssc/x/peers"
 	peerskeeper "github.com/sagaxyz/ssc/x/peers/keeper"
 	peerstypes "github.com/sagaxyz/ssc/x/peers/types"
@@ -599,6 +598,7 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
 	)
+	transferIBCModule = gmpmodule.NewIBCModule(app.GmpKeeper, transferIBCModule)
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
@@ -779,14 +779,12 @@ func New(
 	app.CapabilityKeeper.Seal()
 
 	icaControllerStack := icacontroller.NewIBCMiddleware(nil, icaControllerKeeper)
-	gmpIBCModule := gmpmodule.NewIBCModule(app.GmpKeeper, icaControllerStack)
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
-		AddRoute(ccvprovidertypes.ModuleName, providerModule).
-		AddRoute(gmpmoduletypes.ModuleName, gmpIBCModule)
+		AddRoute(ccvprovidertypes.ModuleName, providerModule)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -824,7 +822,7 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(),
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
-		gmp.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper),
+		gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		providerModule,

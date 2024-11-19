@@ -220,10 +220,12 @@ func (im IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}
 		pfmPayload := args[0].(string)
+		ctx.Logger().Info(fmt.Sprintf("Got pfmPayload: %v", pfmPayload))
 		var pfmJSON PFMPayload
 		if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
 		}
+		ctx.Logger().Info(fmt.Sprintf("Parsed pfmPayload: %+v", pfmJSON))
 		// Now update modulePacket with new memo
 		// Convert payload to the new structure
 		forwardPayload := convertToForwardPayload(&pfmJSON)
@@ -241,24 +243,6 @@ func (im IBCModule) OnRecvPacket(
 	default:
 		return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unrecognized message type (%d)", msg.Type))
 	}
-
-	// if err != nil {
-	// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(err, "unable to handle GMP message"))
-	// }
-
-	// ctx.Logger().Info(fmt.Sprintf("OnRecvPacket: %v", modulePacket))
-
-	// ack := im.app.OnRecvPacket(ctx, modulePacket, relayer)
-	// if !ack.Success() {
-	// 	return ack
-	// }
-
-	// ctx.Logger().Info(fmt.Sprintf("Ack after app.OnRecvPacket: %v", ack))
-
-	// if err != nil {
-	// 	return channeltypes.NewErrorAcknowledgement(err)
-	// }
-	// return ack
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

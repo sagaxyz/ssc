@@ -212,11 +212,13 @@ func (im IBCModule) OnRecvPacket(
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
 		payloadType, err := abi.NewType("string", "string", nil)
 		if err != nil {
+			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
 		if err != nil {
+			ctx.Logger().Info(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}
 		pfmPayload := args[0].(string)

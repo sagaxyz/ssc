@@ -1,6 +1,7 @@
 package gmp
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -210,6 +211,13 @@ func (im IBCModule) OnRecvPacket(
 		return nil //?
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
+		decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
+		_, err = base64.StdEncoding.Decode(msg.Payload, decodedPayload)
+		if err != nil {
+			ctx.Logger().Info(fmt.Sprintf("failed to decode base64 payload: %s", err.Error()))
+			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to decode payload (%s)", err.Error()))
+		}
+
 		payloadType, err := abi.NewType("string", "string", nil)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))

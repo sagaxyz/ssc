@@ -17,11 +17,6 @@ import (
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
 
-type GeneralMessageHandler interface {
-	HandleGeneralMessage(ctx sdk.Context, srcChain, srcAddress string, payload []byte) error
-	HandleGeneralMessageWithToken(ctx sdk.Context, srcChain, srcAddress string, payload []byte, receiver string, coin sdk.Coin) error
-}
-
 // Message is attached in ICS20 packet memo field
 type Message struct {
 	SourceChain   string `json:"source_chain"`
@@ -184,6 +179,7 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	// this line is used by starport scaffolding # oracle/packet/module/recv
 
+	ctx.Logger().Info(fmt.Sprintf("OnRecvPacket in gmp: %v", modulePacket))
 	var data transfertypes.FungibleTokenPacketData
 	var err error
 	if err := types.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &data); err != nil {
@@ -198,6 +194,7 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	if msg.Payload == nil {
+		ctx.Logger().Debug(fmt.Sprintf("empty msg.Payload: %v", msg))
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 

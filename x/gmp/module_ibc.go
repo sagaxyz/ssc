@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	cosmossdkerrors "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -13,9 +12,15 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/sagaxyz/ssc/x/gmp/keeper"
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
+
+type GeneralMessageHandler interface {
+	HandleGeneralMessage(ctx sdk.Context, srcChain, srcAddress string, payload []byte) error
+	HandleGeneralMessageWithToken(ctx sdk.Context, srcChain, srcAddress string, payload []byte, receiver string, coin sdk.Coin) error
+}
 
 // Message is attached in ICS20 packet memo field
 type Message struct {
@@ -34,6 +39,23 @@ const (
 	// TypeGeneralMessageWithToken is a general message with token
 	TypeGeneralMessageWithToken
 )
+
+type PFMPayload struct {
+	Receiver string      `json:"receiver"`
+	Channel  string      `json:"channel"`
+	Next     *PFMPayload `json:"next"`
+}
+
+type ForwardPayload struct {
+	Forward *Forward `json:"forward"`
+}
+
+type Forward struct {
+	Receiver string          `json:"receiver"`
+	Port     string          `json:"port"`
+	Channel  string          `json:"channel"`
+	Next     *ForwardPayload `json:"next,omitempty"`
+}
 
 type IBCModule struct {
 	keeper keeper.Keeper
@@ -160,77 +182,86 @@ func (im IBCModule) OnRecvPacket(
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	// var ack channeltypes.Acknowledgement
-
-	// // this line is used by starport scaffolding # oracle/packet/module/recv
-
-	// var modulePacketData types.GmpPacketData
-	// if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-	// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error()))
-	// }
-
-	// // Dispatch packet
-	// switch packet := modulePacketData.Packet.(type) {
-	// // this line is used by starport scaffolding # ibc/packet/module/recv
-	// default:
-	// 	err := fmt.Errorf("unrecognized %s packet type: %T", types.ModuleName, packet)
-	// 	return channeltypes.NewErrorAcknowledgement(err)
-	// }
-
-	// // NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	// return ack
-
-	ctx.Logger().Info(fmt.Sprintf("OnRecvPacket: %v", modulePacket))
-
-	ack := im.app.OnRecvPacket(ctx, modulePacket, relayer)
-	if !ack.Success() {
-		return ack
-	}
-
-	ctx.Logger().Info(fmt.Sprintf("Ack after app.OnRecvPacket: %v", ack))
+	// this line is used by starport scaffolding # oracle/packet/module/recv
 
 	var data transfertypes.FungibleTokenPacketData
+	var err error
 	if err := types.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &data); err != nil {
-		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("cannot unmarshal ICS-20 transfer packet data"))
+		ctx.Logger().Debug(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
+		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 
-	// authenticate the message with packet sender + channel-id
-	// TODO: authenticate the message with channel-id
+	var msg Message
+	if err = json.Unmarshal([]byte(data.GetMemo()), &msg); err != nil {
+		ctx.Logger().Debug(fmt.Sprintf("cannot unmarshal memo: %s", err.Error()))
+		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+	}
+
+	if msg.Payload == nil {
+		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+	}
+
+	// // authenticate the message with packet sender + channel-id
+	// // TODO: authenticate the message with channel-id
 	// if data.Sender != AxelarGMPAcc {
 	// 	return ack
 	// }
 
-	var msg Message
-	var err error
-
-	if err = json.Unmarshal([]byte(data.GetMemo()), &msg); err != nil {
-		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("cannot unmarshal memo"))
-	}
-
 	switch msg.Type {
 	case TypeGeneralMessage:
-		// implement the handler
-		// err = im.handler.HandleGeneralMessage(ctx, msg.SourceChain, msg.SourceAddress, data.Receiver, msg.Payload)
+		ctx.Logger().Info(fmt.Sprintf("Got pure general message: %v", msg))
+		return nil //?
 	case TypeGeneralMessageWithToken:
-		// parse the transfer amount
-		amt, ok := math.NewIntFromString(data.Amount)
-		if !ok {
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidAmount, "unable to parse transfer amount (%s) into sdk.Int", data.Amount))
+		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
+		payloadType, err := abi.NewType("string", "string", nil)
+		if err != nil {
+			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
-		denom := parseDenom(modulePacket, data.Denom)
-		ctx.Logger().Info(fmt.Sprintf("parsed amount %s, denom %s", amt.String(), denom))
-		// implement the handler
-		// err = im.handler.HandleGeneralMessageWithToken(ctx, msg.SourceChain, msg.SourceAddress, data.Receiver, msg.Payload, sdk.NewCoin(denom, amt))
+		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
+		if err != nil {
+			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
+		}
+		pfmPayload := args[0].(string)
+		var pfmJSON PFMPayload
+		if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
+			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
+		}
+		// Now update modulePacket with new memo
+		// Convert payload to the new structure
+		forwardPayload := convertToForwardPayload(&pfmJSON)
+		updatedMemo, err := json.Marshal(forwardPayload)
+		if err != nil {
+			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "memo convertion error: %s", err.Error()))
+		}
+		data.Memo = string(updatedMemo)
+		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
+		if err != nil {
+			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot marshal updated data: %s", err.Error()))
+		}
+		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+
 	default:
-		err = fmt.Errorf("unrecognized mesasge type: %d", msg.Type)
+		return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unrecognized message type (%d)", msg.Type))
 	}
 
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
+	// if err != nil {
+	// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(err, "unable to handle GMP message"))
+	// }
 
-	return ack
+	// ctx.Logger().Info(fmt.Sprintf("OnRecvPacket: %v", modulePacket))
+
+	// ack := im.app.OnRecvPacket(ctx, modulePacket, relayer)
+	// if !ack.Success() {
+	// 	return ack
+	// }
+
+	// ctx.Logger().Info(fmt.Sprintf("Ack after app.OnRecvPacket: %v", ack))
+
+	// if err != nil {
+	// 	return channeltypes.NewErrorAcknowledgement(err)
+	// }
+	// return ack
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -250,6 +281,21 @@ func (im IBCModule) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	return im.app.OnTimeoutPacket(ctx, modulePacket, relayer)
+}
+
+// Recursive function to convert PFMPayload to ForwardPayload
+func convertToForwardPayload(pfm *PFMPayload) *ForwardPayload {
+	if pfm == nil {
+		return nil
+	}
+	return &ForwardPayload{
+		Forward: &Forward{
+			Receiver: pfm.Receiver,
+			Port:     "transfer",
+			Channel:  pfm.Channel,
+			Next:     convertToForwardPayload(pfm.Next),
+		},
+	}
 }
 
 func parseDenom(packet channeltypes.Packet, denom string) string {

@@ -1,7 +1,6 @@
 package gmp
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -211,25 +210,25 @@ func (im IBCModule) OnRecvPacket(
 		return nil //?
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
-		ctx.Logger().Info(fmt.Sprintf("Payload is: %v", msg.Payload))
-		payloadStr := string(msg.Payload)
-		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %s", payloadStr))
-		ctx.Logger().Info(fmt.Sprintf("Length of slice: %d; of string: %d", len(msg.Payload), len(payloadStr)))
-		decodedPayload, err := base64.StdEncoding.DecodeString(payloadStr)
-		// decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
-		// _, err = base64.StdEncoding.Decode(decodedPayload, msg.Payload)
-		if err != nil {
-			ctx.Logger().Info(fmt.Sprintf("failed to decode base64 payload: %s", err.Error()))
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to decode payload (%s)", err.Error()))
-		}
+		// ctx.Logger().Info(fmt.Sprintf("Payload is: %v", msg.Payload))
+		// payloadStr := string(msg.Payload)
+		// ctx.Logger().Info(fmt.Sprintf("Got general message with token: %s", payloadStr))
+		// ctx.Logger().Info(fmt.Sprintf("Length of slice: %d; of string: %d", len(msg.Payload), len(payloadStr)))
+		// // decodedPayload, err := base64.StdEncoding.DecodeString(payloadStr)
+		// // decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
+		// // _, err = base64.StdEncoding.Decode(decodedPayload, msg.Payload)
+		// if err != nil {
+		// 	ctx.Logger().Info(fmt.Sprintf("failed to decode base64 payload: %s", err.Error()))
+		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to decode payload (%s)", err.Error()))
+		// }
 
-		payloadType, err := abi.NewType("string", "string", nil)
+		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
-		args, err := abi.Arguments{{Type: payloadType}}.Unpack(decodedPayload)
+		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))

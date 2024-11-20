@@ -90,3 +90,16 @@ func (k *Keeper) LatestVersion(ctx sdk.Context, stackName string, version string
 
 	return k.stackVersions[stackName].LatestCompatible(version)
 }
+
+// Testing helpers
+func (k *Keeper) Versions(stack string) []string {
+	s := k.stackVersions[stack]
+	if s == nil {
+		return nil
+	}
+
+	return s.Export()
+}
+func (k *Keeper) DeleteVersions() {
+	k.stackVersions = nil
+}

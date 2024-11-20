@@ -112,63 +112,54 @@ func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
 	}
 
 	for i, tt := range tests {
-		tt := tt
-		fn := func(loaded bool) func() {
-			return func() {
-				s.SetupTest()
+		s.Run(fmt.Sprintf("%d: %s -> %s", i, tt.current, tt.expectedLatest), func() {
+			s.SetupTest()
 
-				if loaded {
-					panic("not implemented")
-				}
-
-				var err error
-				// Add all stack versions
-				for j, ver := range tt.addedVersions {
-					if j == 0 {
-						_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-							creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
-						))
-						s.Require().NoError(err)
-					} else {
-						_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
-							creator.String(), "test", "test/test:"+ver, ver, "abcd"+ver,
-						))
-						s.Require().NoError(err)
-					}
-				}
-				// Launch a testing chainlet
-				s.escrowKeeper.EXPECT().
-					NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
-				s.billingKeeper.EXPECT().
-					BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return(nil)
-				chainId := "test_12345-42"
-				_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-					creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{},
-				))
-				s.Require().NoError(err)
-
-				// Disable specified stack versions
-				for _, ver := range tt.disabledVersions {
-					_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), "test", ver))
+			var err error
+			// Add all stack versions
+			for j, ver := range tt.addedVersions {
+				if j == 0 {
+					_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
+						creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
+					))
+					s.Require().NoError(err)
+				} else {
+					_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
+						creator.String(), "test", "test/test:"+ver, ver, "abcd"+ver,
+					))
 					s.Require().NoError(err)
 				}
-
-				// Check it directly
-				lv, err := s.chainletKeeper.LatestVersion(s.ctx, "test", tt.current)
-				s.Require().NoError(err)
-				s.Require().Equal(tt.expectedLatest, lv)
-
-				// Check it with a chainlet auto-upgrade
-				err = s.chainletKeeper.AutoUpgradeChainlets(s.ctx)
-				s.Require().NoError(err)
-				chainlet, err := s.chainletKeeper.Chainlet(s.ctx, chainId)
-				s.Require().NoError(err)
-				s.Require().Equal(tt.expectedLatest, chainlet.ChainletStackVersion)
 			}
-		}
-		s.Run(fmt.Sprintf("%d: %s -> %s", i, tt.current, tt.expectedLatest), fn(false))
-		//s.Run(fmt.Sprintf("%d: %s -> %s", i, tt.current, tt.expectedLatest), fn(true)) //TODO implement version of the test where the versions are loaded from an already existing state
+			// Launch a testing chainlet
+			s.escrowKeeper.EXPECT().
+				NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(nil)
+			s.billingKeeper.EXPECT().
+				BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(nil)
+			chainId := "test_12345-42"
+			_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
+				creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{},
+			))
+			s.Require().NoError(err)
+
+			// Disable specified stack versions
+			for _, ver := range tt.disabledVersions {
+				_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), "test", ver))
+				s.Require().NoError(err)
+			}
+
+			// Check it directly
+			lv, err := s.chainletKeeper.LatestVersion(s.ctx, "test", tt.current)
+			s.Require().NoError(err)
+			s.Require().Equal(tt.expectedLatest, lv)
+
+			// Check it with a chainlet auto-upgrade
+			err = s.chainletKeeper.AutoUpgradeChainlets(s.ctx)
+			s.Require().NoError(err)
+			chainlet, err := s.chainletKeeper.Chainlet(s.ctx, chainId)
+			s.Require().NoError(err)
+			s.Require().Equal(tt.expectedLatest, chainlet.ChainletStackVersion)
+		})
 	}
 }

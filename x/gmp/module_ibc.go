@@ -3,6 +3,7 @@ package gmp
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -235,14 +236,17 @@ func (im IBCModule) OnRecvPacket(
 		}
 		pfmPayload := args[0].(string)
 		ctx.Logger().Info(fmt.Sprintf("Got pfmPayload: %v", pfmPayload))
-		var pfmJSON PFMPayload
-		if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
-		}
-		ctx.Logger().Info(fmt.Sprintf("Parsed pfmPayload: %+v", pfmJSON))
+		// pfmPayload is like saga1azf8fv5x9l5n9lh8h5s4l9m9ju76xhd9fhjjqk,channel-1
+		forwardAddress, channelID := strings.Split(pfmPayload, ",")[0], strings.Split(pfmPayload, ",")[1]
+		updatedPfmPayload := &PFMPayload{forwardAddress, channelID, nil}
+		// var pfmJSON PFMPayload
+		// if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
+		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
+		// }
+		ctx.Logger().Info(fmt.Sprintf("Updated pfmPayload: %+v", updatedPfmPayload))
 		// Now update modulePacket with new memo
 		// Convert payload to the new structure
-		forwardPayload := convertToForwardPayload(&pfmJSON)
+		forwardPayload := convertToForwardPayload(updatedPfmPayload)
 		updatedMemo, err := json.Marshal(forwardPayload)
 		if err != nil {
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "memo convertion error: %s", err.Error()))

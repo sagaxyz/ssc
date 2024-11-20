@@ -211,8 +211,11 @@ func (im IBCModule) OnRecvPacket(
 		return nil //?
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
-		decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
-		_, err = base64.StdEncoding.Decode(decodedPayload, msg.Payload)
+		payloadStr := string(msg.Payload)
+		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %s", payloadStr))
+		decodedPayload, err := base64.StdEncoding.DecodeString(payloadStr)
+		// decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
+		// _, err = base64.StdEncoding.Decode(decodedPayload, msg.Payload)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to decode base64 payload: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to decode payload (%s)", err.Error()))

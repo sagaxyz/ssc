@@ -8,12 +8,10 @@ import (
 
 	"github.com/sagaxyz/ssc/x/chainlet/keeper"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 //nolint:unused
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
 	k, ctx := keepertest.ChainletKeeper(t)
-	return keeper.NewMsgServerImpl(k), sdk.WrapSDKContext(ctx)
+	return keeper.NewMsgServerImpl(k), ctx
 }

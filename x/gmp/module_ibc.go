@@ -3,6 +3,7 @@ package gmp
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -227,21 +228,28 @@ func (im IBCModule) OnRecvPacket(
 
 		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
+			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
 		if err != nil {
+			ctx.Logger().Info(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}
 		pfmPayload := args[0].(string)
-		var pfmJSON PFMPayload
-		if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
-		}
+		ctx.Logger().Info(fmt.Sprintf("Got pfmPayload: %v", pfmPayload))
+		// pfmPayload is like saga1azf8fv5x9l5n9lh8h5s4l9m9ju76xhd9fhjjqk,channel-1
+		forwardAddress, channelID := strings.Split(pfmPayload, ",")[0], strings.Split(pfmPayload, ",")[1]
+		updatedPfmPayload := &PFMPayload{forwardAddress, channelID, nil}
+		// var pfmJSON PFMPayload
+		// if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
+		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
+		// }
+		ctx.Logger().Info(fmt.Sprintf("Updated pfmPayload: %+v", updatedPfmPayload))
 		// Now update modulePacket with new memo
 		// Convert payload to the new structure
-		forwardPayload := convertToForwardPayload(&pfmJSON)
+		forwardPayload := convertToForwardPayload(updatedPfmPayload)
 		updatedMemo, err := json.Marshal(forwardPayload)
 		if err != nil {
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "memo convertion error: %s", err.Error()))

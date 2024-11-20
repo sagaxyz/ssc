@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/sagaxyz/ssc/testutil/keeper"
 	"github.com/sagaxyz/ssc/x/escrow/keeper"
 	"github.com/sagaxyz/ssc/x/escrow/types"
@@ -12,5 +11,5 @@ import (
 
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) { //nolint:unused
 	k, ctx := keepertest.EscrowKeeper(t)
-	return keeper.NewMsgServerImpl(*k), sdk.WrapSDKContext(ctx)
+	return keeper.NewMsgServerImpl(*k), ctx
 }

@@ -16,12 +16,10 @@ import (
 
 // BeforeEpochStart is the epoch start hook.
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	ctxx := sdk.WrapSDKContext(ctx)
-
-	stacks, err := k.chainletkeeper.ListChainletStack(ctxx, &chainlettypes.QueryListChainletStackRequest{})
+	stacks, err := k.chainletkeeper.ListChainletStack(ctx, &chainlettypes.QueryListChainletStackRequest{})
 	if err != nil {
 		ctx.Logger().Error("could not list chainlet stacks. Error: " + err.Error())
-		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlet stacks. Error: "+err.Error())
+		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlet stacks. Error: %s", err.Error())
 	}
 
 	kvs := make(map[string]*chainlettypes.ChainletStack)
@@ -35,10 +33,10 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 		}
 	}
 
-	chainlets, err := k.chainletkeeper.ListChainlets(ctxx, &chainlettypes.QueryListChainletsRequest{Pagination: &query.PageRequest{Limit: k.chainletkeeper.GetParams(ctx).MaxChainlets}})
+	chainlets, err := k.chainletkeeper.ListChainlets(ctx, &chainlettypes.QueryListChainletsRequest{Pagination: &query.PageRequest{Limit: k.chainletkeeper.GetParams(ctx).MaxChainlets}})
 	if err != nil {
 		ctx.Logger().Error("could not list chainlets. Error: " + err.Error())
-		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlets. Error: "+err.Error())
+		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlets. Error: %s", err.Error())
 	}
 
 	epochInfo := k.epochskeeper.GetEpochInfo(ctx, epochIdentifier)

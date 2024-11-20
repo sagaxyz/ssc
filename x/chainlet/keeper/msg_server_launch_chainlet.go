@@ -95,7 +95,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	totalFee := epochfee.Add(setupfee)
 	err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, stack.ChainletStack.Fees.EpochLength, "launching chainlet")
 	if err != nil {
-		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, fmt.Sprintf("%v", err))
+		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "failed to bill new account %s", err.Error())
 	}
 
 	// Add as a CCV consumer

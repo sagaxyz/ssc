@@ -215,7 +215,7 @@ func (im IBCModule) OnRecvPacket(
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
 		decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
-		_, err = base64.StdEncoding.Decode(msg.Payload, decodedPayload)
+		_, err = base64.StdEncoding.Decode(decodedPayload, msg.Payload)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to decode base64 payload: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to decode payload (%s)", err.Error()))
@@ -226,7 +226,7 @@ func (im IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
-		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
+		args, err := abi.Arguments{{Type: payloadType}}.Unpack(decodedPayload)
 		if err != nil {
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}

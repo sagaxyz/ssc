@@ -214,18 +214,6 @@ func (im IBCModule) OnRecvPacket(
 		return nil //?
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
-		// ctx.Logger().Info(fmt.Sprintf("Payload is: %v", msg.Payload))
-		// payloadStr := string(msg.Payload)
-		// ctx.Logger().Info(fmt.Sprintf("Got general message with token: %s", payloadStr))
-		// ctx.Logger().Info(fmt.Sprintf("Length of slice: %d; of string: %d", len(msg.Payload), len(payloadStr)))
-		// // decodedPayload, err := base64.StdEncoding.DecodeString(payloadStr)
-		// // decodedPayload := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Payload)))
-		// // _, err = base64.StdEncoding.Decode(decodedPayload, msg.Payload)
-		// if err != nil {
-		// 	ctx.Logger().Info(fmt.Sprintf("failed to decode base64 payload: %s", err.Error()))
-		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to decode payload (%s)", err.Error()))
-		// }
-
 		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
@@ -242,10 +230,6 @@ func (im IBCModule) OnRecvPacket(
 		// pfmPayload is like saga1azf8fv5x9l5n9lh8h5s4l9m9ju76xhd9fhjjqk,channel-1
 		forwardAddress, channelID := strings.Split(pfmPayload, ",")[0], strings.Split(pfmPayload, ",")[1]
 		updatedPfmPayload := &PFMPayload{forwardAddress, channelID, nil}
-		// var pfmJSON PFMPayload
-		// if err = json.Unmarshal([]byte(pfmPayload), &pfmJSON); err != nil {
-		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot unmarshal pfm payload: %s", err.Error()))
-		// }
 		ctx.Logger().Info(fmt.Sprintf("Updated pfmPayload: %+v", updatedPfmPayload))
 		// Now update modulePacket with new memo
 		// Convert payload to the new structure

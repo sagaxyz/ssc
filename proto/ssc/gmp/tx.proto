@@ -2,6 +2,16 @@ syntax = "proto3";
 package ssc.gmp;
 
 option go_package = "github.com/sagaxyz/ssc/x/gmp/types";
+import "cosmos/base/v1beta1/coin.proto";
 
 // Msg defines the Msg service.
-service Msg {}
+service Msg { rpc Transfer(MsgMultiSend) returns (MsgMultiSendResponse); }
+
+message MsgMultiSend {
+  string from_address = 1;
+  string to_address = 2;
+  cosmos.base.v1beta1.Coin amount = 3;
+  string destination_chain = 4;
+}
+
+message MsgMultiSendResponse {}

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	cosmossdkerrors "cosmossdk.io/errors"
@@ -10,6 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -27,6 +30,7 @@ type (
 		channelKeeper types.ChannelKeeper
 		portKeeper    types.PortKeeper
 		scopedKeeper  exported.ScopedKeeper
+		ibcKeeper     ibctransferkeeper.Keeper
 	}
 )
 
@@ -38,6 +42,7 @@ func NewKeeper(
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	scopedKeeper exported.ScopedKeeper,
+	ibcKeeper ibctransferkeeper.Keeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -54,6 +59,7 @@ func NewKeeper(
 		channelKeeper: channelKeeper,
 		portKeeper:    portKeeper,
 		scopedKeeper:  scopedKeeper,
+		ibcKeeper:     ibcKeeper,
 	}
 }
 
@@ -109,4 +115,14 @@ func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) Transfer(goCtx context.Context, msg *ibctransfertypes.MsgTransfer) (*types.MsgMultiSendResponse, error) {
+	// TODO: msg.Receiver == AxelarGMPAcc
+
+	_, err := k.ibcKeeper.Transfer(goCtx, msg)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgMultiSendResponse{}, nil
 }

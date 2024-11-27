@@ -18,6 +18,7 @@ import (
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
@@ -87,6 +88,7 @@ func GmpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		gmpChannelKeeper{},
 		gmpPortKeeper{},
 		capabilityKeeper.ScopeToModule("GmpScopedKeeper"),
+		ibctransferkeeper.Keeper{},
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, logger)

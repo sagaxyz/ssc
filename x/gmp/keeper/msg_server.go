@@ -86,7 +86,7 @@ func (k msgServer) Transfer(goCtx context.Context, msg *types.MsgMultiSend) (*ty
 
 	ibcMessage := ibctransfertypes.NewMsgTransfer(
 		ibctransfertypes.PortID,
-		"channel-17", // hard-coded channel id for demo
+		"channel-0", // hard-coded channel id for demo
 		*msg.Amount,
 		msg.FromAddress,
 		AxelarGMPAcc, // TODO: use config

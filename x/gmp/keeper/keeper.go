@@ -92,6 +92,7 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 
 // GetPort returns the portID for the IBC app module. Used in ExportGenesis
 func (k Keeper) GetPort(ctx sdk.Context) string {
+	ctx.Logger().Info(fmt.Sprintf("store key: %+v", k.storeKey))
 	store := ctx.KVStore(k.storeKey)
 	return string(store.Get(types.PortKey))
 }

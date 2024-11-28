@@ -50,9 +50,7 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	fmt.Printf("NewKeeper: store key: %+v\n", storeKey)
-
-	keeper := &Keeper{
+	return &Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
 		memKey:     memKey,
@@ -63,8 +61,6 @@ func NewKeeper(
 		scopedKeeper:  scopedKeeper,
 		ibcKeeper:     ibcKeeper,
 	}
-	fmt.Printf("NewKeeper: store key: %+v, keeper address: %p\n", keeper.storeKey, keeper)
-	return keeper
 }
 
 // ----------------------------------------------------------------------------

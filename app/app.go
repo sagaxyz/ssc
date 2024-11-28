@@ -761,8 +761,6 @@ func New(
 	scopedGmpKeeper := app.CapabilityKeeper.ScopeToModule(gmpmoduletypes.ModuleName)
 	app.ScopedGmpKeeper = scopedGmpKeeper
 
-	fmt.Printf("app.go: before NewKeeper: store key: %+v\n", keys[gmpmoduletypes.StoreKey])
-
 	app.GmpKeeper = *gmpmodulekeeper.NewKeeper(
 		appCodec,
 		keys[gmpmoduletypes.StoreKey],
@@ -773,7 +771,6 @@ func New(
 		scopedGmpKeeper,
 		app.TransferKeeper,
 	)
-	fmt.Printf("app.go: after NewKeeper: store key: %+v\n", app.GmpKeeper)
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
 	transferIBCModule = gmpmodule.NewIBCModule(app.GmpKeeper, transferIBCModule)
 

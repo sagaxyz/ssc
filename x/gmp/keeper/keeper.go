@@ -50,10 +50,10 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	fmt.Printf("NewKeeper: store key: %+v", storeKey)
-	fmt.Printf("NewKeeper: mem key: %+v", memKey)
+	fmt.Printf("NewKeeper: store key: %+v\n", storeKey)
+	fmt.Printf("NewKeeper: mem key: %+v\n", memKey)
 
-	return &Keeper{
+	keeper := &Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
 		memKey:     memKey,
@@ -64,6 +64,8 @@ func NewKeeper(
 		scopedKeeper:  scopedKeeper,
 		ibcKeeper:     ibcKeeper,
 	}
+	fmt.Printf("NewKeeper: store key: %+v, keeper address: %p\n", keeper.storeKey, keeper)
+	return keeper
 }
 
 // ----------------------------------------------------------------------------
@@ -95,7 +97,7 @@ func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
 
 // GetPort returns the portID for the IBC app module. Used in ExportGenesis
 func (k Keeper) GetPort(ctx sdk.Context) string {
-	ctx.Logger().Info(fmt.Sprintf("store key: %+v", k.storeKey))
+	ctx.Logger().Info(fmt.Sprintf("store key: %+v, keeper: %p", k.storeKey, &k))
 	store := ctx.KVStore(k.storeKey)
 	return string(store.Get(types.PortKey))
 }

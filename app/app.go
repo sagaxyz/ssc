@@ -760,6 +760,10 @@ func New(
 
 	scopedGmpKeeper := app.CapabilityKeeper.ScopeToModule(gmpmoduletypes.ModuleName)
 	app.ScopedGmpKeeper = scopedGmpKeeper
+
+	fmt.Printf("gmpmodulekeeper.NewKeeper: store key: %+v", keys[gmpmoduletypes.StoreKey])
+	fmt.Printf("gmpmodulekeeper.NewKeeper: mem key: %+v", keys[gmpmoduletypes.MemStoreKey])
+
 	app.GmpKeeper = *gmpmodulekeeper.NewKeeper(
 		appCodec,
 		keys[gmpmoduletypes.StoreKey],

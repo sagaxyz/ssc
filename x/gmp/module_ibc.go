@@ -77,6 +77,8 @@ func (im IBCModule) OnChanOpenInit(
 	version string,
 ) (string, error) {
 
+	ctx.Logger().Info(fmt.Sprintf("ccontext: %+v", ctx))
+
 	// Require portID is the portID module is bound to
 	boundPort := im.keeper.GetPort(ctx)
 	if boundPort != portID {

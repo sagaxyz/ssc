@@ -51,7 +51,6 @@ func NewKeeper(
 	}
 
 	fmt.Printf("NewKeeper: store key: %+v\n", storeKey)
-	fmt.Printf("NewKeeper: mem key: %+v\n", memKey)
 
 	keeper := &Keeper{
 		cdc:        cdc,

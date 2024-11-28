@@ -598,7 +598,7 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
 	)
-	transferIBCModule = gmpmodule.NewIBCModule(app.GmpKeeper, transferIBCModule)
+	// transferIBCModule = gmpmodule.NewIBCModule(app.GmpKeeper, transferIBCModule)
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
@@ -761,8 +761,7 @@ func New(
 	scopedGmpKeeper := app.CapabilityKeeper.ScopeToModule(gmpmoduletypes.ModuleName)
 	app.ScopedGmpKeeper = scopedGmpKeeper
 
-	fmt.Printf("gmpmodulekeeper.NewKeeper: store key: %+v\n", keys[gmpmoduletypes.StoreKey])
-	fmt.Printf("gmpmodulekeeper.NewKeeper: mem key: %+v\n", keys[gmpmoduletypes.MemStoreKey])
+	fmt.Printf("app.go: before NewKeeper: store key: %+v\n", keys[gmpmoduletypes.StoreKey])
 
 	app.GmpKeeper = *gmpmodulekeeper.NewKeeper(
 		appCodec,
@@ -774,7 +773,9 @@ func New(
 		scopedGmpKeeper,
 		app.TransferKeeper,
 	)
+	fmt.Printf("app.go: after NewKeeper: store key: %+v\n", app.GmpKeeper)
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
+	transferIBCModule = gmpmodule.NewIBCModule(app.GmpKeeper, transferIBCModule)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 

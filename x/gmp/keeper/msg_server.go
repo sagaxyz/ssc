@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,6 +51,8 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (k msgServer) Transfer(goCtx context.Context, msg *types.MsgMultiSend) (*types.MsgMultiSendResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	ctx.Logger().Info(fmt.Sprintf("Got MultiSend message: %+v", *msg))
+
 	// sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	// if err != nil {
 	// 	return nil, err
@@ -95,10 +98,14 @@ func (k msgServer) Transfer(goCtx context.Context, msg *types.MsgMultiSend) (*ty
 		string(bz),
 	)
 
+	ctx.Logger().Info(fmt.Sprintf("About to do IBC transfer, message: %+v", *ibcMessage))
+
 	res, err := k.keeper.Transfer(goCtx, ibcMessage)
+	ctx.Logger().Info(fmt.Sprintf("After IBC transfer, err: %s", err.Error()))
 	if err != nil {
 		return nil, err
 	}
+	ctx.Logger().Info("After IBC transfer, no err")
 
 	return res, nil
 }

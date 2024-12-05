@@ -1,6 +1,7 @@
 package gmp
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -213,11 +214,14 @@ func (im IBCModule) OnRecvPacket(
 		return nil //?
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
-		payloadType, err := abi.NewType("bytes", "", nil)
+		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
+
+		hexData := hex.EncodeToString(msg.Payload)
+		ctx.Logger().Info(fmt.Sprintf("ABI-encoded data: %v", hexData))
 
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
 		if err != nil {

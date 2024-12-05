@@ -12,14 +12,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/sagaxyz/ssc/x/gmp/keeper"
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
-
-type GeneralMessageHandler interface {
-	HandleGeneralMessage(ctx sdk.Context, srcChain, srcAddress string, payload []byte) error
-	HandleGeneralMessageWithToken(ctx sdk.Context, srcChain, srcAddress string, payload []byte, receiver string, coin sdk.Coin) error
-}
 
 // Message is attached in ICS20 packet memo field
 type Message struct {
@@ -39,12 +33,6 @@ const (
 	TypeGeneralMessageWithToken
 )
 
-// type PFMPayload struct {
-// 	Receiver string      `json:"receiver"`
-// 	Channel  string      `json:"channel"`
-// 	Next     *PFMPayload `json:"next"`
-// }
-
 type ForwardPayload struct {
 	Forward *Forward `json:"forward"`
 }
@@ -57,14 +45,12 @@ type Forward struct {
 }
 
 type IBCModule struct {
-	keeper keeper.Keeper
-	app    porttypes.IBCModule
+	app porttypes.IBCModule
 }
 
-func NewIBCModule(k keeper.Keeper, app porttypes.IBCModule) IBCModule {
+func NewIBCModule(app porttypes.IBCModule) IBCModule {
 	return IBCModule{
-		keeper: k,
-		app:    app,
+		app: app,
 	}
 }
 
@@ -79,22 +65,6 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-
-	// Require portID is the portID module is bound to
-	// boundPort := im.keeper.GetPort(ctx)
-	// if boundPort != portID {
-	// 	return "", cosmossdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
-	// }
-
-	// if version != types.Version {
-	// 	return "", cosmossdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
-	// }
-
-	// // Claim channel capability passed back by IBC module
-	// if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-	// 	return "", err
-	// }
-
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
 }
 
@@ -109,28 +79,6 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-
-	// Require portID is the portID module is bound to
-	// boundPort := im.keeper.GetPort(ctx)
-	// if boundPort != portID {
-	// 	return "", cosmossdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
-	// }
-
-	// if counterpartyVersion != types.Version {
-	// 	return "", cosmossdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
-	// }
-
-	// // Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// // (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// // If module can already authenticate the capability then module already owns it so we don't need to claim
-	// // Otherwise, module does not have channel capability and we must claim it from IBC
-	// if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-	// 	// Only claim channel capability passed back by IBC module if we do not already own it
-	// 	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-	// 		return "", err
-	// 	}
-	// }
-
 	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
 }
 
@@ -142,9 +90,6 @@ func (im IBCModule) OnChanOpenAck(
 	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	// if counterpartyVersion != types.Version {
-	// 	return cosmossdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
-	// }
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
@@ -209,7 +154,7 @@ func (im IBCModule) OnRecvPacket(
 	switch msg.Type {
 	case TypeGeneralMessage:
 		ctx.Logger().Info(fmt.Sprintf("Got pure general message: %v", msg))
-		return nil //?
+		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
 		payloadType, err := abi.NewType("string", "", nil)
@@ -218,7 +163,7 @@ func (im IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
-		// Add 4 bytes to the payload to match the length of the payload
+		// Add 4 bytes to the payload to match the length of the payload otherwise the unpack will fail
 		payloadData := msg.Payload
 		payloadData = append(make([]byte, 4), payloadData...)
 
@@ -228,18 +173,6 @@ func (im IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}
 		pfmPayload := args[0].(string)
-		ctx.Logger().Info(fmt.Sprintf("Got pfmPayload: %v", pfmPayload))
-		// pfmPayload is like {"forward":{"receiver":"pfm","port":"transfer","channel":"channel-0","timeout":"10m","retries":2,"next":{"receiver":"saga10jk3eezga4wn9jm9ky4g4am4pdwj6yqd9cn9a6","port":"transfer","channel":"channel-1","timeout":"10m","retries":2}}}
-		// forwardAddress, channelID := strings.Split(pfmPayload, ",")[0], strings.Split(pfmPayload, ",")[1]
-		// updatedPfmPayload := &PFMPayload{forwardAddress, channelID, nil}
-		// ctx.Logger().Info(fmt.Sprintf("Updated pfmPayload: %+v", updatedPfmPayload))
-		// Now update modulePacket with new memo
-		// Convert payload to the new structure
-		// forwardPayload := convertToForwardPayload(updatedPfmPayload)
-		// updatedMemo, err := json.Marshal(forwardPayload)
-		// if err != nil {
-		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "memo convertion error: %s", err.Error()))
-		// }
 		data.Memo = string(pfmPayload)
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {
@@ -270,43 +203,3 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	return im.app.OnTimeoutPacket(ctx, modulePacket, relayer)
 }
-
-// Recursive function to convert PFMPayload to ForwardPayload
-// func convertToForwardPayload(pfm *PFMPayload) *ForwardPayload {
-// 	if pfm == nil {
-// 		return nil
-// 	}
-// 	return &ForwardPayload{
-// 		Forward: &Forward{
-// 			Receiver: pfm.Receiver,
-// 			Port:     "transfer",
-// 			Channel:  pfm.Channel,
-// 			Next:     convertToForwardPayload(pfm.Next),
-// 		},
-// 	}
-// }
-
-// func parseDenom(packet channeltypes.Packet, denom string) string {
-// 	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), denom) {
-// 		// remove prefix added by sender chain
-// 		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-// 		unprefixedDenom := denom[len(voucherPrefix):]
-
-// 		// coin denomination used in sending from the escrow address
-// 		denom = unprefixedDenom
-
-// 		// The denomination used to send the coins is either the native denom or the hash of the path
-// 		// if the denomination is not native.
-// 		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
-// 		if denomTrace.Path != "" {
-// 			denom = denomTrace.IBCDenom()
-// 		}
-
-// 		return denom
-// 	}
-
-// 	prefixedDenom := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel()) + denom
-// 	denom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
-
-// 	return denom
-// }

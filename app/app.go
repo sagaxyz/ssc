@@ -631,7 +631,7 @@ func New(
 		scopedGmpKeeper,
 	)
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
-	transferIBCModule = gmpmodule.NewIBCModule(app.GmpKeeper, transferIBCModule)
+	transferIBCModule = gmpmodule.NewIBCModule(transferIBCModule)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 

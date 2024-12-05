@@ -1,7 +1,6 @@
 package gmp
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -220,10 +219,11 @@ func (im IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 
-		hexData := hex.EncodeToString(msg.Payload)
-		ctx.Logger().Info(fmt.Sprintf("ABI-encoded data: %v", hexData))
+		// Add 4 bytes to the payload to match the length of the payload
+		payloadData := msg.Payload
+		payloadData = append(make([]byte, 4), payloadData...)
 
-		args, err := abi.Arguments{{Type: payloadType}}.Unpack(msg.Payload)
+		args, err := abi.Arguments{{Type: payloadType}}.Unpack(payloadData)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))

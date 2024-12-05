@@ -3,7 +3,6 @@ package gmp
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,11 +39,11 @@ const (
 	TypeGeneralMessageWithToken
 )
 
-type PFMPayload struct {
-	Receiver string      `json:"receiver"`
-	Channel  string      `json:"channel"`
-	Next     *PFMPayload `json:"next"`
-}
+// type PFMPayload struct {
+// 	Receiver string      `json:"receiver"`
+// 	Channel  string      `json:"channel"`
+// 	Next     *PFMPayload `json:"next"`
+// }
 
 type ForwardPayload struct {
 	Forward *Forward `json:"forward"`
@@ -230,18 +229,18 @@ func (im IBCModule) OnRecvPacket(
 		}
 		pfmPayload := args[0].(string)
 		ctx.Logger().Info(fmt.Sprintf("Got pfmPayload: %v", pfmPayload))
-		// pfmPayload is like saga1azf8fv5x9l5n9lh8h5s4l9m9ju76xhd9fhjjqk,channel-1
-		forwardAddress, channelID := strings.Split(pfmPayload, ",")[0], strings.Split(pfmPayload, ",")[1]
-		updatedPfmPayload := &PFMPayload{forwardAddress, channelID, nil}
-		ctx.Logger().Info(fmt.Sprintf("Updated pfmPayload: %+v", updatedPfmPayload))
+		// pfmPayload is like {"forward":{"receiver":"pfm","port":"transfer","channel":"channel-0","timeout":"10m","retries":2,"next":{"receiver":"saga10jk3eezga4wn9jm9ky4g4am4pdwj6yqd9cn9a6","port":"transfer","channel":"channel-1","timeout":"10m","retries":2}}}
+		// forwardAddress, channelID := strings.Split(pfmPayload, ",")[0], strings.Split(pfmPayload, ",")[1]
+		// updatedPfmPayload := &PFMPayload{forwardAddress, channelID, nil}
+		// ctx.Logger().Info(fmt.Sprintf("Updated pfmPayload: %+v", updatedPfmPayload))
 		// Now update modulePacket with new memo
 		// Convert payload to the new structure
-		forwardPayload := convertToForwardPayload(updatedPfmPayload)
-		updatedMemo, err := json.Marshal(forwardPayload)
-		if err != nil {
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "memo convertion error: %s", err.Error()))
-		}
-		data.Memo = string(updatedMemo)
+		// forwardPayload := convertToForwardPayload(updatedPfmPayload)
+		// updatedMemo, err := json.Marshal(forwardPayload)
+		// if err != nil {
+		// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "memo convertion error: %s", err.Error()))
+		// }
+		data.Memo = string(pfmPayload)
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot marshal updated data: %s", err.Error()))
@@ -273,41 +272,41 @@ func (im IBCModule) OnTimeoutPacket(
 }
 
 // Recursive function to convert PFMPayload to ForwardPayload
-func convertToForwardPayload(pfm *PFMPayload) *ForwardPayload {
-	if pfm == nil {
-		return nil
-	}
-	return &ForwardPayload{
-		Forward: &Forward{
-			Receiver: pfm.Receiver,
-			Port:     "transfer",
-			Channel:  pfm.Channel,
-			Next:     convertToForwardPayload(pfm.Next),
-		},
-	}
-}
+// func convertToForwardPayload(pfm *PFMPayload) *ForwardPayload {
+// 	if pfm == nil {
+// 		return nil
+// 	}
+// 	return &ForwardPayload{
+// 		Forward: &Forward{
+// 			Receiver: pfm.Receiver,
+// 			Port:     "transfer",
+// 			Channel:  pfm.Channel,
+// 			Next:     convertToForwardPayload(pfm.Next),
+// 		},
+// 	}
+// }
 
-func parseDenom(packet channeltypes.Packet, denom string) string {
-	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), denom) {
-		// remove prefix added by sender chain
-		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-		unprefixedDenom := denom[len(voucherPrefix):]
+// func parseDenom(packet channeltypes.Packet, denom string) string {
+// 	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), denom) {
+// 		// remove prefix added by sender chain
+// 		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
+// 		unprefixedDenom := denom[len(voucherPrefix):]
 
-		// coin denomination used in sending from the escrow address
-		denom = unprefixedDenom
+// 		// coin denomination used in sending from the escrow address
+// 		denom = unprefixedDenom
 
-		// The denomination used to send the coins is either the native denom or the hash of the path
-		// if the denomination is not native.
-		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
-		if denomTrace.Path != "" {
-			denom = denomTrace.IBCDenom()
-		}
+// 		// The denomination used to send the coins is either the native denom or the hash of the path
+// 		// if the denomination is not native.
+// 		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
+// 		if denomTrace.Path != "" {
+// 			denom = denomTrace.IBCDenom()
+// 		}
 
-		return denom
-	}
+// 		return denom
+// 	}
 
-	prefixedDenom := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel()) + denom
-	denom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
+// 	prefixedDenom := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel()) + denom
+// 	denom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
 
-	return denom
-}
+// 	return denom
+// }

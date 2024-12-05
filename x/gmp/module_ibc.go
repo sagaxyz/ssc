@@ -213,7 +213,7 @@ func (im IBCModule) OnRecvPacket(
 		return nil //?
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
-		payloadType, err := abi.NewType("string", "", nil)
+		payloadType, err := abi.NewType("bytes", "", nil)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
@@ -247,24 +247,6 @@ func (im IBCModule) OnRecvPacket(
 	default:
 		return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unrecognized message type (%d)", msg.Type))
 	}
-
-	// if err != nil {
-	// 	return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(err, "unable to handle GMP message"))
-	// }
-
-	// ctx.Logger().Info(fmt.Sprintf("OnRecvPacket: %v", modulePacket))
-
-	// ack := im.app.OnRecvPacket(ctx, modulePacket, relayer)
-	// if !ack.Success() {
-	// 	return ack
-	// }
-
-	// ctx.Logger().Info(fmt.Sprintf("Ack after app.OnRecvPacket: %v", ack))
-
-	// if err != nil {
-	// 	return channeltypes.NewErrorAcknowledgement(err)
-	// }
-	// return ack
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface

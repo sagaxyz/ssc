@@ -1,23 +1,21 @@
-ARG GO_VERSION="1.22.5"
-FROM golang:${GO_VERSION}-bookworm AS build-env
-ARG GITHUB_USER
-ARG GITHUB_TOKEN
+ARG GO_VERSION="1.20"
+ARG RUNNER_IMAGE="golang:${GO_VERSION}-alpine3.17"
 
-WORKDIR /root
+FROM golang:${GO_VERSION}-bullseye AS build-env
+
+WORKDIR /go/src/github.com/sagaxyz/sagacli
 
 RUN apt-get update -y
 
 COPY . .
 
-RUN git config --global --add url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 RUN make build
 
-FROM golang:${GO_VERSION}-alpine3.20
+FROM ${RUNNER_IMAGE}
 
-COPY --from=build-env /root/build/sscd /usr/bin/
-COPY --from=build-env /root/start.sh /root/
+COPY --from=build-env /go/src/github.com/sagaxyz/sagacli/build/sscd /usr/bin/sscd
 
-RUN apk add gcompat bash curl
+RUN apk add gcompat bash
 
 EXPOSE 26656
 EXPOSE 26660
@@ -25,4 +23,4 @@ EXPOSE 26657
 EXPOSE 1317
 EXPOSE 9090
 
-CMD ["bash","/root/start.sh"]
+CMD ["sscd", "start"]

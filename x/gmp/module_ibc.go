@@ -146,12 +146,6 @@ func (im IBCModule) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 
-	// // authenticate the message with packet sender + channel-id
-	// // TODO: authenticate the message with channel-id
-	// if data.Sender != AxelarGMPAcc {
-	// 	return ack
-	// }
-
 	switch msg.Type {
 	case TypeGeneralMessage:
 		ctx.Logger().Info(fmt.Sprintf("Got pure general message: %v", msg))

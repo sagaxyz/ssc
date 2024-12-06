@@ -173,6 +173,7 @@ func (im IBCModule) OnRecvPacket(
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}
 		pfmPayload := args[0].(string)
+		ctx.Logger().Info(fmt.Sprintf("new memo: %s", pfmPayload))
 		data.Memo = string(pfmPayload)
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {

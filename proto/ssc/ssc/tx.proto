@@ -1,9 +1,9 @@
 syntax = "proto3";
-package ssc.gmp;
+package ssc.ssc;
 
 import "cosmos/msg/v1/msg.proto";
 
-option go_package = "github.com/sagaxyz/ssc/x/gmp/types";
+option go_package = "github.com/sagaxyz/ssc/x/ssc/types";
 
 // Msg defines the Msg service.
 service Msg {

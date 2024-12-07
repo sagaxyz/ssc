@@ -1,4 +1,4 @@
-package v1
+package v02
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 )
 
-const Name = "0.x-to-1" //TODO replace x with the actual number
+const Name = "0.1-to-0.2"
 
 func UpgradeHandler(mm *module.Manager, configurator module.Configurator, paramsKeeper paramskeeper.Keeper, consensusKeeper *consensuskeeper.Keeper) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {

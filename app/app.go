@@ -136,6 +136,8 @@ import (
 	gmpmodulekeeper "github.com/sagaxyz/ssc/x/gmp/keeper"
 	gmpmoduletypes "github.com/sagaxyz/ssc/x/gmp/types"
 
+	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	ante "github.com/sagaxyz/ssc/app/ante"
@@ -1094,7 +1096,7 @@ func (app *App) ModuleManager() *module.Manager {
 }
 
 func (app *App) RegisterUpgradeHandlers() {
-	//app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
@@ -1106,6 +1108,13 @@ func (app *App) RegisterUpgradeHandlers() {
 	}
 	var storeUpgrades *storetypes.StoreUpgrades
 	switch upgradeInfo.Name {
+	case upgrade02.Name:
+		storeUpgrades = &storetypes.StoreUpgrades{
+			Added: []string{
+				gmpmoduletypes.StoreKey,
+				packetforwardtypes.StoreKey,
+			},
+		}
 	default:
 	}
 	if storeUpgrades != nil {

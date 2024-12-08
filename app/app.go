@@ -1096,7 +1096,7 @@ func (app *App) ModuleManager() *module.Manager {
 }
 
 func (app *App) RegisterUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, app.IBCKeeper.ClientKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

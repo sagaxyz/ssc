@@ -17,10 +17,14 @@ const Name = "0.1-to-0.2"
 func UpgradeHandler(mm *module.Manager, configurator module.Configurator, paramsKeeper paramskeeper.Keeper, consensuskeeper *consensuskeeper.Keeper, clientKeeper ibcclientkeeper.Keeper) upgradetypes.UpgradeHandler {
 
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		newVM, err := mm.RunMigrations(ctx, configurator, vm)
+		if err != nil {
+			return nil, err
+		}
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		params := clientKeeper.GetParams(sdkCtx)
 		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
 		clientKeeper.SetParams(sdkCtx, params)
-		return mm.RunMigrations(ctx, configurator, vm)
+		return newVM, nil
 	}
 }

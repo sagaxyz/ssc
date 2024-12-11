@@ -15,7 +15,6 @@ RUN make build
 FROM golang:${GO_VERSION}-alpine3.20
 
 COPY --from=build-env /root/build/sscd /usr/bin/
-COPY --from=build-env /root/start.sh /root/
 
 RUN apk add gcompat bash curl
 
@@ -25,4 +24,4 @@ EXPOSE 26657
 EXPOSE 1317
 EXPOSE 9090
 
-CMD ["bash","/root/start.sh"]
+CMD ["sscd", "start"]

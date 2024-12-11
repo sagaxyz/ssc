@@ -7,12 +7,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
 
 var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
+	DefaultRelativePacketTimeoutTimestamp = (time.Duration(10) * time.Minute).Nanoseconds()
 )
 
 const (
@@ -32,5 +31,5 @@ func GetTxCmd() *cobra.Command {
 
 	// this line is used by starport scaffolding # 1
 
-	return cmd 
+	return cmd
 }

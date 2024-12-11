@@ -24,8 +24,6 @@ type Message struct {
 	Type          int64  `json:"type"`
 }
 
-type MessageType int
-
 const (
 	// TypeUnrecognized means coin type is unrecognized
 	TypeUnrecognized = iota
@@ -130,14 +128,13 @@ func (im IBCModule) OnRecvPacket(
 	// this line is used by starport scaffolding # oracle/packet/module/recv
 
 	var data transfertypes.FungibleTokenPacketData
-	var err error
 	if err := types.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &data); err != nil {
 		ctx.Logger().Debug(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 
 	var msg Message
-	if err = json.Unmarshal([]byte(data.GetMemo()), &msg); err != nil {
+	if err := json.Unmarshal([]byte(data.GetMemo()), &msg); err != nil {
 		ctx.Logger().Debug(fmt.Sprintf("cannot unmarshal memo: %s", err.Error()))
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
@@ -148,31 +145,26 @@ func (im IBCModule) OnRecvPacket(
 
 	switch msg.Type {
 	case TypeGeneralMessage:
-		ctx.Logger().Info(fmt.Sprintf("Got pure general message: %v", msg))
+		ctx.Logger().Debug(fmt.Sprintf("Got pure general message: %v", msg))
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	case TypeGeneralMessageWithToken:
-		ctx.Logger().Info(fmt.Sprintf("Got general message with token: %v", msg))
+		ctx.Logger().Debug(fmt.Sprintf("Got general message with token: %v", msg))
 		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
 			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
+		payloadData := msg.Payload
+		ctx.Logger().Debug(fmt.Sprintf("ABI-encoded data: %v", hex.EncodeToString(payloadData)))
 
 		// Add 4 bytes to the payload to match the length of the payload otherwise the unpack will fail
-		payloadData := msg.Payload
-		ctx.Logger().Info(fmt.Sprintf("ABI-encoded data: %v", hex.EncodeToString(payloadData)))
-
 		payloadData = append(make([]byte, 4), payloadData...)
-		ctx.Logger().Info(fmt.Sprintf("Padded ABI-encoded data: %v", hex.EncodeToString(payloadData)))
-
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(payloadData)
 		if err != nil {
-			ctx.Logger().Info(fmt.Sprintf("failed to unpack: %s", err.Error()))
+			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
 		}
-		ctx.Logger().Info(fmt.Sprintf("Unpacked data: %+v", args))
 		pfmPayload := args[0].(string)
-		ctx.Logger().Info(fmt.Sprintf("new memo: %s", pfmPayload))
 		data.Memo = string(pfmPayload)
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {

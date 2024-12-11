@@ -157,8 +157,6 @@ func (im IBCModule) OnRecvPacket(
 		payloadData := msg.Payload
 		ctx.Logger().Debug(fmt.Sprintf("ABI-encoded data: %v", hex.EncodeToString(payloadData)))
 
-		// Add 4 bytes to the payload to match the length of the payload otherwise the unpack will fail
-		payloadData = append(make([]byte, 4), payloadData...)
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(payloadData)
 		if err != nil {
 			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))

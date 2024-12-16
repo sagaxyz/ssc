@@ -1,4 +1,4 @@
-ARG GO_VERSION="1.22.5"
+ARG GO_VERSION="1.23.3"
 FROM golang:${GO_VERSION}-bookworm AS build-env
 ARG GITHUB_USER
 ARG GITHUB_TOKEN
@@ -17,6 +17,10 @@ FROM golang:${GO_VERSION}-alpine3.20
 COPY --from=build-env /root/build/sscd /usr/bin/
 
 RUN apk add gcompat bash curl
+
+RUN addgroup -S sscd && adduser -S sscd -G sscd
+USER sscd
+WORKDIR /home/sscd
 
 EXPOSE 26656
 EXPOSE 26660

@@ -731,7 +731,6 @@ func New(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
 		// upgrades should be run first
-		upgradetypes.ModuleName,
 		ibccapabilitytypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,

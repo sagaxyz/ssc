@@ -7,8 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/sagaxyz/ssc/x/billing/types"
+	"github.com/sagaxyz/ssc/x/gmp/types"
 )
 
 var (

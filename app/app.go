@@ -100,6 +100,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	ibccapabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	ibccapabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 	"github.com/spf13/cast"
 
@@ -119,6 +120,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -150,6 +152,12 @@ import (
 	peers "github.com/sagaxyz/ssc/x/peers"
 	peerskeeper "github.com/sagaxyz/ssc/x/peers/keeper"
 	peerstypes "github.com/sagaxyz/ssc/x/peers/types"
+
+	gmpmodule "github.com/sagaxyz/ssc/x/gmp"
+	gmpmodulekeeper "github.com/sagaxyz/ssc/x/gmp/keeper"
+	gmpmoduletypes "github.com/sagaxyz/ssc/x/gmp/types"
+
+	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -215,6 +223,7 @@ var (
 		peers.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		ccvprovider.AppModuleBasic{},
+		gmpmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -295,11 +304,13 @@ type App struct {
 	ScopedTransferKeeper ibccapabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper  ibccapabilitykeeper.ScopedKeeper
 
-	ChainletKeeper *chainletmodulekeeper.Keeper
-	EscrowKeeper   escrowmodulekeeper.Keeper
-	BillingKeeper  billingmodulekeeper.Keeper
-	DacKeeper      aclkeeper.Keeper
-	PeersKeeper    peerskeeper.Keeper
+	ChainletKeeper  *chainletmodulekeeper.Keeper
+	EscrowKeeper    escrowmodulekeeper.Keeper
+	BillingKeeper   billingmodulekeeper.Keeper
+	DacKeeper       aclkeeper.Keeper
+	PeersKeeper     peerskeeper.Keeper
+	ScopedGmpKeeper ibccapabilitykeeper.ScopedKeeper
+	GmpKeeper       gmpmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -351,12 +362,22 @@ func New(
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	keys := storetypes.NewKVStoreKeys(
-		authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
-		crisistypes.StoreKey, minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
-		feegrant.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey, icahosttypes.StoreKey,
-		ibccapabilitytypes.StoreKey, packetforwardtypes.StoreKey, group.StoreKey, icacontrollertypes.StoreKey,
-		consensusparamtypes.StoreKey,
+		authtypes.StoreKey,
+		authz.ModuleName,
+		banktypes.StoreKey,
+		stakingtypes.StoreKey,
+		crisistypes.StoreKey,
+		minttypes.StoreKey,
+		distrtypes.StoreKey,
+		slashingtypes.StoreKey,
+		govtypes.StoreKey,
+		paramstypes.StoreKey,
+		ibcexported.StoreKey,
+		upgradetypes.StoreKey,
+		feegrant.StoreKey,
+		evidencetypes.StoreKey,
+		ibctransfertypes.StoreKey,
+		icahosttypes.StoreKey,
 		chainletmoduletypes.StoreKey,
 		epochstypes.StoreKey,
 		escrowmoduletypes.StoreKey,
@@ -364,6 +385,12 @@ func New(
 		acltypes.StoreKey,
 		peerstypes.StoreKey,
 		ccvprovidertypes.StoreKey,
+		ibccapabilitytypes.StoreKey,
+		group.StoreKey,
+		icacontrollertypes.StoreKey,
+		consensusparamtypes.StoreKey,
+		packetforwardtypes.StoreKey,
+		gmpmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -559,7 +586,6 @@ func New(
 		keys[packetforwardtypes.StoreKey],
 		app.TransferKeeper, // will be zero-value here, reference is set later on with SetTransferKeeper.
 		app.IBCKeeper.ChannelKeeper,
-		app.DistrKeeper,
 		app.BankKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		govModuleAddress,
@@ -586,7 +612,6 @@ func New(
 		app.PacketForwardKeeper,
 		0, // retries on timeout
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
 	)
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
@@ -746,6 +771,20 @@ func New(
 	)
 	epochsModule := epochsmodule.NewAppModule(app.EpochsKeeper)
 
+	scopedGmpKeeper := app.CapabilityKeeper.ScopeToModule(gmpmoduletypes.ModuleName)
+	app.ScopedGmpKeeper = scopedGmpKeeper
+	app.GmpKeeper = *gmpmodulekeeper.NewKeeper(
+		appCodec,
+		keys[gmpmoduletypes.StoreKey],
+		keys[gmpmoduletypes.MemStoreKey],
+		app.GetSubspace(gmpmoduletypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.PortKeeper,
+		scopedGmpKeeper,
+	)
+	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
+	transferIBCModule = gmpmodule.NewIBCModule(transferIBCModule)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/**** IBC Routing ****/
@@ -807,6 +846,7 @@ func New(
 		billingModule,
 		aclModule,
 		peersModule,
+		gmpModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -863,6 +903,7 @@ func New(
 		acltypes.ModuleName,
 		peerstypes.StoreKey,
 		consensusparamtypes.ModuleName,
+		gmpmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -898,6 +939,7 @@ func New(
 		acltypes.ModuleName,
 		peerstypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		gmpmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -938,6 +980,7 @@ func New(
 		acltypes.ModuleName,
 		peerstypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		gmpmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
@@ -1209,6 +1252,8 @@ func GetMaccPerms() map[string][]string {
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
+	keyTable := ibcclienttypes.ParamKeyTable()
+	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
 	paramsKeeper.Subspace(authtypes.ModuleName)
 	paramsKeeper.Subspace(banktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
@@ -1217,19 +1262,19 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName)
 	paramsKeeper.Subspace(crisistypes.ModuleName)
-	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ccvprovidertypes.ModuleName)
-	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
-	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(ibcfeetypes.ModuleName)
-	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(chainletmoduletypes.ModuleName)
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(escrowmoduletypes.ModuleName)
 	paramsKeeper.Subspace(billingmoduletypes.ModuleName)
 	paramsKeeper.Subspace(acltypes.ModuleName)
 	paramsKeeper.Subspace(peerstypes.ModuleName)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
+	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
+	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
+	paramsKeeper.Subspace(gmpmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
@@ -1246,7 +1291,8 @@ func (app *App) ModuleManager() *module.Manager {
 }
 
 func (app *App) RegisterUpgradeHandlers() {
-	//app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper))
+	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, app.IBCKeeper.ClientKeeper, baseAppLegacySS))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
@@ -1258,6 +1304,13 @@ func (app *App) RegisterUpgradeHandlers() {
 	}
 	var storeUpgrades *storetypes.StoreUpgrades
 	switch upgradeInfo.Name {
+	case upgrade02.Name:
+		storeUpgrades = &storetypes.StoreUpgrades{
+			Added: []string{
+				gmpmoduletypes.StoreKey,
+				packetforwardtypes.StoreKey,
+			},
+		}
 	default:
 	}
 	if storeUpgrades != nil {

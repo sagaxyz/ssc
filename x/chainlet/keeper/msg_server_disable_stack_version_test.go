@@ -82,84 +82,166 @@ func (s *TestSuite) TestDisabledVersionsUpgrade() {
 }
 
 func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
-	tests := []struct {
+	type chainlet struct {
+		chainletStackName string
+		chainletName      string
+		chainletID        string
+
 		addedVersions    []string
 		disabledVersions []string
 
 		current        string
 		expectedLatest string
+	}
+
+	tests := []struct {
+		chainlets []chainlet
+		name      string
 	}{
 		{
-			[]string{"0.1.2"},
-			[]string{"0.1.2"},
-			"0.1.2", "0.1.2",
+			name: "Add one version 0.1.2 and than disabled it",
+			chainlets: []chainlet{
+				{
+					chainletStackName: "saga-stack",
+					chainletName:      "saga-chain",
+					chainletID:        "test_12345-42",
+					addedVersions:     []string{"0.1.2"},
+					disabledVersions:  []string{"0.1.2"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.2",
+				},
+				{
+					chainletStackName: "xyz-stack",
+					chainletName:      "xyz-chain",
+					chainletID:        "test_12345-43",
+					addedVersions:     []string{"0.1.2"},
+					disabledVersions:  []string{"0.1.2"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.2",
+				},
+			},
 		},
 		{
-			[]string{"0.1.2", "0.1.3"},
-			[]string{"0.1.2"},
-			"0.1.2", "0.1.3",
+			name: "update from 0.1.2 to 0.1.3",
+			chainlets: []chainlet{
+				{
+					chainletStackName: "saga-stack",
+					chainletName:      "saga-chain",
+					chainletID:        "test_12345-44",
+					addedVersions:     []string{"0.1.2", "0.1.3"},
+					disabledVersions:  []string{"0.1.2"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.3",
+				},
+				{
+					chainletStackName: "xyz-stack",
+					chainletName:      "xyz-chain",
+					chainletID:        "test_12345-45",
+					addedVersions:     []string{"0.1.2", "0.1.3"},
+					disabledVersions:  []string{"0.1.2"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.3",
+				},
+			},
 		},
 		{
-			[]string{"0.1.2", "0.1.3"},
-			[]string{"0.1.2", "0.1.3"},
-			"0.1.2", "0.1.2",
+			name: "Add two versions and than disables them",
+			chainlets: []chainlet{
+				{
+					chainletStackName: "saga-stack",
+					chainletName:      "saga-chain",
+					chainletID:        "test_12345-46",
+					addedVersions:     []string{"0.1.2", "0.1.3"},
+					disabledVersions:  []string{"0.1.2", "0.1.3"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.2",
+				},
+				{
+					chainletStackName: "xyz-stack",
+					chainletName:      "xyz-chain",
+					chainletID:        "test_12345-47",
+					addedVersions:     []string{"0.1.2", "0.1.3"},
+					disabledVersions:  []string{"0.1.2", "0.1.3"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.2",
+				},
+			},
 		},
 		{
-			[]string{"0.1.2", "0.1.3", "0.1.4"},
-			[]string{"0.1.2", "0.1.4"},
-			"0.1.2", "0.1.3",
+			name: "Add three versions and then disable the first one and the last one",
+			chainlets: []chainlet{
+				{
+					chainletStackName: "saga-stack",
+					chainletName:      "saga-chain",
+					chainletID:        "test_12345-48",
+					addedVersions:     []string{"0.1.2", "0.1.3", "0.1.4"},
+					disabledVersions:  []string{"0.1.2", "0.1.4"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.3",
+				},
+				{
+					chainletStackName: "xyz-stack",
+					chainletName:      "xyz-chain",
+					chainletID:        "test_12345-49",
+					addedVersions:     []string{"0.1.2", "0.1.3", "0.1.4"},
+					disabledVersions:  []string{"0.1.2", "0.1.4"},
+					current:           "0.1.2",
+					expectedLatest:    "0.1.3",
+				},
+			},
 		},
 	}
 
-	for i, tt := range tests {
-		s.Run(fmt.Sprintf("%d: %s -> %s", i, tt.current, tt.expectedLatest), func() {
+	for _, ttt := range tests {
+		s.Run(fmt.Sprintf(ttt.name), func() {
 			s.SetupTest()
+			for _, tt := range ttt.chainlets {
+				var err error
+				// Add all stack versions
+				for j, ver := range tt.addedVersions {
+					image := fmt.Sprintf("%s/%s:%s", tt.chainletStackName, tt.chainletStackName, ver)
+					if j == 0 {
+						_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
+							creator.String(), tt.chainletStackName, tt.chainletStackName, image, ver, "abcd"+ver, fees,
+						))
+						s.Require().NoError(err)
+					} else {
+						_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
+							creator.String(), tt.chainletStackName, image, ver, "abcd"+ver,
+						))
+						s.Require().NoError(err)
+					}
+				}
+				// Launch a testing chainlet
+				s.escrowKeeper.EXPECT().
+					NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil)
+				s.billingKeeper.EXPECT().
+					BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil)
+				_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
+					creator.String(), nil, tt.chainletStackName, tt.current, tt.chainletName, tt.chainletID, "asaga", types.ChainletParams{},
+				))
+				s.Require().NoError(err)
 
-			var err error
-			// Add all stack versions
-			for j, ver := range tt.addedVersions {
-				if j == 0 {
-					_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-						creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
-					))
-					s.Require().NoError(err)
-				} else {
-					_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
-						creator.String(), "test", "test/test:"+ver, ver, "abcd"+ver,
-					))
+				// Disable specified stack versions
+				for _, ver := range tt.disabledVersions {
+					_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), tt.chainletStackName, ver))
 					s.Require().NoError(err)
 				}
-			}
-			// Launch a testing chainlet
-			s.escrowKeeper.EXPECT().
-				NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-				Return(nil)
-			s.billingKeeper.EXPECT().
-				BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-				Return(nil)
-			chainId := "test_12345-42"
-			_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-				creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{},
-			))
-			s.Require().NoError(err)
 
-			// Disable specified stack versions
-			for _, ver := range tt.disabledVersions {
-				_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), "test", ver))
+				// Check it directly
+				lv, err := s.chainletKeeper.LatestVersion(s.ctx, tt.chainletStackName, tt.current)
 				s.Require().NoError(err)
+				s.Require().Equal(tt.expectedLatest, lv)
+
+				// Check it with a chainlet auto-upgrade
+				err = s.chainletKeeper.AutoUpgradeChainlets(s.ctx)
+				s.Require().NoError(err)
+				got, err := s.chainletKeeper.Chainlet(s.ctx, tt.chainletID)
+				s.Require().NoError(err)
+				s.Require().Equal(tt.expectedLatest, got.ChainletStackVersion)
 			}
-
-			// Check it directly
-			lv, err := s.chainletKeeper.LatestVersion(s.ctx, "test", tt.current)
-			s.Require().NoError(err)
-			s.Require().Equal(tt.expectedLatest, lv)
-
-			// Check it with a chainlet auto-upgrade
-			err = s.chainletKeeper.AutoUpgradeChainlets(s.ctx)
-			s.Require().NoError(err)
-			chainlet, err := s.chainletKeeper.Chainlet(s.ctx, chainId)
-			s.Require().NoError(err)
-			s.Require().Equal(tt.expectedLatest, chainlet.ChainletStackVersion)
 		})
 	}
 }

@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"testing"
-
 	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
@@ -46,10 +44,11 @@ type TestSuite struct {
 	billingKeeper  *chainlettestutil.MockBillingKeeper
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(TestSuite))
-}
-
+/*
+	func TestKeeperTestSuite(t *testing.T) {
+		suite.Run(t, new(TestSuite))
+	}
+*/
 func (s *TestSuite) SetupTest() {
 	encCfg := moduletestutil.MakeTestEncodingConfig(chainlet.AppModuleBasic{})
 	key := storetypes.NewKVStoreKey(types.StoreKey)

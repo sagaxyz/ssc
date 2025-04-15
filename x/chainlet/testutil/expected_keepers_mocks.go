@@ -377,7 +377,7 @@ func (m *MockStakingKeeper) EXPECT() *MockStakingKeeperMockRecorder {
 // GetAllValidators mocks base method.
 func (m *MockStakingKeeper) GetAllValidators(arg0 context.Context) ([]types3.Validator,error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllValidators", arg0)
+	ret := m.ctrl.Call(m, "GetAllValidators", types.UnwrapSDKContext(arg0))
 	ret0, _ := ret[0].([]types3.Validator)
 	return ret0,nil
 }

@@ -48,7 +48,8 @@ message MsgLaunchChainlet {
   string chainletName = 6;
   ChainletParams params = 7 [ (gogoproto.nullable) = false ];
   bool disableAutomaticStackUpgrades = 8;
-  string denom = 9;
+  repeated string tags = 9;
+  bool isServiceChainlet = 10;
 }
 
 message MsgLaunchChainletResponse {}

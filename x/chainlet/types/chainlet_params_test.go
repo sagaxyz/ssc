@@ -17,6 +17,7 @@ func TestChainletParamsMarshalling(t *testing.T) {
 		{
 			name: "valid",
 			params: ChainletParams{
+				Denom:             "utsaga",
 				GasLimit:          1337,
 				CreateEmptyBlocks: true,
 				DacEnable:         true,
@@ -34,6 +35,7 @@ func TestChainletParamsMarshalling(t *testing.T) {
 		{
 			name: "valid - multiple genesis balances",
 			params: ChainletParams{
+				Denom:             "utsaga",
 				GasLimit:          1337,
 				CreateEmptyBlocks: true,
 				DacEnable:         true,
@@ -55,6 +57,7 @@ func TestChainletParamsMarshalling(t *testing.T) {
 		{
 			name: "valid - no genesis balances",
 			params: ChainletParams{
+				Denom:             "utsaga",
 				GasLimit:          1337,
 				CreateEmptyBlocks: true,
 				DacEnable:         true,

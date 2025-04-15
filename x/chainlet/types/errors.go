@@ -18,4 +18,5 @@ var (
 	ErrJSONMarhsal             = cosmossdkerrors.Register(ModuleName, 6907, "error marshalling json")
 	ErrChainletStartFailure    = cosmossdkerrors.Register(ModuleName, 6908, "failed to start chainlet")
 	ErrTooManyChainlets        = cosmossdkerrors.Register(ModuleName, 6909, "chainlet limit exceeded")
+	ErrUnauthorized            = cosmossdkerrors.Register(ModuleName, 6910, "not authorized to launch a service chainlet")
 )

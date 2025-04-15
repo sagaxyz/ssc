@@ -5,6 +5,7 @@ import (
 	math "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/sagaxyz/ssc/x/chainlet/tags"
 )
 
 const TypeMsgLaunchChainlet = "launch_chainlet"
@@ -20,8 +21,9 @@ func NewMsgLaunchChainlet(
 	chainletStackVersion string,
 	chainletName string,
 	chainId string,
-	denom string,
-	params ChainletParams) *MsgLaunchChainlet {
+	params ChainletParams,
+	tags []string,
+	serviceChainlet bool) *MsgLaunchChainlet {
 	return &MsgLaunchChainlet{
 		Creator:              creator,
 		Maintainers:          maintainers,
@@ -29,8 +31,9 @@ func NewMsgLaunchChainlet(
 		ChainletStackVersion: chainletStackVersion,
 		ChainletName:         chainletName,
 		ChainId:              chainId,
-		Denom:                denom,
 		Params:               params,
+		Tags:                 tags,
+		IsServiceChainlet:    serviceChainlet,
 	}
 }
 
@@ -40,6 +43,19 @@ func (msg *MsgLaunchChainlet) Route() string {
 
 func (msg *MsgLaunchChainlet) Type() string {
 	return TypeMsgLaunchChainlet
+}
+
+func (msg *MsgLaunchChainlet) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgLaunchChainlet) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgLaunchChainlet) ValidateBasic() error {
@@ -67,14 +83,17 @@ func (msg *MsgLaunchChainlet) ValidateBasic() error {
 		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "chainlet stack version cannot be empty")
 	}
 
-	if !validateChainId(msg.ChainId) {
+	valid := validateChainId(msg.ChainId)
+	if !valid {
 		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "chain id %s is invalid", msg.ChainId)
 	}
 
-	if !validateDenom(msg.Denom) {
-		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "denom %s is invalid", msg.Denom)
+	if msg.Params.Denom != "" {
+		valid = validateDenom(msg.Params.Denom)
+		if !valid {
+			return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "denom %s is invalid", msg.Params.Denom)
+		}
 	}
-
 	for _, genacct := range msg.Params.GenAcctBalances.List {
 		_, err := sdk.AccAddressFromBech32(genacct.Address)
 		if err != nil {
@@ -103,6 +122,9 @@ func (msg *MsgLaunchChainlet) ValidateBasic() error {
 	}
 	if msg.Params.GasLimit > ChainletGasLimit {
 		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "gas limit too high, must be less than %v", ChainletGasLimit)
+	}
+	if _, ok := tags.VerifyAndTruncate(msg.Tags); !ok {
+		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid tags")
 	}
 	return nil
 }

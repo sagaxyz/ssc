@@ -55,6 +55,12 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 	}
 
 	for _, chainlet := range chainlets.Chainlets {
+		if chainlet.IsServiceChainlet {
+			// skip billing for service chainlet
+			ctx.Logger().Debug("skipping billing for service chainlet: " + chainlet.ChainId)
+			skipped = append(skipped, chainlet.ChainId)
+			continue
+		}
 
 		// Skip inactive (OFFLINE) chainlets
 		if chainlet.Status == chainlettypes.Status_STATUS_OFFLINE {

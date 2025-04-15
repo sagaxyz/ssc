@@ -13,6 +13,7 @@ import (
 	types1 "github.com/cosmos/interchain-security/v5/x/ccv/types"
 	gomock "github.com/golang/mock/gomock"
 	types2 "github.com/sagaxyz/ssc/x/chainlet/types"
+	types3 "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -334,4 +335,55 @@ func (m *MockAclKeeper) Allowed(ctx types.Context, addr types.AccAddress) bool {
 func (mr *MockAclKeeperMockRecorder) Allowed(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allowed", reflect.TypeOf((*MockAclKeeper)(nil).Allowed), ctx, addr)
+}
+
+
+func (m *MockAclKeeper) Admin(ctx types.Context, addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Admin", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Allowed indicates an expected call of Allowed.
+func (mr *MockAclKeeperMockRecorder) Admin(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Admin", reflect.TypeOf((*MockAclKeeper)(nil).Admin), ctx, addr)
+}
+
+// MockStakingKeeper is a mock of StakingKeeper interface.
+type MockStakingKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockStakingKeeperMockRecorder
+}
+
+// MockStakingKeeperMockRecorder is the mock recorder for MockStakingKeeper.
+type MockStakingKeeperMockRecorder struct {
+	mock *MockStakingKeeper
+}
+
+// NewMockStakingKeeper creates a new mock instance.
+func NewMockStakingKeeper(ctrl *gomock.Controller) *MockStakingKeeper {
+	mock := &MockStakingKeeper{ctrl: ctrl}
+	mock.recorder = &MockStakingKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockStakingKeeper) EXPECT() *MockStakingKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetAllValidators mocks base method.
+func (m *MockStakingKeeper) GetAllValidators(arg0 context.Context) ([]types3.Validator,error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllValidators", arg0)
+	ret0, _ := ret[0].([]types3.Validator)
+	return ret0,nil
+}
+
+// GetAllValidators indicates an expected call of GetAllValidators.
+func (mr *MockStakingKeeperMockRecorder) GetAllValidators(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllValidators", reflect.TypeOf((*MockStakingKeeper)(nil).GetAllValidators), arg0)
 }

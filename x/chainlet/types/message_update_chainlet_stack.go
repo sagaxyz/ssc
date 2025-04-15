@@ -28,6 +28,19 @@ func (msg *MsgUpdateChainletStack) Type() string {
 	return TypeMsgUpdateChainletStack
 }
 
+func (msg *MsgUpdateChainletStack) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgUpdateChainletStack) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
 func (msg *MsgUpdateChainletStack) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {

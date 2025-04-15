@@ -7,16 +7,17 @@ import "ssc/chainlet/genesis_account_balances.proto";
 option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
 
 message ChainletParams {
-  uint64 gasLimit = 1;
+  string denom = 1;    // e.g. asaga
+  uint64 gasLimit = 2; // 10,000,000
 
   // Config.toml params - can be set and modified via a chainlet update
-  bool createEmptyBlocks = 2;
+  bool createEmptyBlocks = 3; // e.g. false
 
-  // Enables deployment access control
-  bool dacEnable = 3;
-  // Genesis accounts and balances
-  GenesisAccountBalances genAcctBalances = 4 [ (gogoproto.nullable) = false ];
+  bool dacEnable = 4; // enables deployment access control
+  // Adding genesis account balance support
+  GenesisAccountBalances genAcctBalances = 5 [ (gogoproto.nullable) = false ];
   // Constant EIP-1559 base fee
-  string fixedBaseFee = 5;
-  string feeAccount = 6;
+  string fixedBaseFee = 6;
+  string feeAccount = 7;
+  bool evmDisable = 8;
 }

@@ -1,10 +1,11 @@
-package v02
+package v04
 
 import (
 	"context"
 	"fmt"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -13,7 +14,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-const Name = "0.1-to-0.2"
+const Name = "0.3-to-0.4"
 
 func UpgradeHandler(mm *module.Manager, configurator module.Configurator, paramsKeeper paramskeeper.Keeper, consensusKeeper *consensuskeeper.Keeper, baseAppLegacySS paramstypes.Subspace) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {

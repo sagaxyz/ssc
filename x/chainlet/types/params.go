@@ -49,6 +49,18 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	if err := validateBool(p.ChainletStackProtections); err != nil {
+		return fmt.Errorf("param ChainletStackProtections validation failed: %v", err)
+	}
+	if err := validateED(p.NEpochDeposit); err != nil {
+		return fmt.Errorf("param NEpochDeposit validation failed: %v", err)
+	}
+	if err := validateBool(p.AutomaticChainletUpgrades); err != nil {
+		return fmt.Errorf("param AutomaticChainletUpgrades validation failed: %v", err)
+	}
+	if err := validateInt64(p.AutomaticChainletUpgradeInterval); err != nil {
+		return fmt.Errorf("param AutomaticChainletUpgradeInterval validation failed: %v", err)
+	}
 	return nil
 }
 

@@ -23,7 +23,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "denom",
 				Params:               ChainletParams{},
 			},
 			err: sdkerrors.ErrInvalidAddress,
@@ -36,8 +35,8 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "denom",
 				Params: ChainletParams{
+					Denom: "denom",
 					GenAcctBalances: GenesisAccountBalances{
 						List: []*AccountBalance{
 							{
@@ -57,7 +56,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123",
-				Denom:                "denom",
 				Params:               ChainletParams{},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -70,7 +68,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio1_123-1",
-				Denom:                "denom",
 				Params:               ChainletParams{},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -83,7 +80,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "denom",
 				Params:               ChainletParams{},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -96,7 +92,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "denom",
 				Params:               ChainletParams{},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -109,7 +104,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "",
 				ChainId:              "cassio_123-4",
-				Denom:                "denom",
 				Params:               ChainletParams{},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -122,7 +116,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "toolong",
 				Params: ChainletParams{
 					GenAcctBalances: GenesisAccountBalances{
 						List: []*AccountBalance{
@@ -132,6 +125,7 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 							},
 						},
 					},
+					Denom: "toolong",
 				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -144,7 +138,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "ou",
 				Params: ChainletParams{
 					GenAcctBalances: GenesisAccountBalances{
 						List: []*AccountBalance{
@@ -154,6 +147,7 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 							},
 						},
 					},
+					Denom: "ou",
 				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
@@ -166,7 +160,6 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "saga",
 				Params: ChainletParams{
 					GenAcctBalances: GenesisAccountBalances{
 						List: []*AccountBalance{
@@ -176,6 +169,7 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 							},
 						},
 					},
+					Denom:    "saga",
 					GasLimit: 100000001,
 				},
 			},

@@ -38,3 +38,7 @@ func TestValidateChainId(t *testing.T) {
 		}
 	}
 }
+
+func validateTestResult(res bool, err error) bool {
+	return err == nil && res
+}

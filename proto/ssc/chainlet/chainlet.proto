@@ -21,8 +21,10 @@ message Chainlet {
   string chainletStackVersion = 5;
   string chainId = 6;
   string chainletName = 7;
-  string denom = 8;
-  ChainletParams params = 9 [ (gogoproto.nullable) = false ];
-  Status status = 10;
-  bool autoUpgradeStack = 11;
+  ChainletParams params = 8 [ (gogoproto.nullable) = false ];
+  Status status = 9;
+  bool autoUpgradeStack = 10;
+  repeated string genesisValidators = 11;
+  repeated string tags = 12;
+  bool isServiceChainlet = 13;
 }

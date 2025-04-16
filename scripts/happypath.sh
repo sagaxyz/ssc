@@ -4,6 +4,7 @@
 
 TXBLOCKTIME=5
 KEY=bob
+KEYRING_BACKEND=test
 DENOM=utsaga
 GAS_LIMIT=500000
 FEES=5000$DENOM
@@ -117,6 +118,28 @@ if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
     echo "pass: launched a chainlet with chainlet parametes, including genesis account balances"
 else
     echo "fail: failed to launch a chainlet with chainlet parametes, including genesis account balances"
+	exit 1
+fi
+
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a alice --keyring-backend $KEYRING_BACKEND)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 515151 --network-version 1 --gas $GAS_LIMIT --service-chainlet --from alice --keyring-backend $KEYRING_BACKEND --fees $FEES -o json -y | jq -r .txhash)
+WaitTx $TX_HASH
+TX_RES=$(sscd q tx $TX_HASH -o json)
+
+if echo $TX_RES | jq .code | grep -q 1; then
+    echo "pass: rejected non-admin launch of a service chainlet"
+else
+    echo "fail: accepted a non-admin launch of a service chainlet"
+	exit 1
+fi
+
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY --keyring-backend $KEYRING_BACKEND)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 424242 --network-version 1 --gas $GAS_LIMIT --service-chainlet --from $KEY --keyring-backend $KEYRING_BACKEND --fees $FEES -o json -y | jq -r .txhash)
+WaitTx $TX_HASH
+TX_RES=$(sscd q tx $TX_HASH -o json)
+
+if echo $TX_RES | jq .code | grep -q 0; then
+    echo "pass: launched a service chainlet from admin account"
+else
+    echo "fail: failed to a service chainlet from admin account"
 	exit 1
 fi
 

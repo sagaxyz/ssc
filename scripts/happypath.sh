@@ -90,6 +90,7 @@ fi
 
 
 TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 2.0.0 mychainabc '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+echo "TXHASH: $TX_HASH"
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 

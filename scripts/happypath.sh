@@ -87,10 +87,10 @@ else
 	exit 1
 fi
 
+sscd q chainlet list-chainlet-stack
+sscd q chainlet list-chainlets
 
-
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 2.0.0 mychainabc '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
-echo "TXHASH: $TX_HASH"
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagavm 2.0.0 mychainabc '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 

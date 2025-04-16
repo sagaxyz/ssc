@@ -86,9 +86,9 @@ else
     echo "fail: failed to launch a chainlet from a valid chainlet stack"
 	exit 1
 fi
+sleep 30
+sscd q chainlet list-chainlets
 
-sscd tx chainlet launch-chainlet $(sscd keys show -a $KEY) sagavm 2.0.0 mychainabc '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y
-RETCODE=$?
 echo "Launched chainlet with invalid chainlet stack. RETCODE: $RETCODE"
 TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagavm 2.0.0 mychainabc '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH

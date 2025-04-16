@@ -15,7 +15,7 @@ import (
 
 func CmdLaunchChainlet() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "launch-chainlet [maintainers] [stack-name] [stack-version] [name] [denom] [params]",
+		Use:   "launch-chainlet [maintainers] [stack-name] [stack-version] [name] [params]",
 		Short: "Broadcast message launch-chainlet",
 		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

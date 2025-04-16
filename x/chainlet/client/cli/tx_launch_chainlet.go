@@ -17,7 +17,7 @@ func CmdLaunchChainlet() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "launch-chainlet [maintainers] [stack-name] [stack-version] [name] [params]",
 		Short: "Broadcast message launch-chainlet",
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argMaintainers := args[0] // looks like 'address1,address2,address3...'
 			argStackName := args[1]

@@ -8,15 +8,9 @@ LEDGER_ENABLED ?= true
 TM_VERSION     := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::')
 DOCKER         := $(shell which docker)
 PROJECT_NAME   := ssc
+DOCKER_REPO    ?= sagaxyz
 HTTPS_GIT      := https://github.com/sagaxyz/ssc.git
-
-ifeq (,$(VERSION))
-  VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
-  # if VERSION is empty, then populate it with branch's name and raw commit hash
-  ifeq (,$(VERSION))
-    VERSION := $(BRANCH)-$(COMMIT)
-  endif
-endif
+VERSION        ?= $(shell git describe --tags --dirty --always --abbrev=4 | sed -e 's/^v//')
 
 ###############################################################################
 ##                                   Build                                   ##
@@ -172,6 +166,15 @@ ifeq (debug,$(findstring debug,$(COSMOS_BUILD_OPTIONS)))
 endif
 
 all: tools build lint test vulncheck
+
+.PHONY: docker-build docker-build-e2e
+docker-build-e2e: docker-build
+	docker tag ${DOCKER_REPO}/ssc:latest ${DOCKER_REPO}/ssc:e2e
+docker-build: 
+	docker build \
+		-t ${DOCKER_REPO}/ssc:${VERSION} \
+		-t ${DOCKER_REPO}/ssc:latest \
+		-f Dockerfile .
 
 # The below include contains the tools and runsim targets.
 #include contrib/devtools/Makefile
@@ -414,6 +417,15 @@ test-rosetta:
 benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
+
+.PHONY: test-e2e-basic-ibc-transfer test-e2e-pfm-ibc-transfer
+test-e2e-basic-ibc-transfer: rm-testcache
+	cd e2e && go test -race -run TestBasicIBCTransfer .
+test-e2e-pfm-ibc-transfer: rm-testcache
+	cd e2e && go test -race -run TestPFMTransfer .
+
+rm-testcache:
+	go clean -testcache
 
 ###############################################################################
 ###                                Linting                                  ###

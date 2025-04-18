@@ -6,9 +6,9 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
@@ -139,7 +139,7 @@ func createChainSpec(config networkConfig, name, chainID, denom, stakeDenom stri
 				{
 					Repository: repo,
 					Version:    version,
-					UidGid:     "1025:1025",
+					UIDGID:     "1025:1025",
 				},
 			},
 			Bech32Prefix:   "saga",

@@ -23,7 +23,8 @@ func NewMsgLaunchChainlet(
 	chainId string,
 	params ChainletParams,
 	tags []string,
-	serviceChainlet bool) *MsgLaunchChainlet {
+	serviceChainlet bool,
+	isCCVConsumer bool) *MsgLaunchChainlet {
 	return &MsgLaunchChainlet{
 		Creator:              creator,
 		Maintainers:          maintainers,
@@ -34,6 +35,7 @@ func NewMsgLaunchChainlet(
 		Params:               params,
 		Tags:                 tags,
 		IsServiceChainlet:    serviceChainlet,
+		IsCCVConsumer:        isCCVConsumer,
 	}
 }
 

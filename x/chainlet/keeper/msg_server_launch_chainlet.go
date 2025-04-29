@@ -68,6 +68,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		AutoUpgradeStack:     !msg.DisableAutomaticStackUpgrades,
 		GenesisValidators:    k.validators(ctx),
 		IsServiceChainlet:    msg.IsServiceChainlet,
+		IsCCVConsumer:        msg.IsCCVConsumer,
 	}
 	stack, err := k.GetChainletStack(goCtx, &types.QueryGetChainletStackRequest{DisplayName: msg.ChainletStackName})
 	if err != nil {
@@ -132,10 +133,12 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "failed to bill new account %s", err.Error())
 	}
 
-	// Add as a CCV consumer
-	err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
-	if err != nil {
-		return nil, err
+	// Add as a CCV consumer if enabled
+	if msg.IsCCVConsumer {
+		err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = k.NewChainlet(ctx, chainlet)

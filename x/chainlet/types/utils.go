@@ -22,7 +22,8 @@ func ValidateNonAdminChainId(chainId string) (bool, error) {
 	if len(chainId) > 40 {
 		return false, nil
 	}
-	return nonAdminChainIdRegexp.MatchString(chainId), nil
+	// return nonAdminChainIdRegexp.MatchString(chainId), nil
+	return regexp.MatchString("^[a-z]+_[1-9]\\d*-1$", chainId)
 }
 
 func validateDenom(denom string) bool {

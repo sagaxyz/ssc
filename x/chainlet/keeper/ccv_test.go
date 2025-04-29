@@ -29,7 +29,7 @@ func (s *TestSuite) TestConsumerVSC() {
 
 	// Launch a chainlet
 	_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-		creator.String(), nil, "test", ver, "test_chainlet", chainID, types.ChainletParams{}, nil, false,
+		creator.String(), nil, "test", ver, "test_chainlet", chainID, types.ChainletParams{}, nil, false, false,
 	))
 	s.Require().NoError(err)
 

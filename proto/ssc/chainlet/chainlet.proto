@@ -27,4 +27,5 @@ message Chainlet {
   repeated string genesisValidators = 11;
   repeated string tags = 12;
   bool isServiceChainlet = 13;
+  bool isCCVConsumer = 14;
 }

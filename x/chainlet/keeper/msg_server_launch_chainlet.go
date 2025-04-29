@@ -156,7 +156,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 }
 
 func (k Keeper) validators(ctx sdk.Context) []string {
-	validators, err := k.stakingKeeper.GetAllValidators(ctx.Context())
+	validators, err := k.stakingKeeper.GetAllValidators(ctx)
 	if err != nil {
 		panic(err)
 	}

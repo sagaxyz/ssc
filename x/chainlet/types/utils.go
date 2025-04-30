@@ -6,9 +6,8 @@ import (
 )
 
 var (
-	chainIdRegexp         = regexp.MustCompile(`^[a-z]+_[1-9]\d*-[1-9]\d*$`)
-	denomRegexp           = regexp.MustCompile(`^[a-z]{3,6}$`)
-	nonAdminChainIdRegexp = regexp.MustCompile(`^[a-z]+_[1-9]\\d*-1$`)
+	chainIdRegexp = regexp.MustCompile(`^[a-z]+_[1-9]\d*-[1-9]\d*$`)
+	denomRegexp   = regexp.MustCompile(`^[a-z]{3,6}$`)
 )
 
 func validateChainId(chainId string) bool {
@@ -22,7 +21,6 @@ func ValidateNonAdminChainId(chainId string) (bool, error) {
 	if len(chainId) > 40 {
 		return false, nil
 	}
-	// return nonAdminChainIdRegexp.MatchString(chainId), nil
 	return regexp.MatchString("^[a-z]+_[1-9]\\d*-1$", chainId)
 }
 

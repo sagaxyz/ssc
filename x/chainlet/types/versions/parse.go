@@ -59,7 +59,7 @@ func convertUint16(str string) (num uint16, err error) {
 
 func Parse(ver string) (major, minor, patch uint16, suffix string, err error) {
 	match := semverRegexp.FindStringSubmatch(ver)
-	if len(match) == 0 || len(match) < 4 { // nolint
+	if len(match) < 4 {
 		err = errors.New("no regexp match")
 		return
 	}

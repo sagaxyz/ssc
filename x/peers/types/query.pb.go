@@ -359,6 +359,7 @@ func _Query_Peers_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ssc.peers.Query",
 	HandlerType: (*QueryServer)(nil),

@@ -25,6 +25,7 @@ func NewParams() Params {
 		AutomaticChainletUpgradeInterval: 100,
 		LaunchDelay:                      3 * time.Minute,
 		MaxChainlets:                     500,
+		CcvConsumerEnabled:               false,
 	}
 }
 
@@ -42,6 +43,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgrades"), &p.AutomaticChainletUpgrades, validateBool),
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgradeInterval"), &p.AutomaticChainletUpgradeInterval, validateInt64),
 		paramtypes.NewParamSetPair([]byte("LaunchDelay"), &p.LaunchDelay, validateDuration),
+		paramtypes.NewParamSetPair([]byte("CcvConsumerEnabled"), &p.CcvConsumerEnabled, validateBool),
 	}
 
 	return psp
@@ -49,6 +51,21 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	if err := validateBool(p.ChainletStackProtections); err != nil {
+		return fmt.Errorf("param ChainletStackProtections validation failed: %v", err)
+	}
+	if err := validateED(p.NEpochDeposit); err != nil {
+		return fmt.Errorf("param NEpochDeposit validation failed: %v", err)
+	}
+	if err := validateBool(p.AutomaticChainletUpgrades); err != nil {
+		return fmt.Errorf("param AutomaticChainletUpgrades validation failed: %v", err)
+	}
+	if err := validateInt64(p.AutomaticChainletUpgradeInterval); err != nil {
+		return fmt.Errorf("param AutomaticChainletUpgradeInterval validation failed: %v", err)
+	}
+	if err := validateBool(p.CcvConsumerEnabled); err != nil {
+		return fmt.Errorf("param CcvConsumerEnabled validation failed: %v", err)
+	}
 	return nil
 }
 

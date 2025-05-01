@@ -11,12 +11,11 @@ import (
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibcclientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 )
 
 const Name = "0.1-to-0.2"
 
-func UpgradeHandler(mm *module.Manager, configurator module.Configurator, paramsKeeper paramskeeper.Keeper, consensusKeeper *consensuskeeper.Keeper, clientKeeper ibcclientkeeper.Keeper, baseAppLegacySS paramstypes.Subspace) upgradetypes.UpgradeHandler {
+func UpgradeHandler(mm *module.Manager, configurator module.Configurator, paramsKeeper paramskeeper.Keeper, consensusKeeper *consensuskeeper.Keeper, baseAppLegacySS paramstypes.Subspace) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		cp := baseapp.GetConsensusParams(sdkCtx, baseAppLegacySS)

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ccvprovidertypes "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
 	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
 )
@@ -16,6 +17,11 @@ type AccountKeeper interface {
 }
 
 type BankKeeper interface {
+}
+
+type StakingKeeper interface {
+	// GetAllValidators(sdk.Context) []stakingtypes.Validator
+	GetAllValidators(ctx context.Context) (validators []stakingtypes.Validator, err error)
 }
 
 type ProviderKeeper interface {
@@ -39,4 +45,5 @@ type EscrowKeeper interface {
 
 type AclKeeper interface {
 	Allowed(ctx sdk.Context, addr sdk.AccAddress) bool
+	Admin(ctx sdk.Context, addr sdk.AccAddress) bool
 }

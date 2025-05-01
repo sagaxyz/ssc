@@ -39,7 +39,7 @@ type TestSuite struct {
 	chainletKeeper *keeper.Keeper
 	ctx            sdk.Context
 	msgServer      types.MsgServer
-
+	stakingKeeper  *chainlettestutil.MockStakingKeeper
 	providerKeeper *chainlettestutil.MockProviderKeeper
 	aclKeeper      *chainlettestutil.MockAclKeeper
 	escrowKeeper   *chainlettestutil.MockEscrowKeeper
@@ -68,6 +68,7 @@ func (s *TestSuite) SetupTest() {
 	s.ctx = ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
 
 	ctrl := gomock.NewController(s.T())
+	s.stakingKeeper = chainlettestutil.NewMockStakingKeeper(ctrl)
 	s.providerKeeper = chainlettestutil.NewMockProviderKeeper(ctrl)
 	s.aclKeeper = chainlettestutil.NewMockAclKeeper(ctrl)
 	s.billingKeeper = chainlettestutil.NewMockBillingKeeper(ctrl)
@@ -101,6 +102,7 @@ func (s *TestSuite) SetupTest() {
 
 	s.chainletKeeper = keeper.NewKeeper(
 		encCfg.Codec, key, sub,
+		s.stakingKeeper,
 		s.providerKeeper,
 		s.billingKeeper,
 		s.escrowKeeper,

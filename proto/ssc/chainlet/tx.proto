@@ -41,16 +41,16 @@ message MsgCreateChainletStackResponse {}
 message MsgLaunchChainlet {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
-  repeated string maintainers = 2;
-  string chainletStackName = 3;
-  string chainletStackVersion = 4;
-  string chainId = 5;
-  string chainletName = 6;
-  ChainletParams params = 7 [ (gogoproto.nullable) = false ];
-  bool disableAutomaticStackUpgrades = 8;
-  repeated string tags = 9;
+  string chainletName = 2;
+  string chainId = 3;
+  string chainletStackName = 4;
+  string chainletStackVersion = 5;
+  repeated string maintainers = 6;
+  string denom = 7;
+  ChainletParams params = 8 [ (gogoproto.nullable) = false ];
+  bool disableAutomaticStackUpgrades = 9;
   bool isServiceChainlet = 10;
-  bool isCCVConsumer = 11;
+  repeated string tags = 11;
 }
 
 message MsgLaunchChainletResponse {}

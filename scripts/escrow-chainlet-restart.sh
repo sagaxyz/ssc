@@ -8,6 +8,7 @@ ANOTHER_KEY=alice
 GAS_LIMIT=500000
 DENOM=utsaga
 FEES=5000$DENOM
+CHAINLET_DENOM=asaga
 
 WaitTx() {
   HASH=$1
@@ -30,7 +31,7 @@ fi
 
 echo "testing launch-chainlet"
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain $CHAINLET_DENOM '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 

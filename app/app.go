@@ -163,8 +163,6 @@ import (
 	"github.com/sagaxyz/ssc/docs"
 
 	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
-	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
-	upgrade04 "github.com/sagaxyz/ssc/app/upgrades/0.4"
 )
 
 const (
@@ -1296,8 +1294,6 @@ func (app *App) ModuleManager() *module.Manager {
 func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade04.Name, upgrade04.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

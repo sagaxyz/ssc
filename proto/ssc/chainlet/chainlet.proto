@@ -21,11 +21,12 @@ message Chainlet {
   string chainletStackVersion = 5;
   string chainId = 6;
   string chainletName = 7;
-  ChainletParams params = 8 [ (gogoproto.nullable) = false ];
-  Status status = 9;
-  bool autoUpgradeStack = 10;
-  repeated string genesisValidators = 11;
-  repeated string tags = 12;
-  bool isServiceChainlet = 13;
-  bool isCCVConsumer = 14;
+  string denom = 8;
+  ChainletParams params = 9 [ (gogoproto.nullable) = false ];
+  Status status = 10;
+  bool autoUpgradeStack = 11;
+  repeated string genesisValidators = 12;
+  repeated string tags = 13;
+  bool isServiceChainlet = 14;
+  bool isCCVConsumer = 15;
 }

@@ -21,10 +21,10 @@ func NewMsgLaunchChainlet(
 	chainletStackVersion string,
 	chainletName string,
 	chainId string,
+	denom string,
 	params ChainletParams,
 	tags []string,
-	serviceChainlet bool,
-	isCCVConsumer bool) *MsgLaunchChainlet {
+	serviceChainlet bool) *MsgLaunchChainlet {
 	return &MsgLaunchChainlet{
 		Creator:              creator,
 		Maintainers:          maintainers,
@@ -32,10 +32,10 @@ func NewMsgLaunchChainlet(
 		ChainletStackVersion: chainletStackVersion,
 		ChainletName:         chainletName,
 		ChainId:              chainId,
+		Denom:                denom,
 		Params:               params,
 		Tags:                 tags,
 		IsServiceChainlet:    serviceChainlet,
-		IsCCVConsumer:        isCCVConsumer,
 	}
 }
 
@@ -90,12 +90,15 @@ func (msg *MsgLaunchChainlet) ValidateBasic() error {
 		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "chain id %s is invalid", msg.ChainId)
 	}
 
-	if msg.Params.Denom != "" {
-		valid = validateDenom(msg.Params.Denom)
-		if !valid {
-			return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "denom %s is invalid", msg.Params.Denom)
-		}
+	if msg.Denom == "" {
+		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "denom cannot be empty")
 	}
+
+	valid = validateDenom(msg.Denom)
+	if !valid {
+		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "denom %s is invalid", msg.Denom)
+	}
+
 	for _, genacct := range msg.Params.GenAcctBalances.List {
 		_, err := sdk.AccAddressFromBech32(genacct.Address)
 		if err != nil {

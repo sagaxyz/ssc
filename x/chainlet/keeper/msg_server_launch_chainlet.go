@@ -19,7 +19,6 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	admin := k.aclKeeper.Admin(ctx, msg.GetSigners()[0])
-
 	if !admin {
 		ok, err := types.ValidateNonAdminChainId(msg.ChainId)
 		if !ok {
@@ -63,12 +62,13 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		ChainletStackVersion: msg.ChainletStackVersion,
 		ChainletName:         msg.ChainletName,
 		ChainId:              msg.ChainId,
+		Denom:                msg.Denom,
 		Params:               msg.Params,
 		Status:               types.Status_STATUS_ONLINE,
 		AutoUpgradeStack:     !msg.DisableAutomaticStackUpgrades,
 		GenesisValidators:    k.validators(ctx),
 		IsServiceChainlet:    msg.IsServiceChainlet,
-		IsCCVConsumer:        msg.IsCCVConsumer,
+		IsCCVConsumer:        p.CcvConsumerEnabled,
 	}
 	stack, err := k.GetChainletStack(goCtx, &types.QueryGetChainletStackRequest{DisplayName: msg.ChainletStackName})
 	if err != nil {
@@ -133,8 +133,8 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "failed to bill new account %s", err.Error())
 	}
 
-	// Add as a CCV consumer if enabled
-	if msg.IsCCVConsumer {
+	// Add as a CCV consumer if enabled in module params
+	if p.CcvConsumerEnabled {
 		err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
 		if err != nil {
 			return nil, err

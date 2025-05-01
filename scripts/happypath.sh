@@ -8,6 +8,7 @@ KEYRING_BACKEND=test
 DENOM=utsaga
 GAS_LIMIT=500000
 FEES=5000$DENOM
+CHAINLET_DENOM=asaga
 
 WaitTx() {
   HASH=$1
@@ -76,7 +77,7 @@ fi
 
 echo "testing launch-chainlet"
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain $CHAINLET_DENOM '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -88,7 +89,7 @@ else
 fi
 
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagavm 2.0.0 mychainabc '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagavm 2.0.0 mychainabc $CHAINLET_DENOM '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -99,7 +100,7 @@ TX_RES=$(sscd q tx $TX_HASH -o json)
 # fi
 echo "pass: did not launch a chainlet with an invalid chainlet stack"
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 13371337 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain $CHAINLET_DENOM '{}' --evm-chain-id 13371337 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -110,7 +111,7 @@ else
 	exit 1
 fi
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 kukkoo '{"gasLimit":10000000,"genAcctBalances":"saga1mk92pa54q8ehgcdqh0qp4pj6ddjwgt25aknqxn=1000,saga18xqr6cnyezq4pudqnf53klj3ppq3mvm4eea6dp=100000"}' --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 kukkoo $CHAINLET_DENOM '{"gasLimit":10000000,"genAcctBalances":"saga1mk92pa54q8ehgcdqh0qp4pj6ddjwgt25aknqxn=1000,saga18xqr6cnyezq4pudqnf53klj3ppq3mvm4eea6dp=100000"}' --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -121,7 +122,7 @@ else
 	exit 1
 fi
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a alice --keyring-backend $KEYRING_BACKEND)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 515151 --network-version 1 --gas $GAS_LIMIT --service-chainlet --from alice --keyring-backend $KEYRING_BACKEND --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a alice --keyring-backend $KEYRING_BACKEND)" sagaevm 1.0.0 mychain $CHAINLET_DENOM '{}' --evm-chain-id 515151 --network-version 1 --gas $GAS_LIMIT --service-chainlet --from alice --keyring-backend $KEYRING_BACKEND --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -132,7 +133,7 @@ else
 	exit 1
 fi
 
-TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY --keyring-backend $KEYRING_BACKEND)" sagaevm 1.0.0 mychain '{}' --evm-chain-id 424242 --network-version 1 --gas $GAS_LIMIT --service-chainlet --from $KEY --keyring-backend $KEYRING_BACKEND --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY --keyring-backend $KEYRING_BACKEND)" sagaevm 1.0.0 mychain $CHAINLET_DENOM '{}' --evm-chain-id 424242 --network-version 1 --gas $GAS_LIMIT --service-chainlet --from $KEY --keyring-backend $KEYRING_BACKEND --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 

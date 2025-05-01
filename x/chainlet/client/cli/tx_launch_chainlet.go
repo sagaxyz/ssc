@@ -15,15 +15,16 @@ import (
 
 func CmdLaunchChainlet() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "launch-chainlet [maintainers] [stack-name] [stack-version] [name] [params]",
+		Use:   "launch-chainlet [maintainers] [stack-name] [stack-version] [name] [denom] [params]",
 		Short: "Broadcast message launch-chainlet",
-		Args:  cobra.ExactArgs(5),
+		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argMaintainers := args[0] // looks like 'address1,address2,address3...'
 			argStackName := args[1]
 			argStackVersion := args[2]
 			argName := args[3]
-			argParams := args[4] // looks like '{"bondDemon":"asaga","denom":"asaga",...}'
+			argDenom := args[4]
+			argParams := args[5] // looks like '{"bondDemon":"asaga","denom":"asaga",...}'
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -42,7 +43,6 @@ func CmdLaunchChainlet() *cobra.Command {
 			networkVersion, _ := cmd.Flags().GetInt64("network-version")
 			tags, _ := cmd.Flags().GetStringArray("tags")
 			serviceChainlet, _ := cmd.Flags().GetBool("service-chainlet")
-			ccvConsumer, _ := cmd.Flags().GetBool("ccv-consumer")
 			if evmChainId < 1 {
 				return fmt.Errorf("invalid evm chain id %d", evmChainId)
 			}
@@ -57,10 +57,10 @@ func CmdLaunchChainlet() *cobra.Command {
 				argStackVersion,
 				argName,
 				argChainId,
+				argDenom,
 				params,
 				tags,
 				serviceChainlet,
-				ccvConsumer,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -76,7 +76,6 @@ func CmdLaunchChainlet() *cobra.Command {
 	cmd.Flags().Int64("network-version", 1, "network version")
 	cmd.Flags().StringArray("tags", []string{}, "chainlet tags. non-admin use will be overwritten")
 	cmd.Flags().Bool("service-chainlet", false, "service chainlet. non-admin use will be overwritten")
-	cmd.Flags().Bool("ccv-consumer", false, "Launch chain as a CCV consumer chain")
 
 	return cmd
 }

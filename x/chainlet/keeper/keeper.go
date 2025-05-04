@@ -8,27 +8,36 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
 
 type Keeper struct {
-	cdc            codec.BinaryCodec
+	cdc            codec.Codec
 	storeKey       storetypes.StoreKey
 	paramstore     paramtypes.Subspace
 	billingKeeper  types.BillingKeeper
 	providerKeeper types.ProviderKeeper
 	escrowKeeper   types.EscrowKeeper
 	aclKeeper      types.AclKeeper
+	icaKeeper      icacontrollerkeeper.Keeper //TODO expected interface
+	msgRouter      icatypes.MessageRouter
+	ibcKeeper      *ibckeeper.Keeper //TODO expected interface
 
 	stackVersions map[string]*versions.Versions // display name => version tree
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec,
+	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	ica icacontrollerkeeper.Keeper,
+	msgRouter icatypes.MessageRouter,
+	ibcKeeper *ibckeeper.Keeper,
 	providerKeeper types.ProviderKeeper,
 	billingKeeper types.BillingKeeper,
 	escrowKeeper types.EscrowKeeper,
@@ -43,6 +52,9 @@ func NewKeeper(
 		cdc:            cdc,
 		storeKey:       storeKey,
 		paramstore:     ps,
+		icaKeeper:      ica,
+		msgRouter:      msgRouter,
+		ibcKeeper:      ibcKeeper,
 		billingKeeper:  billingKeeper,
 		providerKeeper: providerKeeper,
 		escrowKeeper:   escrowKeeper,

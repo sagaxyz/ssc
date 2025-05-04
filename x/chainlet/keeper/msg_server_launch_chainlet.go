@@ -7,6 +7,7 @@ import (
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -100,6 +101,18 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 
 	// Add as a CCV consumer
 	err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionID := "" //TODO
+
+	// Register interchain account
+	//ver := icatypes.NewDefaultMetadataString()
+	ver := ""
+	icaMsg := icacontrollertypes.NewMsgRegisterInterchainAccount(connectionID, icaOwner, ver)
+	handler := k.msgRouter.Handler(icaMsg)
+	_, err = handler(ctx, icaMsg)
 	if err != nil {
 		return nil, err
 	}

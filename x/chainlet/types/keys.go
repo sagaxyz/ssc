@@ -19,6 +19,7 @@ var (
 	ChainletStackKey      = []byte{0x02}
 	ChainletPendingVSCKey = []byte{0x03}
 	NumChainletsKey       = []byte{0x04}
+	ChainletUpgradesKey   = []byte{0x05}
 )
 
 func KeyPrefix(p string) []byte {

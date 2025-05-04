@@ -81,6 +81,32 @@ func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVers
 	return nil
 }
 
+func (k *Keeper) SetUpgrading(ctx sdk.Context, chainlet *types.Chainlet, version string, height int64) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+
+	key := []byte(chainlet.ChainId)
+	if !store.Has(key) {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainId, "chainlet with chainId %s not found", chainlet.ChainId)
+	}
+
+	avail, err := k.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, version)
+	if err != nil {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot upgrade to stack %s version %s: %s", chainlet.ChainletStackName, version, err)
+	}
+	if !avail {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", chainlet.ChainletStackName, chainlet.ChainletStackVersion)
+	}
+
+	chainlet.Upgrade = &types.Upgrade{
+		Height:  height,
+		Version: version,
+	}
+
+	updatedValue := k.cdc.MustMarshal(chainlet)
+	store.Set(key, updatedValue)
+	return nil
+}
+
 func updateChainletParams(curParams *types.ChainletParams, params *types.ChainletParams) error { //nolint:unused
 	curElem := reflect.ValueOf(curParams).Elem()
 	newElem := reflect.ValueOf(params).Elem()

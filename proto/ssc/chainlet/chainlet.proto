@@ -25,4 +25,11 @@ message Chainlet {
   ChainletParams params = 9 [ (gogoproto.nullable) = false ];
   Status status = 10;
   bool autoUpgradeStack = 11;
+  Upgrade upgrade = 13;
+}
+
+message Upgrade {
+  //Height height = 1;
+  int64 height = 1;
+  string version = 2;
 }

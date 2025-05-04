@@ -2,7 +2,7 @@ module github.com/sagaxyz/ssc
 
 go 1.22.2
 
-toolchain go1.22.5
+toolchain go1.24.2
 
 require (
 	cosmossdk.io/api v0.7.6
@@ -43,6 +43,7 @@ require (
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142
 	google.golang.org/grpc v1.67.1
+	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
 )
@@ -202,7 +203,6 @@ require (
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240930140551-af27646dc61f // indirect
-	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect

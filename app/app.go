@@ -601,6 +601,8 @@ func New(
 	)
 
 	govRouter := govv1beta1.NewRouter()
+	//nolint:staticcheck
+	//already fixed in main
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).

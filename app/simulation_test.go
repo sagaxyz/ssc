@@ -49,12 +49,6 @@ func init() {
 	simcli.GetSimulatorFlags()
 }
 
-// fauxMerkleModeOpt returns a BaseApp option to use a dbStoreAdapter instead of
-// an IAVLStore for faster simulation speed.
-func fauxMerkleModeOpt(bapp *baseapp.BaseApp) {
-	bapp.SetFauxMerkleMode()
-}
-
 // BenchmarkSimulation run the chain simulation
 // Running using starport command:
 // `starport chain simulate -v --numBlocks 200 --blockSize 50`
@@ -315,8 +309,12 @@ func TestAppImportExport(t *testing.T) {
 
 	ctxA := bApp.NewContextLegacy(true, tmproto.Header{Height: bApp.LastBlockHeight()})
 	ctxB := newApp.NewContextLegacy(true, tmproto.Header{Height: bApp.LastBlockHeight()})
-	newApp.ModuleManager().InitGenesis(ctxB, bApp.AppCodec(), genesisState)
-	newApp.StoreConsensusParams(ctxB, exported.ConsensusParams)
+	if _, err = newApp.ModuleManager().InitGenesis(ctxB, bApp.AppCodec(), genesisState); err != nil {
+		panic(err)
+	}
+	if err = newApp.StoreConsensusParams(ctxB, exported.ConsensusParams); err != nil {
+		panic(err)
+	}
 
 	fmt.Printf("comparing stores...\n")
 
@@ -449,10 +447,11 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	)
 	require.Equal(t, app.Name, bApp.Name())
 
-	newApp.InitChain(&abci.RequestInitChain{
+	_, err = newApp.InitChain(&abci.RequestInitChain{
 		ChainId:       config.ChainID,
 		AppStateBytes: exported.AppState,
 	})
+	require.NoError(t, err)
 
 	_, _, err = simulation.SimulateFromSeed(
 		t,

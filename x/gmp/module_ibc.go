@@ -151,7 +151,7 @@ func (im IBCModule) OnRecvPacket(
 		ctx.Logger().Debug(fmt.Sprintf("Got general message with token: %v", msg))
 		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
-			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
+			ctx.Logger().Error(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 		payloadData := msg.Payload
@@ -167,7 +167,7 @@ func (im IBCModule) OnRecvPacket(
 		data.Memo = string(pfmPayload)
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {
-			ctx.Logger().Info(fmt.Sprintf("failed to marshal updated data: %s", err.Error()))
+			ctx.Logger().Error(fmt.Sprintf("failed to marshal updated data: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot marshal updated data: %s", err.Error()))
 		}
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)

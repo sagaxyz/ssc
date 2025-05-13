@@ -167,11 +167,13 @@ func (im IBCModule) OnRecvPacket(
 		data.Memo = string(pfmPayload)
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {
+			ctx.Logger().Info(fmt.Sprintf("failed to marshal updated data: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot marshal updated data: %s", err.Error()))
 		}
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 
 	default:
+		ctx.Logger().Info(fmt.Sprintf("unrecognized message type: %v", msg))
 		return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unrecognized message type (%d)", msg.Type))
 	}
 }

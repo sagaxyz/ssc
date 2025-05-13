@@ -160,7 +160,7 @@ func (im IBCModule) OnRecvPacket(
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(payloadData)
 		if err != nil {
 			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
+			return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 		}
 		pfmPayload := args[0].(string)
 		data.Memo = string(pfmPayload)

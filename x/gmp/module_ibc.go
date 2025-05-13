@@ -159,6 +159,7 @@ func (im IBCModule) OnRecvPacket(
 
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(payloadData)
 		if err != nil {
+			// unpack can fail for payloads like "{}", in this case we just forward the packet
 			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 		}

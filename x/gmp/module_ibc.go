@@ -139,7 +139,7 @@ func (im IBCModule) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 
-	if msg.Payload == nil {
+	if len(msg.Payload) == 0 {
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 

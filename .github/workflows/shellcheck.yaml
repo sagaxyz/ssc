@@ -1,0 +1,16 @@
+name: ShellCheck
+
+on: [push]
+
+permissions:
+ contents: read
+jobs:
+  shellcheck:
+    name: Run shellcheck
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: github.com/sagaxyz/*
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master

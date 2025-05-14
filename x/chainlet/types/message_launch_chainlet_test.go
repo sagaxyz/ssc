@@ -122,7 +122,7 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "asaga",
+				Denom:                "asagalong",
 				Params: ChainletParams{
 					GenAcctBalances: GenesisAccountBalances{
 						List: []*AccountBalance{
@@ -144,7 +144,7 @@ func TestMsgLaunchChainlet_ValidateBasic(t *testing.T) {
 				ChainletStackVersion: "4.2",
 				ChainletName:         "cassio",
 				ChainId:              "cassio_123-4",
-				Denom:                "asaga",
+				Denom:                "as",
 				Params: ChainletParams{
 					GenAcctBalances: GenesisAccountBalances{
 						List: []*AccountBalance{

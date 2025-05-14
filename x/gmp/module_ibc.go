@@ -139,7 +139,7 @@ func (im IBCModule) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 
-	if msg.Payload == nil {
+	if len(msg.Payload) == 0 {
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 	}
 
@@ -151,7 +151,7 @@ func (im IBCModule) OnRecvPacket(
 		ctx.Logger().Debug(fmt.Sprintf("Got general message with token: %v", msg))
 		payloadType, err := abi.NewType("string", "", nil)
 		if err != nil {
-			ctx.Logger().Info(fmt.Sprintf("failed to create reflection: %s", err.Error()))
+			ctx.Logger().Error(fmt.Sprintf("failed to create reflection: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to define new abi type (%s)", err.Error()))
 		}
 		payloadData := msg.Payload
@@ -159,18 +159,21 @@ func (im IBCModule) OnRecvPacket(
 
 		args, err := abi.Arguments{{Type: payloadType}}.Unpack(payloadData)
 		if err != nil {
+			// unpack can fail for payloads like "{}", in this case we just forward the packet
 			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))
-			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unable to unpack payload (%s)", err.Error()))
+			return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 		}
 		pfmPayload := args[0].(string)
-		data.Memo = string(pfmPayload)
+		data.Memo = pfmPayload
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("failed to marshal updated data: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot marshal updated data: %s", err.Error()))
 		}
 		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 
 	default:
+		ctx.Logger().Info(fmt.Sprintf("unrecognized message type: %v", msg))
 		return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "unrecognized message type (%d)", msg.Type))
 	}
 }

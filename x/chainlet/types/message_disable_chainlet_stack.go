@@ -26,19 +26,6 @@ func (msg *MsgDisableChainletStackVersion) Type() string {
 	return TypeMsgDisableChainletStackVersion
 }
 
-func (msg *MsgDisableChainletStackVersion) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgDisableChainletStackVersion) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgDisableChainletStackVersion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {

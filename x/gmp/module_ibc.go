@@ -164,7 +164,7 @@ func (im IBCModule) OnRecvPacket(
 			return im.app.OnRecvPacket(ctx, modulePacket, relayer)
 		}
 		pfmPayload := args[0].(string)
-		data.Memo = string(pfmPayload)
+		data.Memo = pfmPayload
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("failed to marshal updated data: %s", err.Error()))

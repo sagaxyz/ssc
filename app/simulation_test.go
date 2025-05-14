@@ -309,12 +309,10 @@ func TestAppImportExport(t *testing.T) {
 
 	ctxA := bApp.NewContextLegacy(true, tmproto.Header{Height: bApp.LastBlockHeight()})
 	ctxB := newApp.NewContextLegacy(true, tmproto.Header{Height: bApp.LastBlockHeight()})
-	if _, err = newApp.ModuleManager().InitGenesis(ctxB, bApp.AppCodec(), genesisState); err != nil {
-		panic(err)
-	}
-	if err = newApp.StoreConsensusParams(ctxB, exported.ConsensusParams); err != nil {
-		panic(err)
-	}
+	_, err = newApp.ModuleManager().InitGenesis(ctxB, bApp.AppCodec(), genesisState)
+	require.NoError(t, err)
+	err = newApp.StoreConsensusParams(ctxB, exported.ConsensusParams)
+	require.NoError(t, err)
 
 	fmt.Printf("comparing stores...\n")
 

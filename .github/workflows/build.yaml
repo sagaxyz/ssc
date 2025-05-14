@@ -4,7 +4,7 @@ on:
     branches:
       - "**"
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
     env:
       GOPRIVATE: github.com/sagaxyz/*

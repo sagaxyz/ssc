@@ -16,4 +16,6 @@ message Params {
   google.protobuf.Duration launchDelay = 5
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   uint64 maxChainlets = 6;
+  // If true, all new chainlets will be launched as CCV consumers
+  bool ccvConsumerEnabled = 7;
 }

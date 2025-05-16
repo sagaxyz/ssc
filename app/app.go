@@ -157,12 +157,12 @@ import (
 	gmpmodulekeeper "github.com/sagaxyz/ssc/x/gmp/keeper"
 	gmpmoduletypes "github.com/sagaxyz/ssc/x/gmp/types"
 
-	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
-
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	ante "github.com/sagaxyz/ssc/app/ante"
 	"github.com/sagaxyz/ssc/docs"
+
+	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 )
 
 const (
@@ -743,6 +743,7 @@ func New(
 		appCodec,
 		keys[chainletmoduletypes.StoreKey],
 		app.GetSubspace(chainletmoduletypes.ModuleName),
+		app.StakingKeeper,
 		app.ProviderKeeper,
 		app.BillingKeeper,
 		app.EscrowKeeper,
@@ -1292,7 +1293,7 @@ func (app *App) ModuleManager() *module.Manager {
 
 func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, app.IBCKeeper.ClientKeeper, baseAppLegacySS))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

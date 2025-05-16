@@ -41,13 +41,15 @@ func CmdLaunchChainlet() *cobra.Command {
 
 			evmChainId, _ := cmd.Flags().GetInt64("evm-chain-id")
 			networkVersion, _ := cmd.Flags().GetInt64("network-version")
+			tags, _ := cmd.Flags().GetStringArray("tags")
+			serviceChainlet, _ := cmd.Flags().GetBool("service-chainlet")
 			if evmChainId < 1 {
 				return fmt.Errorf("invalid evm chain id %d", evmChainId)
 			}
 			if networkVersion < 1 {
 				return fmt.Errorf("invalid network version %d", networkVersion)
 			}
-			argChainId := generateChainId(argName, evmChainId, networkVersion)
+			argChainId := types.GenerateChainId(argName, evmChainId, networkVersion)
 			msg := types.NewMsgLaunchChainlet(
 				clientCtx.GetFromAddress().String(),
 				maintainers,
@@ -57,6 +59,8 @@ func CmdLaunchChainlet() *cobra.Command {
 				argChainId,
 				argDenom,
 				params,
+				tags,
+				serviceChainlet,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -70,10 +74,8 @@ func CmdLaunchChainlet() *cobra.Command {
 	now := time.Now()
 	cmd.Flags().Int64("evm-chain-id", now.UTC().UnixMicro(), "evm chain id")
 	cmd.Flags().Int64("network-version", 1, "network version")
+	cmd.Flags().StringArray("tags", []string{}, "chainlet tags. non-admin use will be overwritten")
+	cmd.Flags().Bool("service-chainlet", false, "service chainlet. non-admin use will be overwritten")
 
 	return cmd
-}
-
-func generateChainId(name string, evm, version int64) string {
-	return fmt.Sprintf("%s_%d-%d", name, evm, version)
 }

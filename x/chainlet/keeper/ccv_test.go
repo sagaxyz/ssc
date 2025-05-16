@@ -11,6 +11,12 @@ func (s *TestSuite) TestConsumerVSC() {
 
 	const chainID = "test_12345-1"
 
+	// Enable CCV consumer logic for the test
+	params := s.chainletKeeper.GetParams(s.ctx)
+	params.CcvConsumerEnabled = true
+	s.chainletKeeper.SetParams(s.ctx, params)
+
+	// Set up all mock expectations first
 	s.escrowKeeper.EXPECT().
 		NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
@@ -19,6 +25,42 @@ func (s *TestSuite) TestConsumerVSC() {
 		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		AnyTimes()
+
+	// Set up expectations in order (only one round)
+	gomock.InOrder(
+		// HandleConsumerAdditionProposal call
+		s.providerKeeper.EXPECT().
+			HandleConsumerAdditionProposal(gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.providerKeeper.EXPECT().
+			GetValidatorSetUpdateId(gomock.Any()).
+			Return(uint64(1)),
+		s.providerKeeper.EXPECT().
+			AppendPendingVSCPackets(gomock.Any(), gomock.Eq(chainID), gomock.Any()),
+		s.providerKeeper.EXPECT().
+			IncrementValidatorSetUpdateId(gomock.Any()),
+
+		// First ForcePendingVSC call
+		s.providerKeeper.EXPECT().
+			GetConsumerClientId(gomock.Any(), gomock.Eq(chainID)).
+			Return("client-1", true),
+		s.providerKeeper.EXPECT().
+			GetChainToChannel(gomock.Any(), gomock.Eq(chainID)).
+			Return("", false),
+		s.providerKeeper.EXPECT().
+			SendVSCPacketsToChain(gomock.Any(), gomock.Eq(chainID), gomock.Eq("channel-42")).
+			Times(0),
+
+		// Second ForcePendingVSC call
+		s.providerKeeper.EXPECT().
+			GetConsumerClientId(gomock.Any(), gomock.Eq(chainID)).
+			Return("client-1", true),
+		s.providerKeeper.EXPECT().
+			GetChainToChannel(gomock.Any(), gomock.Eq(chainID)).
+			Return("channel-42", true),
+		s.providerKeeper.EXPECT().
+			SendVSCPacketsToChain(gomock.Any(), gomock.Eq(chainID), gomock.Eq("channel-42")),
+	)
 
 	// Create a stack
 	ver := "1.2.3"
@@ -29,26 +71,13 @@ func (s *TestSuite) TestConsumerVSC() {
 
 	// Launch a chainlet
 	_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-		creator.String(), nil, "test", ver, "test_chainlet", chainID, "asaga", types.ChainletParams{},
+		creator.String(), nil, "test", ver, "test_chainlet", chainID, "asaga", types.ChainletParams{}, nil, false,
 	))
 	s.Require().NoError(err)
 
 	// VSC not sent without an open channel
-	s.providerKeeper.EXPECT().
-		GetChainToChannel(gomock.Any(), chainID).
-		Return("", false)
-	s.providerKeeper.EXPECT().
-		SendVSCPacketsToChain(gomock.Any(), chainID, "channel-42").
-		Return().
-		Times(0)
 	s.chainletKeeper.ForcePendingVSC(s.ctx)
 
 	// VSC sent
-	s.providerKeeper.EXPECT().
-		GetChainToChannel(gomock.Any(), chainID).
-		Return("channel-42", true)
-	s.providerKeeper.EXPECT().
-		SendVSCPacketsToChain(gomock.Any(), chainID, "channel-42").
-		Return()
 	s.chainletKeeper.ForcePendingVSC(s.ctx)
 }

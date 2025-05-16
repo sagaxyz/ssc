@@ -28,7 +28,7 @@ func (s *TestSuite) TestDisabledVersionsLaunch() {
 
 	// Launch a chainlet
 	_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-		creator.String(), nil, "test", ver, "test_chainlet", "test_12345-1", "asaga", types.ChainletParams{},
+		creator.String(), nil, "test", ver, "test_chainlet", "test_12345-1", "asaga", types.ChainletParams{}, nil, false,
 	))
 	s.Require().NoError(err)
 
@@ -38,7 +38,7 @@ func (s *TestSuite) TestDisabledVersionsLaunch() {
 
 	// Try and fail to launch another chainlet
 	_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-		creator.String(), nil, "test", ver, "test_chainlet", "test_12346-1", "asaga", types.ChainletParams{},
+		creator.String(), nil, "test", ver, "test_chainlet", "test_12346-1", "asaga", types.ChainletParams{}, nil, false,
 	))
 	s.Require().Error(err)
 }
@@ -61,7 +61,7 @@ func (s *TestSuite) TestDisabledVersionsUpgrade() {
 		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 	_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-		creator.String(), nil, "test", ver, "test_chainlet", "test_12345-1", "asaga", types.ChainletParams{},
+		creator.String(), nil, "test", ver, "test_chainlet", "test_12345-1", "asaga", types.ChainletParams{}, nil, false,
 	))
 	s.Require().NoError(err)
 
@@ -139,7 +139,7 @@ func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
 				Return(nil)
 			chainId := "test_12345-42"
 			_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-				creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{},
+				creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{}, nil, false,
 			))
 			s.Require().NoError(err)
 

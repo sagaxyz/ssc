@@ -26,6 +26,6 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
-	require.Equal(t, genesisState.NumChainlets, got.NumChainlets)
+	require.Equal(t, genesisState.Params, got.Params)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

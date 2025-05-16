@@ -11,6 +11,7 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
@@ -39,7 +40,7 @@ type TestSuite struct {
 	chainletKeeper *keeper.Keeper
 	ctx            sdk.Context
 	msgServer      types.MsgServer
-
+	stakingKeeper  *chainlettestutil.MockStakingKeeper
 	providerKeeper *chainlettestutil.MockProviderKeeper
 	aclKeeper      *chainlettestutil.MockAclKeeper
 	escrowKeeper   *chainlettestutil.MockEscrowKeeper
@@ -68,30 +69,21 @@ func (s *TestSuite) SetupTest() {
 	s.ctx = ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
 
 	ctrl := gomock.NewController(s.T())
+	s.stakingKeeper = chainlettestutil.NewMockStakingKeeper(ctrl)
 	s.providerKeeper = chainlettestutil.NewMockProviderKeeper(ctrl)
 	s.aclKeeper = chainlettestutil.NewMockAclKeeper(ctrl)
 	s.billingKeeper = chainlettestutil.NewMockBillingKeeper(ctrl)
 	s.escrowKeeper = chainlettestutil.NewMockEscrowKeeper(ctrl)
 
-	s.providerKeeper.EXPECT().
-		HandleConsumerAdditionProposal(gomock.Any(), gomock.Any()).
-		Return(nil).
+	s.aclKeeper.EXPECT().
+		Admin(gomock.Any(), gomock.Any()).
+		Return(true).
 		AnyTimes()
-	s.providerKeeper.EXPECT().
-		GetValidatorSetUpdateId(gomock.Any()).
-		Return(uint64(0)).
-		AnyTimes()
-	s.providerKeeper.EXPECT().
-		AppendPendingVSCPackets(gomock.Any(), gomock.Any(), gomock.Any()).
-		Return().
-		AnyTimes()
-	s.providerKeeper.EXPECT().
-		IncrementValidatorSetUpdateId(gomock.Any()).
-		Return().
-		AnyTimes()
-	s.providerKeeper.EXPECT().
-		GetConsumerClientId(gomock.Any(), gomock.Any()).
-		Return("abcd", true).
+
+	// Set up Staking keeper expectations for GetAllValidators since it's used in msg_server_launch_chainlet.go
+	s.stakingKeeper.EXPECT().
+		GetAllValidators(gomock.Any()).
+		Return([]stakingtypes.Validator{}, nil).
 		AnyTimes()
 
 	paramsKeeper := paramskeeper.NewKeeper(encCfg.Codec, encCfg.Amino, paramsKey, paramsTKey)
@@ -101,6 +93,7 @@ func (s *TestSuite) SetupTest() {
 
 	s.chainletKeeper = keeper.NewKeeper(
 		encCfg.Codec, key, sub,
+		s.stakingKeeper,
 		s.providerKeeper,
 		s.billingKeeper,
 		s.escrowKeeper,

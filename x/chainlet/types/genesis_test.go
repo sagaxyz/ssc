@@ -22,8 +22,12 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				NumChainlets: 100,
-				// this line is used by starport scaffolding # types/genesis/validField
+				types.Params{
+					ChainletStackProtections:         false,
+					NEpochDeposit:                    "30",
+					AutomaticChainletUpgrades:        true,
+					AutomaticChainletUpgradeInterval: 100,
+				},
 			},
 			valid: true,
 		},

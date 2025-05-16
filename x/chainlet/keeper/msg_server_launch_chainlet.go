@@ -7,7 +7,7 @@ import (
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
@@ -17,6 +17,14 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		return &types.MsgLaunchChainletResponse{}, err
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	admin := k.aclKeeper.Admin(ctx, msg.GetSigners()[0])
+	if !admin {
+		ok, err := types.ValidateNonAdminChainId(msg.ChainId)
+		if !ok {
+			return &types.MsgLaunchChainletResponse{}, err
+		}
+	}
 
 	// get total number of chainlets
 	chainletCountRes, err := k.GetChainletCount(ctx, &types.QueryGetChainletCountRequest{})
@@ -58,11 +66,38 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		Params:               msg.Params,
 		Status:               types.Status_STATUS_ONLINE,
 		AutoUpgradeStack:     !msg.DisableAutomaticStackUpgrades,
+		GenesisValidators:    k.validators(ctx),
+		IsServiceChainlet:    msg.IsServiceChainlet,
+		IsCCVConsumer:        p.CcvConsumerEnabled,
 	}
 	stack, err := k.GetChainletStack(goCtx, &types.QueryGetChainletStackRequest{DisplayName: msg.ChainletStackName})
 	if err != nil {
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
 	}
+
+	// launching a service chainlet means we can skip the billing setup and just create the chainlet
+	if msg.IsServiceChainlet {
+		if !admin {
+			return &types.MsgLaunchChainletResponse{}, types.ErrUnauthorized
+		}
+
+		chainlet.Tags = msg.Tags
+
+		err = k.NewChainlet(ctx, chainlet)
+		if err != nil {
+			return &types.MsgLaunchChainletResponse{}, err
+		}
+
+		return &types.MsgLaunchChainletResponse{}, ctx.EventManager().EmitTypedEvent(&types.EventLaunchChainlet{
+			ChainName:    chainlet.ChainletName,
+			Launcher:     chainlet.Launcher,
+			ChainId:      chainlet.ChainId,
+			Stack:        chainlet.ChainletStackName,
+			StackVersion: chainlet.ChainletStackVersion,
+		})
+	}
+
+	// logic to launch non-service chainlets
 	epochfee, err := sdk.ParseCoinNormalized(stack.ChainletStack.Fees.EpochFee)
 	if err != nil {
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
@@ -98,10 +133,12 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "failed to bill new account %s", err.Error())
 	}
 
-	// Add as a CCV consumer
-	err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
-	if err != nil {
-		return nil, err
+	// Add as a CCV consumer if enabled in module params
+	if p.CcvConsumerEnabled {
+		err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = k.NewChainlet(ctx, chainlet)
@@ -116,4 +153,27 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		Stack:        msg.ChainletStackName,
 		StackVersion: msg.ChainletStackVersion,
 	})
+}
+
+func (k Keeper) validators(ctx sdk.Context) []string {
+	validators, err := k.stakingKeeper.GetAllValidators(ctx)
+	if err != nil {
+		panic(err)
+	}
+	addresses := make([]string, 0, len(validators))
+	for _, val := range validators {
+		if val.GetStatus() != stakingtypes.Bonded {
+			continue
+		}
+
+		//TODO remove: temporary hack to support acc addresses used in SagaOS start.sh
+		addr, err := sdk.ValAddressFromBech32(val.OperatorAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		addresses = append(addresses, sdk.AccAddress(addr).String())
+	}
+
+	return addresses
 }

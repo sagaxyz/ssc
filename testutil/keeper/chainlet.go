@@ -2,17 +2,17 @@ package keeper
 
 import (
 	"testing"
-	
-	tmdb "github.com/cosmos/cosmos-db"
+
 	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"cosmossdk.io/store/metrics"
 	"github.com/stretchr/testify/require"
 
 	"github.com/sagaxyz/ssc/x/chainlet/keeper"
@@ -42,6 +42,7 @@ func ChainletKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		storeKey,
 		paramsSubspace,
+		nil,
 		nil,
 		nil,
 		nil,

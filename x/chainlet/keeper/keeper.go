@@ -17,6 +17,7 @@ type Keeper struct {
 	cdc            codec.BinaryCodec
 	storeKey       storetypes.StoreKey
 	paramstore     paramtypes.Subspace
+	stakingKeeper types.StakingKeeper
 	billingKeeper  types.BillingKeeper
 	providerKeeper types.ProviderKeeper
 	escrowKeeper   types.EscrowKeeper
@@ -29,6 +30,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	stakingKeeper types.StakingKeeper,
 	providerKeeper types.ProviderKeeper,
 	billingKeeper types.BillingKeeper,
 	escrowKeeper types.EscrowKeeper,
@@ -43,6 +45,7 @@ func NewKeeper(
 		cdc:            cdc,
 		storeKey:       storeKey,
 		paramstore:     ps,
+		stakingKeeper: stakingKeeper,
 		billingKeeper:  billingKeeper,
 		providerKeeper: providerKeeper,
 		escrowKeeper:   escrowKeeper,

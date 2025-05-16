@@ -25,4 +25,8 @@ message Chainlet {
   ChainletParams params = 9 [ (gogoproto.nullable) = false ];
   Status status = 10;
   bool autoUpgradeStack = 11;
+  repeated string genesisValidators = 12;
+  repeated string tags = 13;
+  bool isServiceChainlet = 14;
+  bool isCCVConsumer = 15;
 }

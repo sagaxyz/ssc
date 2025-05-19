@@ -15,7 +15,8 @@ const (
 )
 
 var (
-	DataKey = []byte{0x01}
+	DataKey               = []byte{0x01}
+	ValidatorChainsPrefix = []byte{0x02}
 )
 
 func KeyPrefix(p string) []byte {

@@ -26,7 +26,7 @@ func (k msgServer) SetPeers(goCtx context.Context, msg *types.MsgSetPeers) (resp
 		Updated:   ctx.BlockTime(),
 		Addresses: msg.Peers,
 	}
-	err = k.storeData(ctx, msg.ChainId, msg.Validator, data)
+	err = k.StoreData(ctx, msg.ChainId, msg.Validator, data)
 	if err != nil {
 		panic(err) //TODO
 	}

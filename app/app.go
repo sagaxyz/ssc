@@ -12,6 +12,7 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/evidence"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -256,6 +257,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000)
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }

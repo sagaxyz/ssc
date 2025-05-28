@@ -187,6 +187,7 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 
 	for ; iterator.Valid(); iterator.Next() {
 		chainID := iterator.Key()
+		fmt.Printf("XXX got upgrading chainlet: %s\n", chainID)
 
 		chainlet, err := k.Chainlet(ctx, string(chainID))
 		if err != nil {
@@ -198,6 +199,7 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 
 		clientId, ex := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ChainId)
 		if !ex {
+			fmt.Printf("XXX upgrading chainlet: %s: not client\n", chainID)
 			//TODO log
 			continue
 		}
@@ -211,12 +213,14 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 		if height > chainlet.Upgrade.Height {
 			// Chain failed to stop before the upgrade height => cancel the upgrade
 			k.cancelUpgrading(ctx, &chainlet)
+			fmt.Printf("XXX upgrading chainlet: %s: cancelled\n", chainID)
 			continue
 		}
 		if height < chainlet.Upgrade.Height-1 {
 			continue
 		}
 
+		fmt.Printf("XXX upgrading chainlet: %s: DONE\n", chainID)
 		k.finishUpgrading(ctx, &chainlet)
 	}
 
@@ -252,7 +256,10 @@ func (k *Keeper) setUpgrading(ctx sdk.Context, chainlet *types.Chainlet, version
 	return nil
 }
 
-func (k *Keeper) finishUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
+func (k *Keeper) finishUpgrading(ctx sdk.Context, chainlet *types.Chainlet) error {
+	if chainlet.Upgrade == nil {
+		return fmt.Errorf("chainlet %s is not being upgraded", chainlet.ChainId)
+	}
 	chainlet.ChainletStackVersion = chainlet.Upgrade.Version
 	chainlet.Upgrade = nil
 
@@ -260,6 +267,7 @@ func (k *Keeper) finishUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
 	store.Set([]byte(chainlet.ChainId), k.cdc.MustMarshal(chainlet))
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.UpgradingChainletsKey)
 	store.Delete([]byte(chainlet.ChainId))
+	return nil
 }
 
 func (k *Keeper) cancelUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {

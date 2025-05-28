@@ -71,6 +71,9 @@ func (p Params) Validate() error {
 	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
 		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)
 	}
+	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
+		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)
+	}
 	return nil
 }
 

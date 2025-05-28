@@ -76,7 +76,6 @@ message MsgDisableChainletStackVersion {
 }
 message MsgDisableChainletStackVersionResponse {}
 
-// this line is used by starport scaffolding # proto/tx/message
 message MsgUpgradeChainlet {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;

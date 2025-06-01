@@ -175,6 +175,7 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 
 	for ; iterator.Valid(); iterator.Next() {
 		chainID := iterator.Key()
+		fmt.Printf("XXX got upgrading chainlet: %s\n", chainID)
 
 		chainlet, err := k.Chainlet(ctx, string(chainID))
 		if err != nil {
@@ -186,6 +187,7 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 
 		clientId, ex := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ChainId)
 		if !ex {
+			fmt.Printf("XXX upgrading chainlet: %s: not client\n", chainID)
 			//TODO log
 			continue
 		}
@@ -199,12 +201,15 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 		if height > chainlet.Upgrade.Height {
 			// Chain failed to stop before the upgrade height => cancel the upgrade
 			k.cancelUpgrading(ctx, &chainlet)
+			fmt.Printf("XXX upgrading chainlet: %s: cancelled\n", chainID)
 			continue
 		}
 		if height < chainlet.Upgrade.Height {
+			fmt.Printf("XXX upgrading chainlet: %s: not target height yet (%d < %d)\n", chainID, height, chainlet.Upgrade.Height)
 			continue
 		}
 
+		fmt.Printf("XXX upgrading chainlet: %s: DONE\n", chainID)
 		k.finishUpgrading(ctx, &chainlet)
 	}
 

@@ -10,11 +10,12 @@ const TypeMsgUpgradeChainlet = "upgrade_chainlet"
 
 var _ sdk.Msg = &MsgUpgradeChainlet{}
 
-func NewMsgUpgradeChainlet(creator string, chainId string, stackVersion string) *MsgUpgradeChainlet {
+func NewMsgUpgradeChainlet(creator string, chainId string, stackVersion string, heightDelta uint64) *MsgUpgradeChainlet {
 	return &MsgUpgradeChainlet{
 		Creator:      creator,
 		ChainId:      chainId,
 		StackVersion: stackVersion,
+		HeightDelta:  heightDelta,
 	}
 }
 

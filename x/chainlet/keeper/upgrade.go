@@ -96,7 +96,7 @@ func upgradePlanName(from, to string) (plan string, err error) {
 
 	return
 }
-func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versionFrom, versionTo string) error {
+func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versionFrom, versionTo string, heightDelta uint64) error {
 	// Get consumer client id
 	clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ChainId)
 	if !consumerRegistered {
@@ -131,7 +131,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versi
 	if !ex {
 		return fmt.Errorf("client state missing for client ID '%s'", clientID)
 	}
-	upgradeHeight := clientState.GetLatestHeight().GetRevisionHeight() + 30 //TODO module param minimum/default + msg option
+	upgradeHeight := clientState.GetLatestHeight().GetRevisionHeight() + heightDelta
 	planName, err := upgradePlanName(versionFrom, versionTo)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 			fmt.Printf("XXX upgrading chainlet: %s: cancelled\n", chainID)
 			continue
 		}
-		if height < chainlet.Upgrade.Height - 1 {
+		if height < chainlet.Upgrade.Height-1 {
 			fmt.Printf("XXX upgrading chainlet: %s: not target height yet (%d < %d)\n", chainID, height, chainlet.Upgrade.Height)
 			continue
 		}

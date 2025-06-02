@@ -131,7 +131,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versi
 	if !ex {
 		return fmt.Errorf("client state missing for client ID '%s'", clientID)
 	}
-	upgradeHeight := clientState.GetLatestHeight().GetRevisionHeight() + 30 //TODO module param minimum/default + msg option
+	upgradeHeight := clientState.GetLatestHeight().GetRevisionHeight() + params.MinimumUpgradeDelta + msg.UpgradeDelta
 	planName, err := upgradePlanName(versionFrom, versionTo)
 	if err != nil {
 		return err

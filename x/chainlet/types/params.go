@@ -26,6 +26,7 @@ func NewParams() Params {
 		LaunchDelay:                      3 * time.Minute,
 		MaxChainlets:                     500,
 		CcvConsumerEnabled:               false,
+		MinimumUpgradeDelta:              100,
 	}
 }
 
@@ -44,6 +45,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgradeInterval"), &p.AutomaticChainletUpgradeInterval, validateInt64),
 		paramtypes.NewParamSetPair([]byte("LaunchDelay"), &p.LaunchDelay, validateDuration),
 		paramtypes.NewParamSetPair([]byte("CcvConsumerEnabled"), &p.CcvConsumerEnabled, validateBool),
+		paramtypes.NewParamSetPair([]byte("MinimumUpgradeDelta"), &p.MinimumUpgradeDelta, validateUint64),
 	}
 
 	return psp
@@ -65,6 +67,9 @@ func (p Params) Validate() error {
 	}
 	if err := validateBool(p.CcvConsumerEnabled); err != nil {
 		return fmt.Errorf("param CcvConsumerEnabled validation failed: %v", err)
+	}
+	if err := validateUint64(p.MinimumUpgradeDelta); err != nil {
+		return fmt.Errorf("param MinimumUpgradeDelta validation failed: %v", err)
 	}
 	return nil
 }

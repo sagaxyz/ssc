@@ -115,6 +115,5 @@ sed -i 's/^enabled-unsafe-cors =.*/enabled-unsafe-cors = true/g' $CONFIG_DIR/app
 sed -i 's/^enable-unsafe-cors =.*/enable-unsafe-cors = true/g' $CONFIG_DIR/app.toml
 sed -i 's/^addr_book_strict = true/addr_book_strict = false/g' $CONFIG_DIR/config.toml
 sed -i 's/prometheus = false/prometheus = true/g' $CONFIG_DIR/config.toml
-echo 'json-log-file = "/var/log/saga/ssc.log"' >> $CONFIG_DIR/config.toml
 
 exec sscd start $OPTS

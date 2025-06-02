@@ -40,7 +40,7 @@ func (s *TestSuite) TestConsumerVSC() {
 		s.providerKeeper.EXPECT().
 			IncrementValidatorSetUpdateId(gomock.Any()),
 
-		// First ForcePendingVSC call
+		// First InitConsumers call
 		s.providerKeeper.EXPECT().
 			GetConsumerClientId(gomock.Any(), gomock.Eq(chainID)).
 			Return("client-1", true),
@@ -51,7 +51,7 @@ func (s *TestSuite) TestConsumerVSC() {
 			SendVSCPacketsToChain(gomock.Any(), gomock.Eq(chainID), gomock.Eq("channel-42")).
 			Times(0),
 
-		// Second ForcePendingVSC call
+		// Second InitConsumers call
 		s.providerKeeper.EXPECT().
 			GetConsumerClientId(gomock.Any(), gomock.Eq(chainID)).
 			Return("client-1", true),
@@ -60,6 +60,9 @@ func (s *TestSuite) TestConsumerVSC() {
 			Return("channel-42", true),
 		s.providerKeeper.EXPECT().
 			SendVSCPacketsToChain(gomock.Any(), gomock.Eq(chainID), gomock.Eq("channel-42")),
+		s.providerKeeper.EXPECT().
+			GetChainToChannel(gomock.Any(), gomock.Eq(chainID)).
+			Return("", false),
 	)
 
 	// Create a stack
@@ -76,8 +79,8 @@ func (s *TestSuite) TestConsumerVSC() {
 	s.Require().NoError(err)
 
 	// VSC not sent without an open channel
-	s.chainletKeeper.ForcePendingVSC(s.ctx)
+	s.chainletKeeper.InitConsumers(s.ctx)
 
 	// VSC sent
-	s.chainletKeeper.ForcePendingVSC(s.ctx)
+	s.chainletKeeper.InitConsumers(s.ctx)
 }

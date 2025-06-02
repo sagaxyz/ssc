@@ -81,6 +81,7 @@ func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVers
 	return nil
 }
 
+
 func updateChainletParams(curParams *types.ChainletParams, params *types.ChainletParams) error { //nolint:unused
 	curElem := reflect.ValueOf(curParams).Elem()
 	newElem := reflect.ValueOf(params).Elem()

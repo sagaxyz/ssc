@@ -8,29 +8,38 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
 
 type Keeper struct {
-	cdc            codec.BinaryCodec
+	cdc            codec.Codec
 	storeKey       storetypes.StoreKey
 	paramstore     paramtypes.Subspace
-	stakingKeeper types.StakingKeeper
+	stakingKeeper  types.StakingKeeper
 	billingKeeper  types.BillingKeeper
 	providerKeeper types.ProviderKeeper
 	escrowKeeper   types.EscrowKeeper
 	aclKeeper      types.AclKeeper
+	icaKeeper      types.ICAKeeper
+	msgRouter      icatypes.MessageRouter
+	clientKeeper   types.ClientKeeper
+	channelKeeper  types.ChannelKeeper
 
 	stackVersions map[string]*versions.Versions // display name => version tree
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec,
+	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	stakingKeeper types.StakingKeeper,
+	icaKeeper types.ICAKeeper,
+	msgRouter icatypes.MessageRouter,
+	clientKeeper types.ClientKeeper,
+	channelKeeper types.ChannelKeeper,
 	providerKeeper types.ProviderKeeper,
 	billingKeeper types.BillingKeeper,
 	escrowKeeper types.EscrowKeeper,
@@ -45,7 +54,11 @@ func NewKeeper(
 		cdc:            cdc,
 		storeKey:       storeKey,
 		paramstore:     ps,
-		stakingKeeper: stakingKeeper,
+		stakingKeeper:  stakingKeeper,
+		icaKeeper:      icaKeeper,
+		msgRouter:      msgRouter,
+		clientKeeper:   clientKeeper,
+		channelKeeper:  channelKeeper,
 		billingKeeper:  billingKeeper,
 		providerKeeper: providerKeeper,
 		escrowKeeper:   escrowKeeper,

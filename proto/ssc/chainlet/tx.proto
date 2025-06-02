@@ -80,6 +80,7 @@ message MsgUpgradeChainlet {
   string creator = 1;
   string chainId = 2;
   string stackVersion = 3;
+  uint64 heightDelta = 4;
 }
 
 message MsgUpgradeChainletResponse {}

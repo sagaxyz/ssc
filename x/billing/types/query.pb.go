@@ -512,7 +512,6 @@ func _Query_GetValidatorPayoutHistory_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ssc.billing.Query",
 	HandlerType: (*QueryServer)(nil),

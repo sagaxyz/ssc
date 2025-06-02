@@ -37,14 +37,17 @@ var (
 type TestSuite struct {
 	suite.Suite
 
-	chainletKeeper *keeper.Keeper
-	ctx            sdk.Context
-	msgServer      types.MsgServer
-	stakingKeeper  *chainlettestutil.MockStakingKeeper
-	providerKeeper *chainlettestutil.MockProviderKeeper
-	aclKeeper      *chainlettestutil.MockAclKeeper
-	escrowKeeper   *chainlettestutil.MockEscrowKeeper
-	billingKeeper  *chainlettestutil.MockBillingKeeper
+	chainletKeeper      *keeper.Keeper
+	ctx                 sdk.Context
+	msgServer           types.MsgServer
+	stakingKeeper       *chainlettestutil.MockStakingKeeper
+	icaControllerKeeper *chainlettestutil.MockICAKeeper
+	clientKeeper        *chainlettestutil.MockClientKeeper
+	channelKeeper       *chainlettestutil.MockChannelKeeper
+	providerKeeper      *chainlettestutil.MockProviderKeeper
+	aclKeeper           *chainlettestutil.MockAclKeeper
+	escrowKeeper        *chainlettestutil.MockEscrowKeeper
+	billingKeeper       *chainlettestutil.MockBillingKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -94,6 +97,10 @@ func (s *TestSuite) SetupTest() {
 	s.chainletKeeper = keeper.NewKeeper(
 		encCfg.Codec, key, sub,
 		s.stakingKeeper,
+		s.icaControllerKeeper,
+		nil,
+		s.clientKeeper,
+		s.channelKeeper,
 		s.providerKeeper,
 		s.billingKeeper,
 		s.escrowKeeper,

@@ -29,4 +29,13 @@ message Chainlet {
   repeated string tags = 13;
   bool isServiceChainlet = 14;
   bool isCCVConsumer = 15;
+  Upgrade upgrade = 16;
 }
+
+message Upgrade {
+  uint64 height = 1;
+  string version = 2;
+}
+message UpgradingChainlet{}
+
+message PendingInit {}

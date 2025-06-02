@@ -12,10 +12,12 @@ message Params {
   string nEpochDeposit = 2;
   bool automaticChainletUpgrades = 3;
   int64 automaticChainletUpgradeInterval = 4;
-  // Delays launch to give validators time to set the consumer key
+  // Delay launch to give validators time to set the consumer key
   google.protobuf.Duration launchDelay = 5
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   uint64 maxChainlets = 6;
-  // If true, all new chainlets will be launched as CCV consumers
+  // Launch new chainlets as CCV consumers
   bool ccvConsumerEnabled = 7;
+  // Minimum height difference when performing a breaking upgrade.
+  uint64 minimumUpgradeHeightDelta = 8;
 }

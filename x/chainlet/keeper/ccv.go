@@ -13,9 +13,9 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
-	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
+func (k *Keeper) setPendingInit(ctx sdk.Context, chainId string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletInit)
+	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingInit{}))
 }
 
 func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
@@ -41,15 +41,13 @@ func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Tim
 	k.providerKeeper.AppendPendingVSCPackets(ctx, chainId, packet)
 	k.providerKeeper.IncrementValidatorSetUpdateId(ctx)
 
-	// Send it right after a channel is created
-	k.setPendingVSC(ctx, chainId)
-
+	k.setPendingInit(ctx, chainId)
 	return nil
 }
 
 // Forces sending queued VSC packets of new chainlets without waiting for the the provider epoch to end.
-func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
+func (k *Keeper) InitConsumers(ctx sdk.Context) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletInit)
 
 	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
@@ -71,6 +69,14 @@ func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
 		// Send the queued VSC packet immediately
 		ctx.Logger().Info(fmt.Sprintf("force-sending queued VSC packets to a new chainlet %s", chainId))
 		k.providerKeeper.SendVSCPacketsToChain(ctx, chainId, channelId)
+
+		// ICA setup for upgrades
+		err := k.InitICA(ctx, chainId)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("initializing ICA for chainlet %s failed: %s", chainId, err))
+			continue
+		}
+
 		defer store.Delete(iterator.Key())
 	}
 }

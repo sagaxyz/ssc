@@ -7,6 +7,8 @@ import (
 )
 
 func (k *Keeper) BeginBlock(ctx sdk.Context) error {
+	k.InitConsumers(ctx)
+
 	p := k.GetParams(ctx)
 	if p.AutomaticChainletUpgrades && ctx.BlockHeight()%p.AutomaticChainletUpgradeInterval == 0 {
 		ctx.Logger().Debug("checking chainlets for available upgrades")
@@ -19,6 +21,11 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) error {
 		}
 	}
 
-	k.ForcePendingVSC(ctx)
+
+	err := k.HandleUpgradingChainlets(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

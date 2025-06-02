@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,8 +10,6 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
-
-const SagaAddress = "saga1h8r6gm4jehflfn2nn7mtw53l37skrke5kyax8l"
 
 func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeChainlet) (*types.MsgUpgradeChainletResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -26,16 +23,24 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 		return &types.MsgUpgradeChainletResponse{}, err
 	}
 
-	if !slices.Contains(ogChainlet.Maintainers, msg.Creator) && msg.Creator != SagaAddress {
-		return nil, fmt.Errorf("address %s not whitelisted for creating or updating chainlet stacks", msg.Creator)
+	if !slices.Contains(ogChainlet.Maintainers, msg.Creator) {
+		return nil, fmt.Errorf("address %s is not a chainlet maintainer", msg.Creator)
 	}
 	majorUpgrade, err := versions.CheckUpgrade(ogChainlet.ChainletStackVersion, msg.StackVersion)
 	if err != nil {
 		return nil, err
 	}
-	// Only this Saga-controlled address is allowed to perform (manual) major upgrades until they're automated using IBC
-	if majorUpgrade && msg.Creator != SagaAddress {
-		return nil, errors.New("major upgrades not implemented")
+	if majorUpgrade {
+		p := k.GetParams(ctx)
+		upgradeDelta := p.MinimumUpgradeHeightDelta + msg.HeightDelta
+		height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta)
+		if err != nil {
+			return nil, fmt.Errorf("error sending upgrade: %s", err)
+		}
+
+		return &types.MsgUpgradeChainletResponse{
+			Height: height,
+		}, nil
 	}
 
 	err = k.UpgradeChainletStackVersion(ctx, msg.ChainId, msg.StackVersion)

@@ -204,7 +204,7 @@ func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
 			fmt.Printf("XXX upgrading chainlet: %s: cancelled\n", chainID)
 			continue
 		}
-		if height < chainlet.Upgrade.Height {
+		if height < chainlet.Upgrade.Height - 1 {
 			fmt.Printf("XXX upgrading chainlet: %s: not target height yet (%d < %d)\n", chainID, height, chainlet.Upgrade.Height)
 			continue
 		}

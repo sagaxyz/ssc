@@ -12,6 +12,7 @@ message ChainletStack {
   string description = 3;
   repeated ChainletStackParams versions = 4 [ (gogoproto.nullable) = false ];
   ChainletStackFees fees = 5 [ (gogoproto.nullable) = false ];
+  bool ccvConsumer = 6;
 }
 
 message ChainletStackFees {

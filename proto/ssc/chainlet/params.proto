@@ -16,8 +16,8 @@ message Params {
   google.protobuf.Duration launchDelay = 5
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   uint64 maxChainlets = 6;
-  // Launch new chainlets as CCV consumers
-  bool ccvConsumerEnabled = 7;
+  // Allow launching chainlets as CCV consumers
+  bool enableCCV = 7;
   // Minimum height difference when performing a breaking upgrade.
   uint64 minimumUpgradeHeightDelta = 8;
 }

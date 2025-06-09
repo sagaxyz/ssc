@@ -54,6 +54,16 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 
 	p := k.GetParams(ctx)
+
+	stack, err := k.getChainletStack(ctx, msg.ChainletStackName)
+	if err != nil {
+		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
+	}
+
+	if stack.CcvConsumer && !p.EnableCCV {
+		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
+	}
+
 	chainlet := types.Chainlet{
 		SpawnTime:            ctx.BlockTime().Add(p.LaunchDelay),
 		Launcher:             msg.Creator,
@@ -68,11 +78,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		AutoUpgradeStack:     !msg.DisableAutomaticStackUpgrades,
 		GenesisValidators:    k.validators(ctx),
 		IsServiceChainlet:    msg.IsServiceChainlet,
-		IsCCVConsumer:        p.CcvConsumerEnabled,
-	}
-	stack, err := k.GetChainletStack(goCtx, &types.QueryGetChainletStackRequest{DisplayName: msg.ChainletStackName})
-	if err != nil {
-		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
+		IsCCVConsumer:        stack.CcvConsumer,
 	}
 
 	// launching a service chainlet means we can skip the billing setup and just create the chainlet
@@ -98,11 +104,11 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 
 	// logic to launch non-service chainlets
-	epochfee, err := sdk.ParseCoinNormalized(stack.ChainletStack.Fees.EpochFee)
+	epochfee, err := sdk.ParseCoinNormalized(stack.Fees.EpochFee)
 	if err != nil {
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
 	}
-	setupfee, err := sdk.ParseCoinNormalized(stack.ChainletStack.Fees.SetupFee)
+	setupfee, err := sdk.ParseCoinNormalized(stack.Fees.SetupFee)
 	if err != nil {
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
 	}
@@ -128,13 +134,13 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 
 	// Bill for the chainlet just after it is launched
 	totalFee := epochfee.Add(setupfee)
-	err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, stack.ChainletStack.Fees.EpochLength, "launching chainlet")
+	err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, stack.Fees.EpochLength, "launching chainlet")
 	if err != nil {
 		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "failed to bill new account %s", err.Error())
 	}
 
-	// Add as a CCV consumer if enabled in module params
-	if p.CcvConsumerEnabled {
+	// Add as a CCV consumer if enabled
+	if chainlet.IsCCVConsumer {
 		err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
 		if err != nil {
 			return nil, err

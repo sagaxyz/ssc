@@ -11,7 +11,7 @@ const TypeMsgCreateChainletStack = "create_chainlet_stack"
 
 var _ sdk.Msg = &MsgCreateChainletStack{}
 
-func NewMsgCreateChainletStack(creator string, displayName string, description string, image string, version string, checksum string, fees ChainletStackFees) *MsgCreateChainletStack {
+func NewMsgCreateChainletStack(creator string, displayName string, description string, image string, version string, checksum string, fees ChainletStackFees, ccvConsumer bool) *MsgCreateChainletStack {
 	return &MsgCreateChainletStack{
 		Creator:     creator,
 		DisplayName: displayName,
@@ -20,6 +20,7 @@ func NewMsgCreateChainletStack(creator string, displayName string, description s
 		Image:       image,
 		Checksum:    checksum,
 		Fees:        fees,
+		CcvConsumer: ccvConsumer,
 	}
 }
 

@@ -22,7 +22,7 @@ func (s *TestSuite) TestDisabledVersionsLaunch() {
 	// Create a stack
 	ver := "1.2.3"
 	_, err := s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-		creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
+		creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees, false,
 	))
 	s.Require().NoError(err)
 
@@ -49,7 +49,7 @@ func (s *TestSuite) TestDisabledVersionsUpgrade() {
 	// Create a stack
 	ver := "1.2.3"
 	_, err := s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-		creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
+		creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees, false,
 	))
 	s.Require().NoError(err)
 
@@ -120,7 +120,7 @@ func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
 			for j, ver := range tt.addedVersions {
 				if j == 0 {
 					_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-						creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
+						creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees, false,
 					))
 					s.Require().NoError(err)
 				} else {

@@ -34,6 +34,7 @@ message MsgCreateChainletStack {
   string version = 5;
   string checksum = 6;
   ChainletStackFees fees = 7 [ (gogoproto.nullable) = false ];
+  bool ccvConsumer = 8;
 }
 
 message MsgCreateChainletStackResponse {}

@@ -63,6 +63,7 @@ message MsgUpdateChainletStack {
   string image = 3;
   string version = 4;
   string checksum = 5;
+  bool ccvConsumer = 6;
 }
 
 message MsgUpdateChainletStackResponse {}

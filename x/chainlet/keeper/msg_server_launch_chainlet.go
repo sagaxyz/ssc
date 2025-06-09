@@ -60,7 +60,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
 	}
 
-	if stack.CcvConsumer && !p.EnableCCV {
+	if stackVersion.CcvConsumer && !p.EnableCCV {
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
 	}
 
@@ -78,7 +78,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		AutoUpgradeStack:     !msg.DisableAutomaticStackUpgrades,
 		GenesisValidators:    k.validators(ctx),
 		IsServiceChainlet:    msg.IsServiceChainlet,
-		IsCCVConsumer:        stack.CcvConsumer,
+		IsCCVConsumer:        stackVersion.CcvConsumer,
 	}
 
 	// launching a service chainlet means we can skip the billing setup and just create the chainlet

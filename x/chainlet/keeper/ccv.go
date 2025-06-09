@@ -15,7 +15,7 @@ import (
 
 func (k *Keeper) setPendingInit(ctx sdk.Context, chainId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletInit)
-	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
+	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingInit{}))
 }
 
 func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {

@@ -96,7 +96,7 @@ func upgradePlanName(from, to string) (plan string, err error) {
 
 	return
 }
-func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versionFrom, versionTo string, heightDelta uint64) error {
+func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVersion string, heightDelta uint64) error {
 	// Get consumer client id
 	clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ChainId)
 	if !consumerRegistered {
@@ -132,7 +132,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versi
 		return fmt.Errorf("client state missing for client ID '%s'", clientID)
 	}
 	upgradeHeight := clientState.GetLatestHeight().GetRevisionHeight() + heightDelta
-	planName, err := upgradePlanName(versionFrom, versionTo)
+	planName, err := upgradePlanName(chainlet.ChainletStackVersion, newVersion)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, versi
 	}
 
 	// Mark the chainlet as being upgraded
-	err = k.setUpgrading(ctx, chainlet, versionTo, upgradeHeight)
+	err = k.setUpgrading(ctx, chainlet, newVersion, upgradeHeight)
 	if err != nil {
 		return fmt.Errorf("error while updating chainlet: %w", err)
 	}

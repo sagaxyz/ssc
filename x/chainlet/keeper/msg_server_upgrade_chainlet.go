@@ -33,12 +33,14 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 	if majorUpgrade {
 		p := k.GetParams(ctx)
 		upgradeDelta := p.MinimumUpgradeHeightDelta + msg.HeightDelta
-		err = k.sendUpgradePlan(ctx, &ogChainlet, ogChainlet.ChainletStackVersion, msg.StackVersion, upgradeDelta)
+		height, err = k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta)
 		if err != nil {
 			return nil, fmt.Errorf("error sending upgrade: %s", err)
 		}
 
-		return &types.MsgUpgradeChainletResponse{}, nil
+		return &types.MsgUpgradeChainletResponse{
+			Height: &height,
+		}, nil
 	}
 
 	err = k.UpgradeChainletStackVersion(ctx, msg.ChainId, msg.StackVersion)

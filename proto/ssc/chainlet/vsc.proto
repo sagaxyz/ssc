@@ -1,8 +1,0 @@
-syntax = "proto3";
-package ssc.chainlet;
-
-import "gogoproto/gogo.proto";
-
-option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
-
-message PendingVSC {}

@@ -1,4 +1,4 @@
-ARG GO_VERSION="1.22.5"
+ARG GO_VERSION="1.24.4"
 FROM golang:${GO_VERSION}-bookworm AS build-env
 ARG GITHUB_USER
 ARG GITHUB_TOKEN
@@ -12,7 +12,7 @@ COPY . .
 RUN git config --global --add url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 RUN make build
 
-FROM golang:${GO_VERSION}-alpine3.20
+FROM golang:${GO_VERSION}-alpine3.22
 
 COPY --from=build-env /root/build/sscd /usr/bin/
 COPY --from=build-env /root/start.sh /root/

@@ -25,7 +25,7 @@ func NewParams() Params {
 		AutomaticChainletUpgradeInterval: 100,
 		LaunchDelay:                      3 * time.Minute,
 		MaxChainlets:                     500,
-		CcvConsumerEnabled:               false,
+		EnableCCV:                        false,
 		MinimumUpgradeHeightDelta:        100,
 	}
 }
@@ -44,7 +44,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgrades"), &p.AutomaticChainletUpgrades, validateBool),
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgradeInterval"), &p.AutomaticChainletUpgradeInterval, validateInt64),
 		paramtypes.NewParamSetPair([]byte("LaunchDelay"), &p.LaunchDelay, validateDuration),
-		paramtypes.NewParamSetPair([]byte("CcvConsumerEnabled"), &p.CcvConsumerEnabled, validateBool),
+		paramtypes.NewParamSetPair([]byte("EnableCCV"), &p.EnableCCV, validateBool),
 		paramtypes.NewParamSetPair([]byte("MinimumUpgradeHeightDelta"), &p.MinimumUpgradeHeightDelta, validateUint64),
 	}
 
@@ -65,8 +65,8 @@ func (p Params) Validate() error {
 	if err := validateInt64(p.AutomaticChainletUpgradeInterval); err != nil {
 		return fmt.Errorf("param AutomaticChainletUpgradeInterval validation failed: %v", err)
 	}
-	if err := validateBool(p.CcvConsumerEnabled); err != nil {
-		return fmt.Errorf("param CcvConsumerEnabled validation failed: %v", err)
+	if err := validateBool(p.EnableCCV); err != nil {
+		return fmt.Errorf("param EnableCCV validation failed: %v", err)
 	}
 	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
 		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)

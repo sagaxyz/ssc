@@ -44,6 +44,7 @@ type TestSuite struct {
 	icaControllerKeeper *chainlettestutil.MockICAKeeper
 	clientKeeper        *chainlettestutil.MockClientKeeper
 	channelKeeper       *chainlettestutil.MockChannelKeeper
+	connectionKeeper    *chainlettestutil.MockConnectionKeeper
 	providerKeeper      *chainlettestutil.MockProviderKeeper
 	aclKeeper           *chainlettestutil.MockAclKeeper
 	escrowKeeper        *chainlettestutil.MockEscrowKeeper
@@ -73,6 +74,9 @@ func (s *TestSuite) SetupTest() {
 
 	ctrl := gomock.NewController(s.T())
 	s.stakingKeeper = chainlettestutil.NewMockStakingKeeper(ctrl)
+	s.clientKeeper = chainlettestutil.NewMockClientKeeper(ctrl)
+	s.channelKeeper = chainlettestutil.NewMockChannelKeeper(ctrl)
+	s.connectionKeeper = chainlettestutil.NewMockConnectionKeeper(ctrl)
 	s.providerKeeper = chainlettestutil.NewMockProviderKeeper(ctrl)
 	s.aclKeeper = chainlettestutil.NewMockAclKeeper(ctrl)
 	s.billingKeeper = chainlettestutil.NewMockBillingKeeper(ctrl)
@@ -101,6 +105,7 @@ func (s *TestSuite) SetupTest() {
 		nil,
 		s.clientKeeper,
 		s.channelKeeper,
+		s.connectionKeeper,
 		s.providerKeeper,
 		s.billingKeeper,
 		s.escrowKeeper,

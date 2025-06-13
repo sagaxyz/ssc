@@ -18,7 +18,7 @@ WaitTx() {
 
 echo "testing create-chainlet-stack"
 
-TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:gamesjam-pi14 1.0.0 abc123 1000$DENOM minute 1000$DENOM --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:gamesjam-pi14 1.0.0 abc123 1000$DENOM minute 1000$DENOM false --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -29,7 +29,7 @@ else
     exit 1
 fi
 
-TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:2.0.0 2.0.0 def456 1000$DENOM minute 1000$DENOM --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:2.0.0 2.0.0 def456 1000$DENOM minute 1000$DENOM false --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -40,7 +40,7 @@ else
 	exit 1
 fi
 
-TX_HASH=$(sscd tx chainlet create-chainlet-stack sagavm "Your personal EVM" sagaxyz/sagavm:1.0.0 1.0.0 123123 1000$DENOM minute 1000$DENOM --from alice --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet create-chainlet-stack sagavm "Your personal EVM" sagaxyz/sagavm:1.0.0 1.0.0 123123 1000$DENOM minute 1000$DENOM false --from alice --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -53,7 +53,7 @@ fi
 
 echo "testing update-chainlet-stack"
 
-TX_HASH=$(sscd tx chainlet update-chainlet-stack sagaevm sagaxyz/sagaevm:5ed0edf 1.2.3 sha256:b4cfab4354a11805b0b60cc52f43bd5d6b41f8a291c724fc8aabfa1d5a836aed --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet update-chainlet-stack sagaevm sagaxyz/sagaevm:5ed0edf 1.2.3 sha256:b4cfab4354a11805b0b60cc52f43bd5d6b41f8a291c724fc8aabfa1d5a836aed false --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 
@@ -64,7 +64,7 @@ else
 	exit 1
 fi
 
-TX_HASH=$(sscd tx chainlet update-chainlet-stack sagaevm2 sagaxyz/sagaevm:3.0.0 3.0.0 def456 --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet update-chainlet-stack sagaevm2 sagaxyz/sagaevm:3.0.0 3.0.0 def456 false --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 

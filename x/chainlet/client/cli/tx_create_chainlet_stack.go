@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -10,16 +12,26 @@ import (
 
 func CmdCreateChainletStack() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-chainlet-stack [display-name] [description] [image] [version] [checksum] [epochfee] [epochlength] [upfrontfee]",
+		Use:   "create-chainlet-stack [display-name] [description] [image] [version] [checksum] [epochfee] [epochlength] [upfrontfee] [ccv-consumer]",
 		Short: "Broadcast message create-chainlet-stack",
-		Args:  cobra.ExactArgs(8),
+		Args:  cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argDisplayName := args[0]
 			argDescription := args[1]
 			argImage := args[2]
 			argVersion := args[3]
 			argChecksum := args[4]
+			argEpochFee := args[5]
+			argEpochLength := args[6]
+			argSetupFee := args[7]
+			argCcvConsumer := args[8]
+
 			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			ccvConsumer, err := strconv.ParseBool(argCcvConsumer)
 			if err != nil {
 				return err
 			}
@@ -32,10 +44,11 @@ func CmdCreateChainletStack() *cobra.Command {
 				argVersion,
 				argChecksum,
 				types.ChainletStackFees{
-					EpochFee:    args[5],
-					EpochLength: args[6],
-					SetupFee:    args[7],
+					EpochFee:    argEpochFee,
+					EpochLength: argEpochLength,
+					SetupFee:    argSetupFee,
 				},
+				ccvConsumer,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

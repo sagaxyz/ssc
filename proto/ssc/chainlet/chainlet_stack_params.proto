@@ -8,4 +8,5 @@ message ChainletStackParams {
   string version = 2;
   string checksum = 3;
   bool enabled = 4;
+  bool ccvConsumer = 5;
 }

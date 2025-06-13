@@ -28,10 +28,11 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 	}
 
 	metaData := types.ChainletStackParams{
-		Image:    msg.Image,
-		Version:  msg.Version,
-		Checksum: msg.Checksum,
-		Enabled:  true,
+		Image:       msg.Image,
+		Version:     msg.Version,
+		Checksum:    msg.Checksum,
+		Enabled:     true,
+		CcvConsumer: msg.CcvConsumer,
 	}
 	metaDataUpsert := []types.ChainletStackParams{metaData}
 	chainletStack := types.ChainletStack{

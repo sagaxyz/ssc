@@ -86,23 +86,15 @@ func validateUpdate(stack types.ChainletStack, version types.ChainletStackParams
 }
 
 func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) (bool, error) {
-	stack, err := k.getChainletStack(ctx, name)
+	params, err := k.getChainletStackVersion(ctx, name, version)
 	if err != nil {
-		return false, fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
+		return false, err
+	}
+	if !params.Enabled {
+		return false, nil
 	}
 
-	//TODO avoid loop
-	for _, v := range stack.Versions {
-		if v.Version != version {
-			continue
-		}
-		if !v.Enabled {
-			return false, nil
-		}
-		return true, nil
-	}
-
-	return false, fmt.Errorf("stack version %s is not found", version)
+	return true, nil
 }
 
 func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {
@@ -116,5 +108,24 @@ func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.Cha
 
 	data := store.Get(byteKey)
 	k.cdc.MustUnmarshal(data, &stack)
+	return
+}
+
+func (k *Keeper) getChainletStackVersion(ctx sdk.Context, name, version string) (params types.ChainletStackParams, err error) {
+	stack, err := k.getChainletStack(ctx, name)
+	if err != nil {
+		err = fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
+		return
+	}
+
+	//TODO avoid loop
+	for _, v := range stack.Versions {
+		if v.Version == version {
+			params = v
+			return
+		}
+	}
+
+	err = fmt.Errorf("stack version %s is not found", version)
 	return
 }

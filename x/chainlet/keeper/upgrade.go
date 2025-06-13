@@ -19,30 +19,36 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
 
-const hostConnectionID = "connection-0"
-
-func (k *Keeper) getConsumerConnectionID(ctx sdk.Context, chainID string) (connectionID string, err error) {
+func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, chainID string) (controllerConnectionID, hostConnectionID string, err error) {
+	// Get controller/local connection ID
 	ccvChannelID, found := k.providerKeeper.GetChainToChannel(ctx, chainID)
 	if !found {
-		err = errors.New("consumer channel not found")
+		err = fmt.Errorf("channel ID for consumer %s not found", chainID)
 		return
 	}
 	ccvChannel, found := k.channelKeeper.GetChannel(ctx, ccvtypes.ProviderPortID, ccvChannelID)
 	if !found {
-		err = errors.New("consumer channel not found")
+		err = fmt.Errorf("channel %s for consumer %s not found", ccvChannelID, chainID)
 		return
 	}
 	if len(ccvChannel.GetConnectionHops()) == 0 {
 		err = fmt.Errorf("no connections for channel %s", ccvChannelID)
 		return
 	}
+	controllerConnectionID = ccvChannel.GetConnectionHops()[0]
 
-	connectionID = ccvChannel.GetConnectionHops()[0]
+	// Get host/counterparty connection ID
+	connection, found := k.connectionKeeper.GetConnection(ctx, controllerConnectionID)
+	if !found {
+		err = fmt.Errorf("connection %s for consumer %s not found", controllerConnectionID, chainID)
+		return
+	}
+	hostConnectionID = connection.Counterparty.ConnectionId
 	return
 }
 
 func (k *Keeper) InitICA(ctx sdk.Context, chainID string) error {
-	connectionID, err := k.getConsumerConnectionID(ctx, chainID)
+	controllerConnectionID, hostConnectionID, err := k.getConsumerConnectionIDs(ctx, chainID)
 	if err != nil {
 		return err
 	}
@@ -54,16 +60,16 @@ func (k *Keeper) InitICA(ctx sdk.Context, chainID string) error {
 	}
 
 	// Check if the account exists
-	_, found := k.icaKeeper.GetInterchainAccountAddress(ctx, connectionID, portID)
+	_, found := k.icaKeeper.GetInterchainAccountAddress(ctx, controllerConnectionID, portID)
 	if found {
 		return nil
 	}
 
 	// Register the account
-	ctx.Logger().Debug(fmt.Sprintf("registering ICA account for chain %s using connection %s and port %s", chainID, connectionID, portID))
-	metadata := icatypes.NewMetadata(icatypes.Version, connectionID, hostConnectionID, icaOwner, icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+	ctx.Logger().Debug(fmt.Sprintf("registering ICA account for chain %s using connection %s and port %s", chainID, controllerConnectionID, portID))
+	metadata := icatypes.NewMetadata(icatypes.Version, controllerConnectionID, hostConnectionID, icaOwner, icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
 	ver := string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-	icaMsg := icacontrollertypes.NewMsgRegisterInterchainAccount(connectionID, icaOwner, ver)
+	icaMsg := icacontrollertypes.NewMsgRegisterInterchainAccount(controllerConnectionID, icaOwner, ver)
 	handler := k.msgRouter.Handler(icaMsg)
 	_, err = handler(ctx, icaMsg)
 	if err != nil {
@@ -104,7 +110,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 		return
 	}
 	// Get consumer connection id
-	connectionID, err := k.getConsumerConnectionID(ctx, chainlet.ChainId)
+	connectionID, _, err := k.getConsumerConnectionIDs(ctx, chainlet.ChainId)
 	if err != nil {
 		return
 	}

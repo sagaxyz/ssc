@@ -18,7 +18,7 @@ WaitTx() {
 
 echo "testing create-chainlet-stack"
 
-TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:8.2.8 1.0.0 abc123 1000utsaga minute 1000utsaga --from $KEY --fees $FEES -o json -y | jq -r .txhash)
+TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:8.2.8 1.0.0 abc123 1000utsaga minute 1000utsaga false --from $KEY --fees $FEES -o json -y | jq -r .txhash)
 WaitTx $TX_HASH
 TX_RES=$(sscd q tx $TX_HASH -o json)
 

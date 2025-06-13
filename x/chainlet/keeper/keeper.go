@@ -15,18 +15,19 @@ import (
 )
 
 type Keeper struct {
-	cdc            codec.Codec
-	storeKey       storetypes.StoreKey
-	paramstore     paramtypes.Subspace
-	stakingKeeper  types.StakingKeeper
-	billingKeeper  types.BillingKeeper
-	providerKeeper types.ProviderKeeper
-	escrowKeeper   types.EscrowKeeper
-	aclKeeper      types.AclKeeper
-	icaKeeper      types.ICAKeeper
-	msgRouter      icatypes.MessageRouter
-	clientKeeper   types.ClientKeeper
-	channelKeeper  types.ChannelKeeper
+	cdc              codec.Codec
+	storeKey         storetypes.StoreKey
+	paramstore       paramtypes.Subspace
+	stakingKeeper    types.StakingKeeper
+	icaKeeper        types.ICAKeeper
+	msgRouter        icatypes.MessageRouter
+	clientKeeper     types.ClientKeeper
+	channelKeeper    types.ChannelKeeper
+	connectionKeeper types.ConnectionKeeper
+	billingKeeper    types.BillingKeeper
+	providerKeeper   types.ProviderKeeper
+	escrowKeeper     types.EscrowKeeper
+	aclKeeper        types.AclKeeper
 
 	stackVersions map[string]*versions.Versions // display name => version tree
 }
@@ -40,6 +41,7 @@ func NewKeeper(
 	msgRouter icatypes.MessageRouter,
 	clientKeeper types.ClientKeeper,
 	channelKeeper types.ChannelKeeper,
+	connectionKeeper types.ConnectionKeeper,
 	providerKeeper types.ProviderKeeper,
 	billingKeeper types.BillingKeeper,
 	escrowKeeper types.EscrowKeeper,
@@ -51,18 +53,19 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:            cdc,
-		storeKey:       storeKey,
-		paramstore:     ps,
-		stakingKeeper:  stakingKeeper,
-		icaKeeper:      icaKeeper,
-		msgRouter:      msgRouter,
-		clientKeeper:   clientKeeper,
-		channelKeeper:  channelKeeper,
-		billingKeeper:  billingKeeper,
-		providerKeeper: providerKeeper,
-		escrowKeeper:   escrowKeeper,
-		aclKeeper:      aclKeeper,
+		cdc:              cdc,
+		storeKey:         storeKey,
+		paramstore:       ps,
+		stakingKeeper:    stakingKeeper,
+		icaKeeper:        icaKeeper,
+		msgRouter:        msgRouter,
+		clientKeeper:     clientKeeper,
+		channelKeeper:    channelKeeper,
+		connectionKeeper: connectionKeeper,
+		billingKeeper:    billingKeeper,
+		providerKeeper:   providerKeeper,
+		escrowKeeper:     escrowKeeper,
+		aclKeeper:        aclKeeper,
 	}
 }
 

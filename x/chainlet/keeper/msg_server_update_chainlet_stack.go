@@ -28,10 +28,11 @@ func (k msgServer) UpdateChainletStack(goCtx context.Context, msg *types.MsgUpda
 	}
 
 	version := types.ChainletStackParams{
-		Image:    msg.Image,
-		Version:  msg.Version,
-		Checksum: msg.Checksum,
-		Enabled:  true,
+		Image:       msg.Image,
+		Version:     msg.Version,
+		Checksum:    msg.Checksum,
+		Enabled:     true,
+		CcvConsumer: msg.CcvConsumer,
 	}
 	err = k.AddChainletStackVersion(ctx, msg.DisplayName, version)
 	if err != nil {

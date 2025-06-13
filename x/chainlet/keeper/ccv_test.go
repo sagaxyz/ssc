@@ -13,7 +13,7 @@ func (s *TestSuite) TestConsumerVSC() {
 
 	// Enable CCV consumer logic for the test
 	params := s.chainletKeeper.GetParams(s.ctx)
-	params.CcvConsumerEnabled = true
+	params.EnableCCV = true
 	s.chainletKeeper.SetParams(s.ctx, params)
 
 	// Set up all mock expectations first
@@ -68,7 +68,7 @@ func (s *TestSuite) TestConsumerVSC() {
 	// Create a stack
 	ver := "1.2.3"
 	_, err := s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-		creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
+		creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees, true,
 	))
 	s.Require().NoError(err)
 

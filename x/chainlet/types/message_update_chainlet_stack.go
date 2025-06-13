@@ -10,13 +10,14 @@ const TypeMsgUpdateChainletStack = "update_chainlet_stack"
 
 var _ sdk.Msg = &MsgUpdateChainletStack{}
 
-func NewMsgUpdateChainletStack(creator string, displayName string, image string, version string, checksum string) *MsgUpdateChainletStack {
+func NewMsgUpdateChainletStack(creator string, displayName string, image string, version string, checksum string, ccvConsumer bool) *MsgUpdateChainletStack {
 	return &MsgUpdateChainletStack{
 		Creator:     creator,
 		DisplayName: displayName,
 		Version:     version,
 		Image:       image,
 		Checksum:    checksum,
+		CcvConsumer: ccvConsumer,
 	}
 }
 

@@ -55,12 +55,12 @@ func (s *TestSuite) TestVersionsLoading() {
 		for j, ver := range tt.addedVersions {
 			if j == 0 {
 				_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-					creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees,
+					creator.String(), "test", "test", "test/test:"+ver, ver, "abcd"+ver, fees, false,
 				))
 				s.Require().NoError(err)
 			} else {
 				_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
-					creator.String(), "test", "test/test:"+ver, ver, "abcd"+ver,
+					creator.String(), "test", "test/test:"+ver, ver, "abcd"+ver, false,
 				))
 				s.Require().NoError(err)
 			}
@@ -75,7 +75,7 @@ func (s *TestSuite) TestVersionsLoading() {
 		s.chainletKeeper.DeleteVersions()
 		// Force re-load
 		_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
-			creator.String(), "xxx", "xxx", "xxx", "1.2.3", "abcd", fees,
+			creator.String(), "xxx", "xxx", "xxx", "1.2.3", "abcd", fees, false,
 		))
 		s.Require().NoError(err)
 		versions := s.chainletKeeper.Versions("test")

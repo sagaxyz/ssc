@@ -163,7 +163,7 @@ else
 fi
 
 echo "testing chainlet queries"
-if [ "$(sscd q chainlet list-chainlets -o json | jq '.Chainlets | length')" -eq 3 ]; then
+if [ "$(sscd q chainlet list-chainlets -o json | jq '.Chainlets | length')" -eq 4 ]; then
     echo "pass: found three chainlets"
 else
     echo "fail: did not find three chainlets"

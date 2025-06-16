@@ -27,7 +27,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 
 	// get total number of chainlets
-	chainletCountRes, err := k.GetChainletCount(ctx, &types.QueryGetChainletCountRequest{})
+	chainletCountRes, err := k.ChainletCount(ctx, &types.QueryChainletCountRequest{})
 	if err != nil {
 		return nil, err
 	}

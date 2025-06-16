@@ -18,7 +18,7 @@ var (
 	ChainletKey           = []byte{0x01}
 	ChainletStackKey      = []byte{0x02}
 	ChainletInit          = []byte{0x03}
-	NumChainletsKey       = []byte{0x04}
+	ChainletCountKey      = []byte{0x04}
 	UpgradingChainletsKey = []byte{0x05}
 )
 

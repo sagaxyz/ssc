@@ -85,6 +85,4 @@ message MsgUpgradeChainlet {
   uint64 heightDelta = 4;
 }
 
-message MsgUpgradeChainletResponse {
-  uint64 height = 1;
-}
+message MsgUpgradeChainletResponse { uint64 height = 1; }

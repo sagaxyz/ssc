@@ -10,14 +10,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) GetChainletCount(goCtx context.Context, req *types.QueryGetChainletCountRequest) (*types.QueryGetChainletCountResponse, error) {
+func (k Keeper) ChainletCount(goCtx context.Context, req *types.QueryChainletCountRequest) (*types.QueryChainletCountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NumChainletsKey)
-	ctx.Logger().Info("GetChainletCount", "count", binary.BigEndian.Uint64(bz))
-	return &types.QueryGetChainletCountResponse{Count: binary.BigEndian.Uint64(bz)}, nil
+	bz := store.Get(types.ChainletCountKey)
+	return &types.QueryChainletCountResponse{Count: binary.BigEndian.Uint64(bz)}, nil
 }

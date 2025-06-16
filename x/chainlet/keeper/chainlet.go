@@ -81,7 +81,6 @@ func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVers
 	return nil
 }
 
-
 func updateChainletParams(curParams *types.ChainletParams, params *types.ChainletParams) error { //nolint:unused
 	curElem := reflect.ValueOf(curParams).Elem()
 	newElem := reflect.ValueOf(params).Elem()
@@ -191,17 +190,28 @@ func (k Keeper) InitializeChainletCount(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(0))
-	store.Set(types.NumChainletsKey, bz)
+	store.Set(types.ChainletCountKey, bz)
+}
+
+func (k Keeper) GetChainletCount(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ChainletCountKey)
+	if bz == nil {
+		return 0
+	}
+	return binary.BigEndian.Uint64(bz)
+}
+
+func (k Keeper) SetChainletCount(ctx sdk.Context, count uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, count)
+	store.Set(types.ChainletCountKey, bz)
 }
 
 func (k Keeper) incrementChainletCount(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NumChainletsKey)
-	count := binary.BigEndian.Uint64(bz)
-	count++
-	bz = make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, count)
-	store.Set(types.NumChainletsKey, bz)
+	count := k.GetChainletCount(ctx)
+	k.SetChainletCount(ctx, count+1)
 }
 
 func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {

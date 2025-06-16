@@ -748,6 +748,7 @@ func New(
 		app.MsgServiceRouter(),
 		app.IBCKeeper.ClientKeeper,
 		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ConnectionKeeper,
 		app.ProviderKeeper,
 		app.BillingKeeper,
 		app.EscrowKeeper,

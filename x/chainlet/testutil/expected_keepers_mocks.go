@@ -12,12 +12,13 @@ import (
 	types0 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	types1 "github.com/cosmos/ibc-go/modules/capability/types"
 	types2 "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	types3 "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	types3 "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	types4 "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	exported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	types4 "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
-	types5 "github.com/cosmos/interchain-security/v5/x/ccv/types"
+	types5 "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
+	types6 "github.com/cosmos/interchain-security/v5/x/ccv/types"
 	gomock "github.com/golang/mock/gomock"
-	types6 "github.com/sagaxyz/ssc/x/chainlet/types"
+	types7 "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -156,7 +157,7 @@ func (m *MockProviderKeeper) EXPECT() *MockProviderKeeperMockRecorder {
 }
 
 // AppendPendingVSCPackets mocks base method.
-func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types5.ValidatorSetChangePacketData) {
+func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types6.ValidatorSetChangePacketData) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, chainID}
 	for _, a := range newPackets {
@@ -217,7 +218,7 @@ func (mr *MockProviderKeeperMockRecorder) GetValidatorSetUpdateId(ctx interface{
 }
 
 // HandleConsumerAdditionProposal mocks base method.
-func (m *MockProviderKeeper) HandleConsumerAdditionProposal(ctx types.Context, prop *types4.MsgConsumerAddition) error {
+func (m *MockProviderKeeper) HandleConsumerAdditionProposal(ctx types.Context, prop *types5.MsgConsumerAddition) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HandleConsumerAdditionProposal", ctx, prop)
 	ret0, _ := ret[0].(error)
@@ -384,10 +385,10 @@ func (m *MockChannelKeeper) EXPECT() *MockChannelKeeperMockRecorder {
 }
 
 // GetChannel mocks base method.
-func (m *MockChannelKeeper) GetChannel(arg0 types.Context, arg1, arg2 string) (types3.Channel, bool) {
+func (m *MockChannelKeeper) GetChannel(arg0 types.Context, arg1, arg2 string) (types4.Channel, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannel", arg0, arg1, arg2)
-	ret0, _ := ret[0].(types3.Channel)
+	ret0, _ := ret[0].(types4.Channel)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -396,6 +397,44 @@ func (m *MockChannelKeeper) GetChannel(arg0 types.Context, arg1, arg2 string) (t
 func (mr *MockChannelKeeperMockRecorder) GetChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannel", reflect.TypeOf((*MockChannelKeeper)(nil).GetChannel), arg0, arg1, arg2)
+}
+
+// MockConnectionKeeper is a mock of ConnectionKeeper interface.
+type MockConnectionKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockConnectionKeeperMockRecorder
+}
+
+// MockConnectionKeeperMockRecorder is the mock recorder for MockConnectionKeeper.
+type MockConnectionKeeperMockRecorder struct {
+	mock *MockConnectionKeeper
+}
+
+// NewMockConnectionKeeper creates a new mock instance.
+func NewMockConnectionKeeper(ctrl *gomock.Controller) *MockConnectionKeeper {
+	mock := &MockConnectionKeeper{ctrl: ctrl}
+	mock.recorder = &MockConnectionKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockConnectionKeeper) EXPECT() *MockConnectionKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetConnection mocks base method.
+func (m *MockConnectionKeeper) GetConnection(arg0 types.Context, arg1 string) (types3.ConnectionEnd, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConnection", arg0, arg1)
+	ret0, _ := ret[0].(types3.ConnectionEnd)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetConnection indicates an expected call of GetConnection.
+func (mr *MockConnectionKeeperMockRecorder) GetConnection(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConnection", reflect.TypeOf((*MockConnectionKeeper)(nil).GetConnection), arg0, arg1)
 }
 
 // MockBillingKeeper is a mock of BillingKeeper interface.
@@ -422,7 +461,7 @@ func (m *MockBillingKeeper) EXPECT() *MockBillingKeeperMockRecorder {
 }
 
 // BillAccount mocks base method.
-func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types6.Chainlet, epochIdentifier, memo string) error {
+func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types7.Chainlet, epochIdentifier, memo string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, epochIdentifier, memo)
 	ret0, _ := ret[0].(error)

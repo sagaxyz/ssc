@@ -57,7 +57,7 @@ run_test() {
 echo "=== create-chainlet-stack ==="
 
 run_test "sscd tx chainlet create-chainlet-stack sagaevm \"Your personal EVM\" \
-  sagaxyz/sagaevm:gamesjam-pi14 1.0.0 abc123 1000${denom} minute 1000${denom} \
+  sagaxyz/sagaevm:0.7.0 0.7.0 abc123 1000${denom} minute 1000${denom} \
   --from ${key} --fees ${fees} -o json -y" \
   0 "created sagaevm chainlet stack" "failed to create sagaevm stack"
 
@@ -75,7 +75,7 @@ run_test "sscd tx chainlet create-chainlet-stack sagavm \"Your personal EVM\" \
 echo "=== update-chainlet-stack ==="
 
 run_test "sscd tx chainlet update-chainlet-stack sagaevm \
-  sagaxyz/sagaevm:5ed0edf 1.2.3 sha256:b4cfab4354a11805b0b60cc52f43bd5d6b41f8a291c724fc8aabfa1d5a836aed \
+  sagaxyz/sagaevm:0.8.0 0.8.0 abc234 \
   --from ${key} --fees ${fees} -o json -y" \
   0 "updated chainlet stack version" "failed to update stack version"
 
@@ -87,7 +87,7 @@ run_test "sscd tx chainlet update-chainlet-stack sagaevm2 \
 # === Testing launch-chainlet ===
 echo "=== launch-chainlet ==="
 
-run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 1.0.0 mychain ${chainlet_denom} '{}' \
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 100001 --network-version 1 --gas ${gas_limit} \
   --from ${key} --fees ${fees} -o json -y" \
   0 "launched chainlet from valid stack" "failed to launch chainlet from valid stack"
@@ -97,21 +97,21 @@ run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" saga
   --from ${key} --fees ${fees} -o json -y" \
   nonzero "rejected launch with invalid stack" "accepted invalid stack launch"
 
-run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 1.0.0 mychain ${chainlet_denom} '{}' \
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 13371337 --network-version 1 --gas ${gas_limit} \
   --from ${key} --fees ${fees} -o json -y" \
   0 "launched another chainlet from valid stack" "failed second valid launch"
 
-run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 1.0.0 kukkoo ${chainlet_denom} '{\"gasLimit\":10000000,\"genAcctBalances\":\"saga1mk92pa54q8ehgcdqh0qp4pj6ddjwgt25aknqxn=1000,saga18xqr6cnyezq4pudqnf53klj3ppq3mvm4eea6dp=100000\"}' \
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 0.8.0 kukkoo ${chainlet_denom} '{\"gasLimit\":10000000,\"genAcctBalances\":\"saga1mk92pa54q8ehgcdqh0qp4pj6ddjwgt25aknqxn=1000,saga18xqr6cnyezq4pudqnf53klj3ppq3mvm4eea6dp=100000\"}' \
   --gas ${gas_limit} --from ${key} --fees ${fees} -o json -y" \
   0 "launched with custom params" "failed launch with custom params"
 
-run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" sagaevm 1.0.0 mychain ${chainlet_denom} '{}' \
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 515151 --network-version 1 --gas ${gas_limit} --service-chainlet \
   --from alice --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
   nonzero "rejected non-admin service launch" "accepted non-admin service launch"
 
-run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" sagaevm 1.0.0 mychain ${chainlet_denom} '{}' \
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 424242 --network-version 1 --gas ${gas_limit} --service-chainlet \
   --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
   0 "launched service chainlet from admin" "failed admin service launch"

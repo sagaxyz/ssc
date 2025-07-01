@@ -12,6 +12,12 @@ const (
 
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_chainlet"
+
+	// Version defines the current version the IBC module supports
+	Version = "abcdef-1"
+
+	// PortID is the default port id that module binds to
+	PortID = "abcdef"
 )
 
 var (
@@ -25,3 +31,8 @@ var (
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
+
+var (
+	// PortKey defines the key to store the port ID in store
+	PortKey = KeyPrefix("chainlet-port-")
+)

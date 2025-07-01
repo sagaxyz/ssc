@@ -665,8 +665,6 @@ func init() {
 	proto.RegisterType((*MsgDisableChainletStackVersion)(nil), "ssc.chainlet.MsgDisableChainletStackVersion")
 	proto.RegisterType((*MsgDisableChainletStackVersionResponse)(nil), "ssc.chainlet.MsgDisableChainletStackVersionResponse")
 	proto.RegisterType((*MsgUpgradeChainlet)(nil), "ssc.chainlet.MsgUpgradeChainlet")
-	proto.RegisterType((*MsgConfirmUpgradeChainletResponse)(nil), "ssc.chainlet.MsgConfirmUpgradeChainletResponse")
-	proto.RegisterType((*MsgConfirmUpgradeChainlet)(nil), "ssc.chainlet.MsgConfirmUpgradeChainlet")
 	proto.RegisterType((*MsgUpgradeChainletResponse)(nil), "ssc.chainlet.MsgUpgradeChainletResponse")
 }
 
@@ -1385,78 +1383,6 @@ func (m *MsgUpgradeChainlet) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintTx(dAtA, i, uint64(len(m.StackVersion)))
 		i--
 		dAtA[i] = 0x1a
-	}
-	if len(m.ChainId) > 0 {
-		i -= len(m.ChainId)
-		copy(dAtA[i:], m.ChainId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ChainId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgConfirmUpgradeChainletResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgConfirmUpgradeChainletResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgConfirmUpgradeChainletResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgConfirmUpgradeChainlet) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgConfirmUpgradeChainlet) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgConfirmUpgradeChainlet) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Plan) > 0 {
-		i -= len(m.Plan)
-		copy(dAtA[i:], m.Plan)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Plan)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.Height != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x18
 	}
 	if len(m.ChainId) > 0 {
 		i -= len(m.ChainId)

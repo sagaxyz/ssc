@@ -18,7 +18,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	admin := k.aclKeeper.Admin(ctx, msg.GetSigners()[0])
+	admin := k.aclKeeper.IsAdmin(ctx, msg.GetSigners()[0])
 	if !admin {
 		ok, err := types.ValidateNonAdminChainId(msg.ChainId)
 		if !ok {

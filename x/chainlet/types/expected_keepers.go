@@ -66,5 +66,5 @@ type EscrowKeeper interface {
 
 type AclKeeper interface {
 	Allowed(ctx sdk.Context, addr sdk.AccAddress) bool
-	Admin(ctx sdk.Context, addr sdk.AccAddress) bool
+	IsAdmin(ctx sdk.Context, addr sdk.AccAddress) bool
 }

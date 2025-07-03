@@ -139,6 +139,7 @@ import (
 
 	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
+	upgrade04 "github.com/sagaxyz/ssc/app/upgrades/0.4"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -149,6 +150,7 @@ import (
 const (
 	AccountAddressPrefix = "saga"
 	Name                 = "ssc"
+	SagaAddress          = "saga1a3l58hsdhcra3rka72axevwr63aye2g726rduw" // Saga address used for fee collector and other module accounts
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -453,7 +455,7 @@ func New(
 		app.BankKeeper,
 		app.StakingKeeper,
 		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		SagaAddress,
 	)
 
 	app.SlashingKeeper = slashingkeeper.NewKeeper(
@@ -1104,6 +1106,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, app.IBCKeeper.ClientKeeper, baseAppLegacySS))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade04.Name, upgrade04.UpgradeHandler(app.mm, app.configurator))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

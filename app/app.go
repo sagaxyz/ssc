@@ -150,7 +150,7 @@ import (
 const (
 	AccountAddressPrefix = "saga"
 	Name                 = "ssc"
-	SagaAddress          = "saga1a3l58hsdhcra3rka72axevwr63aye2g726rduw" // Saga address used for fee collector and other module accounts
+	SagaAddress          = "saga1z3sp72f7cw5sgz3ljrhd0e3kdlt7fzl6m3luvd" // Saga address used for fee collector and other module accounts
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals

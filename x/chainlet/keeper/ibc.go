@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,6 +41,25 @@ func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
 		return packetAck, err
+	}
+
+	chainlet, err := k.Chainlet(ctx, data.ChainId)
+	if err != nil {
+		return
+	}
+	if chainlet.Upgrade == nil {
+		err = fmt.Errorf("chain %s is not being upgraded", data.ChainId)
+		return
+	}
+	if data.Height != chainlet.Upgrade.Height {
+		err = fmt.Errorf("unexpected upgrade height: %d != %d", data.Height, chainlet.Upgrade.Height)
+		return 
+	}
+	//TODO check plan name
+
+	err = k.finishUpgrading(ctx, &chainlet)
+	if err != nil {
+		return
 	}
 
 	return packetAck, nil

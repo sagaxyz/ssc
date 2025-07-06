@@ -237,4 +237,4 @@ require (
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
-replace github.com/sagaxyz/saga-sdk => ../saga-sdk
+replace github.com/sagaxyz/saga-sdk => github.com/sagaxyz/saga-sdk v0.8.1-0.20250702114407-b1e21b84595a

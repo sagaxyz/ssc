@@ -68,7 +68,6 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 
 	chainlet := types.Chainlet{
-		SpawnTime:            ctx.BlockTime().Add(p.LaunchDelay),
 		Launcher:             msg.Creator,
 		Maintainers:          msg.Maintainers,
 		ChainletStackName:    msg.ChainletStackName,
@@ -144,6 +143,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 
 	// Add as a CCV consumer if enabled
 	if chainlet.IsCCVConsumer {
+		chainlet.SpawnTime = ctx.BlockTime().Add(p.LaunchDelay)
 		err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
 		if err != nil {
 			return nil, err

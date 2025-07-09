@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"reflect"
+	"time"
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
@@ -52,14 +53,31 @@ func (k *Keeper) NewChainlet(ctx sdk.Context, chainlet types.Chainlet) error {
 	return nil
 }
 
-func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVersion string) error {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
-
-	key := []byte(chainId)
-	if !store.Has(key) {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidChainId, "chainlet with chainId %s not found", chainId)
+func (k *Keeper) EnableConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+	chainlet, err := k.Chainlet(ctx, chainId)
+	if err != nil {
+		return err
 	}
 
+	if chainlet.IsCCVConsumer {
+		panic("chainlet already a consumer")
+	}
+	chainlet.IsCCVConsumer = true
+	chainlet.SpawnTime = spawnTime
+
+	updatedValue := k.cdc.MustMarshal(&chainlet)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+	store.Set([]byte(chainId), updatedValue)
+
+	err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVersion string) error {
 	chainlet, err := k.Chainlet(ctx, chainId)
 	if err != nil {
 		return err
@@ -76,11 +94,11 @@ func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVers
 	chainlet.ChainletStackVersion = stackVersion
 
 	updatedValue := k.cdc.MustMarshal(&chainlet)
-	store.Set(key, updatedValue)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+	store.Set([]byte(chainId), updatedValue)
 
 	return nil
 }
-
 
 func updateChainletParams(curParams *types.ChainletParams, params *types.ChainletParams) error { //nolint:unused
 	curElem := reflect.ValueOf(curParams).Elem()

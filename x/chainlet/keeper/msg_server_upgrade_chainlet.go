@@ -31,16 +31,35 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 		return nil, err
 	}
 	if majorUpgrade {
-		p := k.GetParams(ctx)
-		upgradeDelta := p.MinimumUpgradeHeightDelta + msg.HeightDelta
-		height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta)
+		currentStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, ogChainlet.ChainletStackVersion)
 		if err != nil {
-			return nil, fmt.Errorf("error sending upgrade: %s", err)
+			return nil, err
 		}
+		if currentStack.CcvConsumer {
+			p := k.GetParams(ctx)
+			upgradeDelta := p.MinimumUpgradeHeightDelta + msg.HeightDelta
+			height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta)
+			if err != nil {
+				return nil, fmt.Errorf("error sending upgrade: %s", err)
+			}
 
-		return &types.MsgUpgradeChainletResponse{
-			Height: height,
-		}, nil
+			return &types.MsgUpgradeChainletResponse{
+				Height: height,
+			}, nil
+		} else {
+			// Add as a consumer if upgrade enables CCV
+			newStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, msg.StackVersion)
+			if err != nil {
+				return nil, err
+			}
+			if newStack.CcvConsumer {
+				p := k.GetParams(ctx)
+				err := k.EnableConsumer(ctx, ogChainlet.ChainId, ctx.BlockTime().Add(p.LaunchDelay))
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
 	}
 
 	err = k.UpgradeChainletStackVersion(ctx, msg.ChainId, msg.StackVersion)

@@ -264,9 +264,9 @@ func (k *Keeper) finishUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
 
 func (k *Keeper) cancelUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
 	chainlet.Upgrade = nil
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 	store.Set([]byte(chainlet.ChainId), k.cdc.MustMarshal(chainlet))
-
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.UpgradingChainletsKey)
 	store.Delete([]byte(chainlet.ChainId))
 }

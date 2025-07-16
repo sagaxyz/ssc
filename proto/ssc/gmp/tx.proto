@@ -6,6 +6,4 @@ import "cosmos/msg/v1/msg.proto";
 option go_package = "github.com/sagaxyz/ssc/x/gmp/types";
 
 // Msg defines the Msg service.
-service Msg {
-    option (cosmos.msg.v1.service) = true;
-}
+service Msg { option (cosmos.msg.v1.service) = true; }

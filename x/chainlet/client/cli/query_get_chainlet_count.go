@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdGetChainletCount() *cobra.Command {
+func CmdChainletCount() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-chainlet-count",
-		Short: "Query getChainletCount",
+		Use:   "chainlet-count",
+		Short: "Query chainlet count",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -21,9 +21,9 @@ func CmdGetChainletCount() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryGetChainletCountRequest{}
+			params := &types.QueryChainletCountRequest{}
 
-			res, err := queryClient.GetChainletCount(cmd.Context(), params)
+			res, err := queryClient.ChainletCount(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

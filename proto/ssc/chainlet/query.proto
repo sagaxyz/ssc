@@ -47,9 +47,9 @@ service Query {
 
   // this line is used by starport scaffolding # 2
 
-  // Queries a list of GetChainletCount items.
-  rpc GetChainletCount(QueryGetChainletCountRequest)
-      returns (QueryGetChainletCountResponse) {
+  // Queries a list of ChainletCount items.
+  rpc ChainletCount(QueryChainletCountRequest)
+      returns (QueryChainletCountResponse) {
     option (google.api.http).get = "/sagaxyz/ssc/chainlet/get_chainlet_count";
   }
 }
@@ -94,6 +94,6 @@ message QueryGetChainletResponse {
 }
 
 // this line is used by starport scaffolding # 3
-message QueryGetChainletCountRequest {}
+message QueryChainletCountRequest {}
 
-message QueryGetChainletCountResponse { uint64 count = 1; }
+message QueryChainletCountResponse { uint64 count = 1; }

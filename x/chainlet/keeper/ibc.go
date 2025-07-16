@@ -11,7 +11,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
-	"github.com/sagaxyz/saga-sdk/x/abcdef/types"
+	"github.com/sagaxyz/saga-sdk/x/chainlet/types"
 )
 
 // TransmitConfirmUpgradePacket transmits the packet over IBC with the specified source port and source channel

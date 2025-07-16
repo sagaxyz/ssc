@@ -14,10 +14,10 @@ const (
 	MemStoreKey = "mem_chainlet"
 
 	// Version defines the current version the IBC module supports
-	Version = "abcdef-1"
+	Version = "chainlet-1"
 
 	// PortID is the default port id that module binds to
-	PortID = "abcdef"
+	PortID = "chainlet"
 )
 
 var (

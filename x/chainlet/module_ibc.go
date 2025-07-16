@@ -11,7 +11,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	abcdeftypes "github.com/sagaxyz/saga-sdk/x/abcdef/types"
+	chainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/keeper"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
@@ -153,14 +153,14 @@ func (im IBCModule) OnRecvPacket(
 
 	// this line is used by starport scaffolding # oracle/packet/module/recv
 
-	var modulePacketData abcdeftypes.AbcdefPacketData
+	var modulePacketData chainlettypes.ChainletPacketData
 	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error()))
 	}
 
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
-	case *abcdeftypes.AbcdefPacketData_ConfirmUpgradePacket:
+	case *chainlettypes.ChainletPacketData_ConfirmUpgradePacket:
 	packetAck, err := im.keeper.OnRecvConfirmUpgradePacket(ctx, modulePacket, *packet.ConfirmUpgradePacket)
 	if err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(err)
@@ -203,7 +203,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	// this line is used by starport scaffolding # oracle/packet/module/ack
 
-	var modulePacketData abcdeftypes.AbcdefPacketData
+	var modulePacketData chainlettypes.ChainletPacketData
 	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
 	}
@@ -212,7 +212,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
-	case *abcdeftypes.AbcdefPacketData_ConfirmUpgradePacket:
+	case *chainlettypes.ChainletPacketData_ConfirmUpgradePacket:
 	err := im.keeper.OnAcknowledgementConfirmUpgradePacket(ctx, modulePacket, *packet.ConfirmUpgradePacket, ack)
 	if err != nil {
 		return err
@@ -229,7 +229,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		sdk.NewEvent(
 			eventType,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(abcdeftypes.AttributeKeyAck, fmt.Sprintf("%v", ack)),
+			sdk.NewAttribute(chainlettypes.AttributeKeyAck, fmt.Sprintf("%v", ack)),
 		),
 	)
 
@@ -238,14 +238,14 @@ func (im IBCModule) OnAcknowledgementPacket(
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				eventType,
-				sdk.NewAttribute(abcdeftypes.AttributeKeyAckSuccess, string(resp.Result)),
+				sdk.NewAttribute(chainlettypes.AttributeKeyAckSuccess, string(resp.Result)),
 			),
 		)
 	case *channeltypes.Acknowledgement_Error:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				eventType,
-				sdk.NewAttribute(abcdeftypes.AttributeKeyAckError, resp.Error),
+				sdk.NewAttribute(chainlettypes.AttributeKeyAckError, resp.Error),
 			),
 		)
 	}
@@ -259,14 +259,14 @@ func (im IBCModule) OnTimeoutPacket(
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var modulePacketData abcdeftypes.AbcdefPacketData
+	var modulePacketData chainlettypes.ChainletPacketData
 	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
 	}
 
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
-	case *abcdeftypes.AbcdefPacketData_ConfirmUpgradePacket:
+	case *chainlettypes.ChainletPacketData_ConfirmUpgradePacket:
 	err := im.keeper.OnTimeoutConfirmUpgradePacket(ctx, modulePacket, *packet.ConfirmUpgradePacket)
 	if err != nil {
 		return err

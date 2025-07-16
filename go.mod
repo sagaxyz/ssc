@@ -25,7 +25,7 @@ require (
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.1.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v8 v8.7.0
-	github.com/cosmos/interchain-security/v5 v5.0.0
+	github.com/cosmos/interchain-security/v5 v5.2.0
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.6.0
@@ -237,4 +237,4 @@ require (
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
-replace github.com/sagaxyz/saga-sdk => github.com/sagaxyz/saga-sdk v0.8.1-0.20250702114407-b1e21b84595a
+replace github.com/sagaxyz/saga-sdk => github.com/sagaxyz/saga-sdk v0.8.1-0.20250716152343-bfb763eea7ac

@@ -121,7 +121,7 @@ echo "=== queries & billing ==="
 sscd q epochs epoch-infos
 
 # chainlet-stack list & get
-if sscd q chainlet list-chainlet-stacks -o json | jq '.ChainletStacks | length' | grep -q '^1$'; then
+if sscd q chainlet list-chainlet-stack -o json | jq '.ChainletStacks | length' | grep -q '^1$'; then
   echo "✅ 1 stack"
 else
   cleanup_sscd

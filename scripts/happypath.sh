@@ -121,15 +121,27 @@ echo "=== queries & billing ==="
 sscd q epochs epoch-infos
 
 # chainlet-stack list & get
-sscd q chainlet list-chainlet-stack -o json \
-  | jq '.ChainletStacks | length' | grep -q '^1$' && echo "✅ 1 stack" || { cleanup_sscd; exit 1; }
+if sscd q chainlet list-chainlet-stacks -o json | jq '.ChainletStacks | length' | grep -q '^1$'; then
+  echo "✅ 1 stack"
+else
+  cleanup_sscd
+  exit 1
+fi
 
-sscd q chainlet get-chainlet-stack sagaevm -o json \
-  | jq '.ChainletStack.versions | length' | grep -q '^2$' && echo "✅ 2 versions" || { cleanup_sscd; exit 1; }
+if sscd q chainlet get-chainlet-stack sagaevm -o json | jq '.ChainletStack.versions | length' | grep -q '^2$'; then
+  echo "✅ 2 versions"
+else
+  cleanup_sscd
+  exit 1
+fi
 
 # list chainlets
-sscd q chainlet list-chainlets -o json \
-  | jq '.Chainlets | length' | grep -q '^[34]$' && echo "✅ chainlet count OK" || { cleanup_sscd; exit 1; }
+if sscd q chainlet list-chainlets -o json | jq '.Chainlets | length' | grep -q '^[34]$'; then
+  echo "✅ chainlet count OK"
+else
+  cleanup_sscd
+  exit 1
+fi
 
 sscd q chainlet list-chainlets
 
@@ -137,11 +149,19 @@ echo "🛌 Sleeping 1m for billing..."
 sleep 60
 
 # billing & payouts
-sscd q billing get-billing-history mychain_100001-1 > /dev/null 2>&1 && \
-  echo "✅ billing history fetched" || { cleanup_sscd; exit 1; }
+if sscd q billing get-billing-history mychain_100001-1 > /dev/null 2>&1; then
+  echo "✅ billing history  fetched"
+else
+  cleanup_sscd
+  exit 1
+fi
 
-sscd q billing get-validator-payout-history "$(sscd keys show -a "${key}")" \
-  > /dev/null 2>&1 && echo "✅ validator payout fetched" || { cleanup_sscd; exit 1; }
+if sscd q billing get-validator-payout-history mychain_100001-1 > /dev/null 2>&1; then
+  echo "✅ validator payout fetched"
+else
+  cleanup_sscd
+  exit 1
+fi
 
 # Final cleanup
 echo -e "

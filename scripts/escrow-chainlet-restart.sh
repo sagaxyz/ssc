@@ -19,10 +19,10 @@ WaitTx() {
 echo "testing create-chainlet-stack"
 
 TX_HASH=$(sscd tx chainlet create-chainlet-stack sagaevm "Your personal EVM" sagaxyz/sagaevm:8.2.8 1.0.0 abc123 1000utsaga minute 1000utsaga false --from $KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
     echo "pass: created a 'sagaevm' chainlet stack"
 else
     echo "fail: failed to create a 'sagaevm' chainlet stack"
@@ -32,10 +32,10 @@ fi
 echo "testing launch-chainlet"
 
 TX_HASH=$(sscd tx chainlet launch-chainlet "$(sscd keys show -a $KEY)" sagaevm 1.0.0 mychain $CHAINLET_DENOM '{}' --evm-chain-id 100001 --network-version 1 --gas $GAS_LIMIT --from $KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
     echo "pass: launched a chainlet from a valid chainlet stack"
 else
     echo "fail: failed to launch a chainlet from a valid chainlet stack"
@@ -55,13 +55,13 @@ sleep 5
 sscd q bank balances "$(sscd keys show -a $ANOTHER_KEY)"
 
 TX_HASH=$(sscd tx escrow deposit 30000utsaga mychain_100001-1 --from $ANOTHER_KEY --fees $FEES -y)
-WaitTx $TX_HASH
+WaitTx "$TX_HASH"
 
 TX_HASH=$(sscd tx escrow deposit 30000utsaga mychain_100001-1 --from $ANOTHER_KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
     echo "pass: deposited funds into escrow"
 else
     echo "fail: failed to deposit funds into escrow"
@@ -71,10 +71,10 @@ fi
 echo "testing withdraw"
 
 TX_HASH=$(sscd tx escrow withdraw mychain_100001-1 --from $KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
     echo "pass: withdraw successfull"
 else
     echo "fail: unable to withdraw"
@@ -93,10 +93,10 @@ fi
 echo "second account withdraws as well"
 
 TX_HASH=$(sscd tx escrow withdraw mychain_100001-1 --from $ANOTHER_KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
     echo "pass: withdraw successfull"
 else
     echo "fail: unable to withdraw"
@@ -115,10 +115,10 @@ fi
 echo "testing chainlet restarts"
 
 TX_HASH=$(sscd tx escrow deposit 29999utsaga mychain_100001-1 --from $ANOTHER_KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
 echo "pass: deposited funds into escrow"
 else
     echo "fail: failed to deposit funds into escrow"
@@ -135,10 +135,10 @@ else
 fi
 
 TX_HASH=$(sscd tx escrow deposit 1utsaga mychain_100001-1 --from $KEY --fees $FEES -o json -y | jq -r .txhash)
-WaitTx $TX_HASH
-TX_RES=$(sscd q tx $TX_HASH -o json)
+WaitTx "$TX_HASH"
+TX_RES=$(sscd q tx "$TX_HASH" -o json)
 
-if [ "$(echo $TX_RES | jq .code)" -eq 0 ]; then
+if [ "$(echo "$TX_RES" | jq .code)" -eq 0 ]; then
 echo "pass: deposited funds into escrow"
 else
     echo "fail: failed to deposit funds into escrow"

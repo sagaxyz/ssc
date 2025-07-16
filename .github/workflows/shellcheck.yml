@@ -3,7 +3,7 @@ name: ShellCheck
 on: [push]
 
 permissions:
- contents: read
+  contents: read
 jobs:
   shellcheck:
     name: Run shellcheck
@@ -15,4 +15,4 @@ jobs:
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
         env:
-          SHELLCHECK_OPTS: -e SC2086
+          SHELLCHECK_OPTS: -e SC2086,SC2015

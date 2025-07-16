@@ -75,12 +75,12 @@ run_test "sscd tx chainlet create-chainlet-stack sagavm \"Your personal EVM\" \
 echo "=== update-chainlet-stack ==="
 
 run_test "sscd tx chainlet update-chainlet-stack sagaevm \
-  sagaxyz/sagaevm:0.8.0 0.8.0 abc234 \
+  sagaxyz/sagaevm:0.8.0 0.8.0 abc234 false \
   --from ${key} --fees ${fees} -o json -y" \
   0 "updated chainlet stack version" "failed to update stack version"
 
 run_test "sscd tx chainlet update-chainlet-stack sagaevm2 \
-  sagaxyz/sagaevm:3.0.0 3.0.0 def456 \
+  sagaxyz/sagaevm:3.0.0 3.0.0 def456 false \
   --from ${key} --fees ${fees} -o json -y" \
   nonzero "rejected update of non-existent stack" "accepted update of non-existent stack"
 

@@ -43,24 +43,29 @@ func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.
 		return packetAck, err
 	}
 
+	fmt.Printf("XXX received packet %+v\n", data)
+
 	chainlet, err := k.Chainlet(ctx, data.ChainId)
 	if err != nil {
+		fmt.Printf("XXX upgradin %s: %s\n", data.ChainId, err)
 		return
 	}
 	if chainlet.Upgrade == nil {
 		err = fmt.Errorf("chain %s is not being upgraded", data.ChainId)
+		fmt.Printf("XXX upgradin %s: %s\n", data.ChainId, err)
 		return
 	}
 	if data.Height != chainlet.Upgrade.Height {
 		err = fmt.Errorf("unexpected upgrade height: %d != %d", data.Height, chainlet.Upgrade.Height)
-		return 
-	}
-	//TODO check plan name
-
-	err = k.finishUpgrading(ctx, &chainlet)
-	if err != nil {
+		fmt.Printf("XXX upgradin %s: %s\n", data.ChainId, err)
 		return
 	}
+	err = k.finishUpgrading(ctx, &chainlet)
+	if err != nil {
+		fmt.Printf("XXX upgradin %s: %s\n", data.ChainId, err)
+		return
+	}
+	fmt.Printf("XXX upgradin %s: DONE\n")
 
 	return packetAck, nil
 }

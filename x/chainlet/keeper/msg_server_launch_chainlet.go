@@ -148,6 +148,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		if err != nil {
 			return nil, err
 		}
+		fmt.Printf("XXX added chain id %s to consumers\n", chainlet.ChainId)
 	}
 
 	err = k.NewChainlet(ctx, chainlet)

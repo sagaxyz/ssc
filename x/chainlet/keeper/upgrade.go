@@ -181,52 +181,6 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	return
 }
 
-func (k *Keeper) HandleUpgradingChainlets(ctx sdk.Context) error {
-	iterator := prefix.NewStore(ctx.KVStore(k.storeKey), types.UpgradingChainletsKey).Iterator(nil, nil)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		chainID := iterator.Key()
-		fmt.Printf("XXX got upgrading chainlet: %s\n", chainID)
-
-		chainlet, err := k.Chainlet(ctx, string(chainID))
-		if err != nil {
-			return err
-		}
-		if chainlet.Upgrade == nil {
-			panic("no upgrade info")
-		}
-
-		clientId, ex := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ChainId)
-		if !ex {
-			fmt.Printf("XXX upgrading chainlet: %s: not client\n", chainID)
-			//TODO log
-			continue
-		}
-		clientState, ex := k.clientKeeper.GetClientState(ctx, clientId)
-		if !ex {
-			return fmt.Errorf("client state missing for client ID '%s'", clientId)
-		}
-
-		//TODO check revision number
-		height := clientState.GetLatestHeight().GetRevisionHeight()
-		if height > chainlet.Upgrade.Height {
-			// Chain failed to stop before the upgrade height => cancel the upgrade
-			k.cancelUpgrading(ctx, &chainlet)
-			fmt.Printf("XXX upgrading chainlet: %s: cancelled\n", chainID)
-			continue
-		}
-		if height < chainlet.Upgrade.Height-1 {
-			continue
-		}
-
-		fmt.Printf("XXX upgrading chainlet: %s: DONE\n", chainID)
-		k.finishUpgrading(ctx, &chainlet)
-	}
-
-	return nil
-}
-
 func (k *Keeper) setUpgrading(ctx sdk.Context, chainlet *types.Chainlet, version string, height uint64) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 

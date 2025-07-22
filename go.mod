@@ -238,3 +238,5 @@ require (
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/sagaxyz/saga-sdk => github.com/sagaxyz/saga-sdk v0.8.1-0.20250716152343-bfb763eea7ac
+
+replace github.com/cosmos/interchain-security/v5 => github.com/cosmos/interchain-security/v5 v5.0.0

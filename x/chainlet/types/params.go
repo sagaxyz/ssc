@@ -25,8 +25,8 @@ func NewParams() Params {
 		AutomaticChainletUpgradeInterval: 100,
 		LaunchDelay:                      3 * time.Minute,
 		MaxChainlets:                     500,
-		EnableCCV:                        false,
-		MinimumUpgradeHeightDelta:        100,
+		EnableCCV:                        true,
+		MinimumUpgradeHeightDelta:        10,
 	}
 }
 

@@ -39,7 +39,6 @@ jobs:
 
       - name: Restart
         run: |
-          kill $(pgrep -fi sscd)
           sleep 5
           rm -rf ~/.ssc/
           export PATH=./build/:$PATH

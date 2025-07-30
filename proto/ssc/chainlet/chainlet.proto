@@ -36,6 +36,6 @@ message Upgrade {
   uint64 height = 1;
   string version = 2;
 }
-message UpgradingChainlet{}
+message UpgradingChainlet {}
 
 message PendingInit {}

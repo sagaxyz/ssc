@@ -154,8 +154,8 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 
 	// Timeout
 	//p := k.GetParams(ctx)
-	TimeoutHeight := uint64(200) //TODO p
-	TimeoutTime := 1 * time.Hour //TODO p
+	TimeoutHeight := uint64(300) //TODO p
+	TimeoutTime := 2 * time.Hour //TODO p
 	timeoutHeight := clienttypes.Height{
 		RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
 		RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight() + TimeoutHeight,

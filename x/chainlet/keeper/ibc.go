@@ -36,6 +36,52 @@ func (k Keeper) TransmitCreateUpgradePacket(
 	return k.ibcKeeperFn().ChannelKeeper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
 }
 
+// OnRecvCreateUpgradePacket processes packet reception
+func (k Keeper) OnRecvCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.CreateUpgradePacketData) (packetAck types.CreateUpgradePacketAck, err error) {
+	// validate packet data upon receiving
+	if err := data.ValidateBasic(); err != nil {
+		return packetAck, err
+	}
+
+	return packetAck, nil
+}
+
+// OnAcknowledgementCreateUpgradePacket responds to the success or failure of a packet
+// acknowledgement written on the receiving chain.
+func (k Keeper) OnAcknowledgementCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.CreateUpgradePacketData, ack channeltypes.Acknowledgement) error {
+	switch dispatchedAck := ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Error:
+
+		// TODO: failed acknowledgement logic
+		_ = dispatchedAck.Error
+
+		return nil
+	case *channeltypes.Acknowledgement_Result:
+		// Decode the packet acknowledgment
+		var packetAck types.CreateUpgradePacketAck
+
+		if err := types.ModuleCdc.UnmarshalJSON(dispatchedAck.Result, &packetAck); err != nil {
+			// The counter-party module doesn't implement the correct acknowledgment format
+			return errors.New("cannot unmarshal acknowledgment")
+		}
+
+		// TODO: successful acknowledgement logic
+
+		return nil
+	default:
+		// The counter-party module doesn't implement the correct acknowledgment format
+		return errors.New("invalid acknowledgment format")
+	}
+}
+
+// OnTimeoutCreateUpgradePacket responds to the case where a packet has not been transmitted because of a timeout
+func (k Keeper) OnTimeoutCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.CreateUpgradePacketData) error {
+	//TODO
+	//cancelUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
+	
+	return nil
+}
+
 // TransmitConfirmUpgradePacket transmits the packet over IBC with the specified source port and source channel
 func (k Keeper) TransmitConfirmUpgradePacket(
 	ctx sdk.Context,

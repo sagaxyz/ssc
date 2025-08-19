@@ -162,6 +162,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	}
 	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
 
+	fmt.Printf("XXX sending packet %+v to %s with port %s, timeout %s and %s\n", packetData, channelID, types.PortID, timeoutHeight, timeoutTimestamp)
 	_, err = k.TransmitCreateUpgradePacket(ctx, packetData, types.PortID, channelID, timeoutHeight, timeoutTimestamp)
 	if err != nil {
 		return

@@ -2,18 +2,18 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 	"time"
+	"fmt"
 
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	"github.com/cosmos/gogoproto/proto"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
+	sdkchainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
@@ -110,32 +110,12 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 		return
 	}
 	// Get consumer connection id
-	connectionID, _, err := k.getConsumerConnectionIDs(ctx, chainlet.ChainId)
+	ccvConnectionID, _, err := k.getConsumerConnectionIDs(ctx, chainlet.ChainId)
 	if err != nil {
 		return
 	}
 
-	// Check the ICA account
-	icaOwner := sdk.AccAddress(address.Module(types.ModuleName)).String()
-	portID, err := icatypes.NewControllerPortID(icaOwner)
-	if err != nil {
-		return
-	}
-
-	addr, found := k.icaKeeper.GetInterchainAccountAddress(ctx, connectionID, portID)
-	if !found {
-		err = fmt.Errorf("missing ICA account for chainlet %s", chainlet.ChainId)
-		return
-	}
-
-	// Check ICA channel
-	_, open := k.icaKeeper.GetOpenActiveChannel(ctx, connectionID, portID)
-	if !open {
-		err = fmt.Errorf("channel for connection %s and port %s not open", connectionID, portID)
-		return
-	}
-
-	// Create a MsgSoftwareUpgrade message
+	// Create the IBC packet 
 	clientState, ex := k.clientKeeper.GetClientState(ctx, clientID)
 	if !ex {
 		err = fmt.Errorf("client state missing for client ID '%s'", clientID)
@@ -146,26 +126,27 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	if err != nil {
 		return
 	}
-	msg := upgradetypes.MsgSoftwareUpgrade{
-		Authority: addr,
-		Plan: upgradetypes.Plan{
-			Name:   planName,
-			Height: int64(upgradeHeight),
-			Info:   "Upgrade created by the provider chain",
-		},
+	packetData := sdkchainlettypes.CreateUpgradePacketData{
+		Name:   planName,
+		Height: upgradeHeight,
+		Info:   "Upgrade created by the provider chain",
+	}
+	err = packetData.ValidateBasic()
+	if err != nil {
+		return 
 	}
 
-	// Send the message using ICA
-	data, err := icatypes.SerializeCosmosTx(k.cdc, []proto.Message{&msg}, icatypes.EncodingProtobuf)
-	if err != nil {
-		return
+	// Timeout
+	//p := k.GetParams(ctx)
+	TimeoutHeight := uint64(10000) //TODO p
+	TimeoutTime := 24 * time.Hour //TODO p
+	timeoutHeight := clienttypes.Height{
+		RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
+		RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight() + TimeoutHeight,
 	}
-	packetData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: data,
-	}
-	timeout := ctx.BlockTime().Add(24 * time.Hour).UnixNano() //TODO module param
-	_, err = k.icaKeeper.SendTx(ctx, nil, connectionID, portID, packetData, uint64(timeout))
+	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
+
+	_, err = k.TransmitCreateUpgradePacket(ctx, packetData, types.PortID, channelId, timeoutHeight, timeoutTimestamp)
 	if err != nil {
 		return
 	}

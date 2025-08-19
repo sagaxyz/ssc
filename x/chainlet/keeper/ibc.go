@@ -14,6 +14,28 @@ import (
 	"github.com/sagaxyz/saga-sdk/x/chainlet/types"
 )
 
+// TransmitCreateUpgradePacket transmits the packet over IBC with the specified source port and source channel
+func (k Keeper) TransmitCreateUpgradePacket(
+	ctx sdk.Context,
+	packetData types.CreateUpgradePacketData,
+	sourcePort,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+) (uint64, error) {
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
+	if !ok {
+		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
+	}
+
+	packetBytes, err := packetData.GetBytes()
+	if err != nil {
+		return 0, errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "cannot marshal the packet: %s", err)
+	}
+
+	return k.ibcKeeperFn().ChannelKeeper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
+}
+
 // TransmitConfirmUpgradePacket transmits the packet over IBC with the specified source port and source channel
 func (k Keeper) TransmitConfirmUpgradePacket(
 	ctx sdk.Context,

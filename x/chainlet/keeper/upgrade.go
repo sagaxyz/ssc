@@ -102,16 +102,32 @@ func upgradePlanName(from, to string) (plan string, err error) {
 
 	return
 }
-func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVersion string, heightDelta uint64) (height uint64, err error) {
+func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVersion string, heightDelta uint64, channelID string) (height uint64, err error) {
 	// Get consumer client id
 	clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ChainId)
 	if !consumerRegistered {
 		err = errors.New("consumer not registered yet")
 		return
 	}
-	// Get consumer connection id
-	ccvConnectionID, _, err := k.getConsumerConnectionIDs(ctx, chainlet.ChainId)
-	if err != nil {
+
+	// Verify channel corresponds to the correct client
+    channel, found := k.channelKeeper.GetChannel(ctx, sdkchainlettypes.PortID, channelID)
+    if !found {
+		err = fmt.Errorf("channel %s not found (port: %s)",channelID, sdkchainlettypes.PortID)
+		return
+    }
+    if len(channel.ConnectionHops) == 0 {
+        err = fmt.Errorf("no connection hops for channel %s", channelID)
+		return
+    }
+    connectionID := channel.ConnectionHops[0]
+    connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+    if !found {
+        err = fmt.Errorf("connection not found: %s", connectionID)
+		return
+    }
+    if connection.ClientId != clientID {
+        err = fmt.Errorf("client ID of the provided channel does not match consumer client id (%s != %s)", connection.ClientId, clientID)
 		return
 	}
 
@@ -146,7 +162,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	}
 	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
 
-	_, err = k.TransmitCreateUpgradePacket(ctx, packetData, types.PortID, channelId, timeoutHeight, timeoutTimestamp)
+	_, err = k.TransmitCreateUpgradePacket(ctx, packetData, types.PortID, channelID, timeoutHeight, timeoutTimestamp)
 	if err != nil {
 		return
 	}

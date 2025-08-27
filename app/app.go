@@ -160,6 +160,7 @@ import (
 
 	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
+	upgrade05 "github.com/sagaxyz/ssc/app/upgrades/0.5"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -1301,6 +1302,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade05.Name, upgrade05.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

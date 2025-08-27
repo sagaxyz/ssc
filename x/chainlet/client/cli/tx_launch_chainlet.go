@@ -78,6 +78,6 @@ func CmdLaunchChainlet() *cobra.Command {
 	cmd.Flags().Int64("network-version", 1, "network version")
 	cmd.Flags().StringArray("tags", []string{}, "chainlet tags. non-admin use will be overwritten")
 	cmd.Flags().Bool("service-chainlet", false, "service chainlet. non-admin use will be overwritten")
-
+	cmd.Flags().String("custom-launcher", "", "custom launcher address. non-admin use will be overwritten")
 	return cmd
 }

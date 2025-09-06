@@ -6,12 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	ccvprovidertypes "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

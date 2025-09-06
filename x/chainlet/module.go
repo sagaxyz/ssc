@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/client/cli"
 	"github.com/sagaxyz/ssc/x/chainlet/exported"

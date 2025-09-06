@@ -5,14 +5,14 @@ import (
 	"time"
 	"fmt"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	sdkchainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"

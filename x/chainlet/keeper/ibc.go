@@ -87,11 +87,11 @@ func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.
 		fmt.Printf("XXX upgrading %s: %s\n", data.ChainId, err)
 		return
 	}
-	if data.Height != chainlet.Upgrade.Height - 1 {
-		err = fmt.Errorf("unexpected upgrade height: %d != %d", data.Height, chainlet.Upgrade.Height)
-		fmt.Printf("XXX upgrading %s: %s\n", data.ChainId, err)
-		return
-	}
+	//if data.Height != chainlet.Upgrade.Height - 1 {
+	//	err = fmt.Errorf("unexpected upgrade height: %d != %d", data.Height, chainlet.Upgrade.Height -1)
+	//	fmt.Printf("XXX upgrading %s: %s\n", data.ChainId, err)
+	//	return
+	//}
 	err = k.finishUpgrading(ctx, &chainlet)
 	if err != nil {
 		fmt.Printf("XXX upgrading %s: %s\n", data.ChainId, err)

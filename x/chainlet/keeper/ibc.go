@@ -10,14 +10,15 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	chainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
-	"github.com/sagaxyz/saga-sdk/x/chainlet/types"
+	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // TransmitCreateUpgradePacket transmits the packet over IBC with the specified source port and source channel
 func (k Keeper) TransmitCreateUpgradePacket(
 	ctx sdk.Context,
-	packetData types.CreateUpgradePacketData,
+	packetData chainlettypes.CreateUpgradePacketData,
 	sourcePort,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -36,37 +37,24 @@ func (k Keeper) TransmitCreateUpgradePacket(
 	return k.ibcKeeperFn().ChannelKeeper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
 }
 
-// OnRecvCreateUpgradePacket processes packet reception
-func (k Keeper) OnRecvCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.CreateUpgradePacketData) (packetAck types.CreateUpgradePacketAck, err error) {
-	// validate packet data upon receiving
-	if err := data.ValidateBasic(); err != nil {
-		return packetAck, err
-	}
-
-	return packetAck, nil
-}
-
 // OnAcknowledgementCreateUpgradePacket responds to the success or failure of a packet
 // acknowledgement written on the receiving chain.
-func (k Keeper) OnAcknowledgementCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.CreateUpgradePacketData, ack channeltypes.Acknowledgement) error {
+func (k Keeper) OnAcknowledgementCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data chainlettypes.CreateUpgradePacketData, ack channeltypes.Acknowledgement) error {
 	switch dispatchedAck := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-
-		// TODO: failed acknowledgement logic
-		_ = dispatchedAck.Error
-
+		fmt.Printf("XXX packet ack error: data %+v ack %+v: %s\n", data, ack, dispatchedAck.Error)
+		//TODO cancel upgrade
 		return nil
 	case *channeltypes.Acknowledgement_Result:
 		// Decode the packet acknowledgment
-		var packetAck types.CreateUpgradePacketAck
+		var packetAck chainlettypes.CreateUpgradePacketAck
 
 		if err := types.ModuleCdc.UnmarshalJSON(dispatchedAck.Result, &packetAck); err != nil {
 			// The counter-party module doesn't implement the correct acknowledgment format
 			return errors.New("cannot unmarshal acknowledgment")
 		}
 
-		// TODO: successful acknowledgement logic
-
+		fmt.Printf("XXX packet ack OK: data %+v ack %+v: %s\n", data, ack, dispatchedAck)
 		return nil
 	default:
 		// The counter-party module doesn't implement the correct acknowledgment format
@@ -75,37 +63,13 @@ func (k Keeper) OnAcknowledgementCreateUpgradePacket(ctx sdk.Context, packet cha
 }
 
 // OnTimeoutCreateUpgradePacket responds to the case where a packet has not been transmitted because of a timeout
-func (k Keeper) OnTimeoutCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.CreateUpgradePacketData) error {
-	//TODO
-	//cancelUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
-	
+func (k Keeper) OnTimeoutCreateUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data chainlettypes.CreateUpgradePacketData) error {
+	fmt.Printf("XXX packet timeout: data %+v\n", data)
 	return nil
 }
 
-// TransmitConfirmUpgradePacket transmits the packet over IBC with the specified source port and source channel
-func (k Keeper) TransmitConfirmUpgradePacket(
-	ctx sdk.Context,
-	packetData types.ConfirmUpgradePacketData,
-	sourcePort,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-) (uint64, error) {
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
-	packetBytes, err := packetData.GetBytes()
-	if err != nil {
-		return 0, errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "cannot marshal the packet: %s", err)
-	}
-
-	return k.ibcKeeperFn().ChannelKeeper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
-}
-
 // OnRecvConfirmUpgradePacket processes packet reception
-func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.ConfirmUpgradePacketData) (packetAck types.ConfirmUpgradePacketAck, err error) {
+func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data chainlettypes.ConfirmUpgradePacketData) (packetAck chainlettypes.ConfirmUpgradePacketAck, err error) {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
 		return packetAck, err
@@ -138,38 +102,3 @@ func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.
 	return packetAck, nil
 }
 
-// OnAcknowledgementConfirmUpgradePacket responds to the success or failure of a packet
-// acknowledgement written on the receiving chain.
-func (k Keeper) OnAcknowledgementConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.ConfirmUpgradePacketData, ack channeltypes.Acknowledgement) error {
-	switch dispatchedAck := ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Error:
-
-		// TODO: failed acknowledgement logic
-		_ = dispatchedAck.Error
-
-		return nil
-	case *channeltypes.Acknowledgement_Result:
-		// Decode the packet acknowledgment
-		var packetAck types.ConfirmUpgradePacketAck
-
-		if err := types.ModuleCdc.UnmarshalJSON(dispatchedAck.Result, &packetAck); err != nil {
-			// The counter-party module doesn't implement the correct acknowledgment format
-			return errors.New("cannot unmarshal acknowledgment")
-		}
-
-		// TODO: successful acknowledgement logic
-
-		return nil
-	default:
-		// The counter-party module doesn't implement the correct acknowledgment format
-		return errors.New("invalid acknowledgment format")
-	}
-}
-
-// OnTimeoutConfirmUpgradePacket responds to the case where a packet has not been transmitted because of a timeout
-func (k Keeper) OnTimeoutConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.Packet, data types.ConfirmUpgradePacketData) error {
-
-	// TODO: packet timeout logic
-
-	return nil
-}

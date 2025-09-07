@@ -23,6 +23,8 @@ import (
 	"cosmossdk.io/x/tx/signing"
 	"cosmossdk.io/x/upgrade"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	no_valupdates_genutil "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_genutil"
+	no_valupdates_staking "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_staking"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmos "github.com/cometbft/cometbft/libs/os"
@@ -98,9 +100,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/ibc-go/modules/capability"
-	ibccapabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	ibccapabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 	"github.com/spf13/cast"
@@ -189,45 +188,6 @@ var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
-	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
-	// non-dependant module elements, such as codec registration
-	// and genesis verification.
-	ModuleBasics = module.NewBasicManager(
-		auth.AppModuleBasic{},
-		authzmodule.AppModuleBasic{},
-		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-		bank.AppModuleBasic{},
-		capability.AppModuleBasic{},
-		staking.AppModuleBasic{},
-		mint.AppModuleBasic{},
-		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(getGovProposalHandlers()),
-		params.AppModuleBasic{},
-		crisis.AppModuleBasic{},
-		slashing.AppModuleBasic{},
-		feegrantmodule.AppModuleBasic{},
-		groupmodule.AppModuleBasic{},
-		ibc.AppModuleBasic{},
-		packetforward.AppModuleBasic{},
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
-		upgrade.AppModuleBasic{},
-		evidence.AppModuleBasic{},
-		transfer.AppModuleBasic{},
-		ica.AppModuleBasic{},
-		vesting.AppModuleBasic{},
-		chainletmodule.AppModuleBasic{},
-		epochsmodule.AppModuleBasic{},
-		escrowmodule.AppModuleBasic{},
-		billingmodule.AppModuleBasic{},
-		acl.AppModuleBasic{},
-		peers.AppModuleBasic{},
-		consensus.AppModuleBasic{},
-		ccvprovider.AppModuleBasic{},
-		gmpmodule.AppModuleBasic{},
-		// this line is used by starport scaffolding # stargate/app/moduleBasic
-	)
-
 	// module account permissions
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName:           nil,
@@ -277,13 +237,11 @@ type App struct {
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
 	tkeys   map[string]*storetypes.TransientStoreKey
-	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
 	AccountKeeper         authkeeper.AccountKeeper
 	AuthzKeeper           authzkeeper.Keeper
 	BankKeeper            bankkeeper.Keeper
-	CapabilityKeeper      *ibccapabilitykeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
@@ -302,17 +260,12 @@ type App struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	EpochsKeeper          epochskeeper.Keeper
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      ibccapabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper ibccapabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper  ibccapabilitykeeper.ScopedKeeper
 
 	ChainletKeeper  *chainletmodulekeeper.Keeper
 	EscrowKeeper    escrowmodulekeeper.Keeper
 	BillingKeeper   billingmodulekeeper.Keeper
 	DacKeeper       aclkeeper.Keeper
 	PeersKeeper     peerskeeper.Keeper
-	ScopedGmpKeeper ibccapabilitykeeper.ScopedKeeper
 	GmpKeeper       gmpmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
@@ -388,7 +341,6 @@ func New(
 		acltypes.StoreKey,
 		peerstypes.StoreKey,
 		ccvprovidertypes.StoreKey,
-		ibccapabilitytypes.StoreKey,
 		group.StoreKey,
 		icacontrollertypes.StoreKey,
 		consensusparamtypes.StoreKey,
@@ -397,7 +349,6 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := storetypes.NewMemoryStoreKeys(ibccapabilitytypes.MemStoreKey)
 
 	app := &App{
 		BaseApp:           bApp,
@@ -427,19 +378,6 @@ func New(
 	)
 	bApp.SetParamStore(app.ConsensusParamsKeeper.ParamsStore)
 
-	// add capability keeper and ScopeToModule for ibc module
-	app.CapabilityKeeper = ibccapabilitykeeper.NewKeeper(
-		appCodec,
-		keys[ibccapabilitytypes.StoreKey],
-		memKeys[ibccapabilitytypes.MemStoreKey],
-	)
-
-	// grant capabilities for the ibc and ibc-transfer modules
-	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	scopedIBCProviderKeeper := app.CapabilityKeeper.ScopeToModule(ccvprovidertypes.ModuleName)
-	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
 	// add keepers
@@ -496,16 +434,6 @@ func New(
 		appCodec,
 		runtime.NewKVStoreService(keys[feegrant.StoreKey]),
 		app.AccountKeeper,
-	)
-
-	app.MintKeeper = mintkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[minttypes.StoreKey]),
-		app.StakingKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	app.DistrKeeper = distrkeeper.NewKeeper(
@@ -607,15 +535,6 @@ func New(
 		scopedTransferKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	var transferIBCModule ibcporttypes.IBCModule
-	transferIBCModule = transfer.NewIBCModule(app.TransferKeeper)
-	transferIBCModule = packetforward.NewIBCMiddleware(
-		transferIBCModule,
-		app.PacketForwardKeeper,
-		0, // retries on timeout
-		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
-	)
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
@@ -656,23 +575,43 @@ func New(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.ProviderKeeper = ccvproviderkeeper.NewKeeper(
+		appCodec,
+		keys[ccvprovidertypes.StoreKey],
+		app.GetSubspace(ccvprovidertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.StakingKeeper,
+		app.SlashingKeeper,
+		app.AccountKeeper,
+		app.DistrKeeper,
+		app.BankKeeper,
+		govkeeper.Keeper{},
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		authtypes.FeeCollectorName,
+	)
+	providerModule := ccvprovider.NewAppModule(&app.ProviderKeeper, app.GetSubspace(ccvprovidertypes.ModuleName), keys[ccvprovidertypes.StoreKey])
+
 	govRouter := govv1beta1.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(ccvprovidertypes.RouterKey, ccvprovider.NewProviderProposalHandler(app.ProviderKeeper))
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper))
 	govConfig := govtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[govtypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.StakingKeeper,
+		app.ProviderKeeper,
 		app.DistrKeeper,
 		app.MsgServiceRouter(),
 		govConfig,
 		govModuleAddress,
 	)
+	app.ProviderKeeper.SetGovKeeper(*app.GovKeeper)
 	// govkeeper.SetLegacyRouter(govRouter)
 
 	// app.GovKeeper = govKeeper.SetHooks(
@@ -681,27 +620,15 @@ func New(
 	// 	),
 	// )
 
-	app.ProviderKeeper = ccvproviderkeeper.NewKeeper(
+	app.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
-		keys[ccvprovidertypes.StoreKey],
-		app.GetSubspace(ccvprovidertypes.ModuleName),
-		scopedIBCProviderKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		app.IBCKeeper.ConnectionKeeper,
-		app.IBCKeeper.ClientKeeper,
-		app.StakingKeeper,
-		app.SlashingKeeper,
+		runtime.NewKVStoreService(keys[minttypes.StoreKey]),
+		app.ProviderKeeper,
 		app.AccountKeeper,
-		app.DistrKeeper,
 		app.BankKeeper,
-		*app.GovKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
-		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 		authtypes.FeeCollectorName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	providerModule := ccvprovider.NewAppModule(&app.ProviderKeeper, app.GetSubspace(ccvprovidertypes.ModuleName))
 
 	app.EpochsKeeper = *epochskeeper.NewKeeper(
 		keys[epochstypes.StoreKey],
@@ -797,7 +724,16 @@ func New(
 		scopedGmpKeeper,
 	)
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
-	transferIBCModule = gmpmodule.NewIBCModule(transferIBCModule)
+
+	var transferStack ibcporttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = packetforward.NewIBCMiddleware(
+		transferStack,
+		app.PacketForwardKeeper,
+		0, // retries on timeout
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
+	)
+	transferStack = gmpmodule.NewIBCModule(transferStack)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -811,7 +747,7 @@ func New(
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(ibctransfertypes.ModuleName, transferIBCModule).
+		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(ccvprovidertypes.ModuleName, providerModule).
 		AddRoute(chainletmoduletypes.ModuleName, chainletIBCModule)
 	// this line is used by starport scaffolding # ibc/app/router
@@ -823,10 +759,13 @@ func New(
 	// we prefer to be more strict in what arguments the modules expect.
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, app.IBCKeeper.ClientKeeper.GetStoreProvider())
+	app.IBCKeeper.ClientKeeper.AddRoute(ibctm.ModuleName, tmLightClientModule)
+
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
-		genutil.NewAppModule(
+		no_valupdates_genutil.NewAppModule(
 			app.AccountKeeper,
 			app.StakingKeeper,
 			app,
@@ -836,7 +775,6 @@ func New(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)),
@@ -844,15 +782,15 @@ func New(
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
+		no_valupdates_staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		ibctm.NewAppModule(),
+		ibctm.NewAppModule(tmLightClientModule),
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
 		params.NewAppModule(app.ParamsKeeper),
-		transferModule,
+		transfer.NewAppModule(app.TransferKeeper),
 		providerModule,
 		icaModule,
 		chainletModule,
@@ -892,7 +830,6 @@ func New(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
 		epochstypes.ModuleName,
-		ibccapabilitytypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -923,6 +860,8 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
+	// NOTE: provider module needs to come after the staking module, since
+	// it needs the information the staking module provides to compute validator updates.
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
@@ -935,7 +874,6 @@ func New(
 		icatypes.ModuleName,
 		//ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
-		ibccapabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
@@ -961,11 +899,9 @@ func New(
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
-	// NOTE: Capability module must occur first so that it can initialize any capabilities
-	// so that other modules that want to create or claim capabilities afterwards in InitChain
-	// can do so safely.
+	// NOTE: The provider module must come after genutils and staking, since it relies on the
+	// information about the validators these modules provide to compute validator updates.
 	genesisModuleOrder := []string{
-		ibccapabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
@@ -973,7 +909,6 @@ func New(
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
-		crisistypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
 		genutiltypes.ModuleName,
@@ -998,6 +933,7 @@ func New(
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
+		crisistypes.ModuleName,
 	}
 	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
 	app.mm.SetOrderExportGenesis(genesisModuleOrder...)
@@ -1228,7 +1164,6 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	docs.RegisterOpenAPIService(Name, apiSvr.Router) //
 	// apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Static)))
 	// register app's OpenAPI routes.

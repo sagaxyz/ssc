@@ -659,7 +659,8 @@ func New(
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(ccvprovidertypes.RouterKey, ccvprovider.NewProviderProposalHandler(app.ProviderKeeper))
+		AddRoute(ccvprovidertypes.RouterKey, ccvprovider.NewProviderProposalHandler(app.ProviderKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 	govConfig := govtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -672,14 +673,8 @@ func New(
 		govConfig,
 		govModuleAddress,
 	)
-	// govkeeper.SetLegacyRouter(govRouter)
-
 	//nolint:staticcheck
 	//already fixed in main
-	govRouter.
-		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 	app.GovKeeper.SetLegacyRouter(govRouter)
 
 	app.ProviderKeeper = ccvproviderkeeper.NewKeeper(

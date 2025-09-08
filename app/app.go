@@ -659,8 +659,9 @@ func New(
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(ccvprovidertypes.RouterKey, ccvprovider.NewProviderProposalHandler(app.ProviderKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ccvprovidertypes.RouterKey, ccvprovider.NewProviderProposalHandler(app.ProviderKeeper))
+	//nolint:staticcheck // SA1019: ibcclient.NewClientProposalHandler is deprecated but still needed for governance control over IBC clients
+	govRouter.AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 	govConfig := govtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,

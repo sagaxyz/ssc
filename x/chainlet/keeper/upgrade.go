@@ -2,16 +2,13 @@ package keeper
 
 import (
 	"errors"
-	"time"
 	"fmt"
+	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
-	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	sdkchainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
@@ -31,11 +28,11 @@ func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, chainID string) (cont
 		err = fmt.Errorf("channel %s for consumer %s not found", ccvChannelID, chainID)
 		return
 	}
-	if len(ccvChannel.GetConnectionHops()) == 0 {
+	if len(ccvChannel.ConnectionHops) == 0 {
 		err = fmt.Errorf("no connections for channel %s", ccvChannelID)
 		return
 	}
-	controllerConnectionID = ccvChannel.GetConnectionHops()[0]
+	controllerConnectionID = ccvChannel.ConnectionHops[0]
 
 	// Get host/counterparty connection ID
 	connection, found := k.connectionKeeper.GetConnection(ctx, controllerConnectionID)
@@ -45,38 +42,6 @@ func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, chainID string) (cont
 	}
 	hostConnectionID = connection.Counterparty.ConnectionId
 	return
-}
-
-func (k *Keeper) InitICA(ctx sdk.Context, chainID string) error {
-	controllerConnectionID, hostConnectionID, err := k.getConsumerConnectionIDs(ctx, chainID)
-	if err != nil {
-		return err
-	}
-
-	icaOwner := sdk.AccAddress(address.Module(types.ModuleName)).String()
-	portID, err := icatypes.NewControllerPortID(icaOwner)
-	if err != nil {
-		return err
-	}
-
-	// Check if the account exists
-	_, found := k.icaKeeper.GetInterchainAccountAddress(ctx, controllerConnectionID, portID)
-	if found {
-		return nil
-	}
-
-	// Register the account
-	ctx.Logger().Debug(fmt.Sprintf("registering ICA account for chain %s using connection %s and port %s", chainID, controllerConnectionID, portID))
-	metadata := icatypes.NewMetadata(icatypes.Version, controllerConnectionID, hostConnectionID, icaOwner, icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
-	ver := string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-	icaMsg := icacontrollertypes.NewMsgRegisterInterchainAccount(controllerConnectionID, icaOwner, ver)
-	handler := k.msgRouter.Handler(icaMsg)
-	_, err = handler(ctx, icaMsg)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func upgradePlanName(from, to string) (plan string, err error) {
@@ -111,33 +76,33 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	}
 
 	// Verify channel corresponds to the correct client
-    channel, found := k.channelKeeper.GetChannel(ctx, sdkchainlettypes.PortID, channelID)
-    if !found {
-		err = fmt.Errorf("channel %s not found (port: %s)",channelID, sdkchainlettypes.PortID)
+	channel, found := k.channelKeeper.GetChannel(ctx, sdkchainlettypes.PortID, channelID)
+	if !found {
+		err = fmt.Errorf("channel %s not found (port: %s)", channelID, sdkchainlettypes.PortID)
 		return
-    }
-    if len(channel.ConnectionHops) == 0 {
-        err = fmt.Errorf("no connection hops for channel %s", channelID)
+	}
+	if len(channel.ConnectionHops) == 0 {
+		err = fmt.Errorf("no connection hops for channel %s", channelID)
 		return
-    }
-    connectionID := channel.ConnectionHops[0]
-    connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
-    if !found {
-        err = fmt.Errorf("connection not found: %s", connectionID)
+	}
+	connectionID := channel.ConnectionHops[0]
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
+		err = fmt.Errorf("connection not found: %s", connectionID)
 		return
-    }
-    if connection.ClientId != clientID {
-        err = fmt.Errorf("client ID of the provided channel does not match consumer client id (%s != %s)", connection.ClientId, clientID)
+	}
+	if connection.ClientId != clientID {
+		err = fmt.Errorf("client ID of the provided channel does not match consumer client id (%s != %s)", connection.ClientId, clientID)
 		return
 	}
 
-	// Create the IBC packet 
+	// Create the IBC packet
 	clientState, ex := k.clientKeeper.GetClientState(ctx, clientID)
 	if !ex {
 		err = fmt.Errorf("client state missing for client ID '%s'", clientID)
 		return
 	}
-	upgradeHeight := clientState.GetLatestHeight().GetRevisionHeight() + heightDelta
+	upgradeHeight := clientState.(*ClientState).GetLatestHeight().GetRevisionHeight() + heightDelta
 	planName, err := upgradePlanName(chainlet.ChainletStackVersion, newVersion)
 	if err != nil {
 		return
@@ -149,7 +114,7 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	}
 	err = packetData.ValidateBasic()
 	if err != nil {
-		return 
+		return
 	}
 
 	// Timeout
@@ -164,8 +129,8 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 
 	//TODO remove
 	timeoutHeight = clienttypes.Height{
-		RevisionNumber: 1, 
-		RevisionHeight: 10000000000, 
+		RevisionNumber: 1,
+		RevisionHeight: 10000000000,
 	}
 
 	fmt.Printf("XXX sending packet %+v to %s with port %s, timeout %s and %s\n", packetData, channelID, types.PortID, timeoutHeight, timeoutTimestamp)

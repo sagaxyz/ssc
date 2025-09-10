@@ -246,6 +246,7 @@ var (
 		acltypes.ModuleName:                  nil,
 		peerstypes.ModuleName:                nil,
 		ccvprovidertypes.ConsumerRewardsPool: nil,
+		"developer-credits":                  {authtypes.Minter, authtypes.Burner}, // temporary module account for upgrade 0.5
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )

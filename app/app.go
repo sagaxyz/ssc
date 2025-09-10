@@ -168,6 +168,7 @@ import (
 const (
 	AccountAddressPrefix = "saga"
 	Name                 = "ssc"
+	SagaAddress          = "saga1h8r6gm4jehflfn2nn7mtw53l37skrke5kyax8l"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -743,6 +744,7 @@ func New(
 		appCodec,
 		keys[chainletmoduletypes.StoreKey],
 		app.GetSubspace(chainletmoduletypes.ModuleName),
+		SagaAddress,
 		app.StakingKeeper,
 		icaControllerKeeper,
 		app.MsgServiceRouter(),

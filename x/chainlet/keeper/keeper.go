@@ -30,12 +30,14 @@ type Keeper struct {
 	aclKeeper        types.AclKeeper
 
 	stackVersions map[string]*versions.Versions // display name => version tree
+	authority     string
 }
 
 func NewKeeper(
 	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	authority string,
 	stakingKeeper types.StakingKeeper,
 	icaKeeper types.ICAKeeper,
 	msgRouter icatypes.MessageRouter,
@@ -56,6 +58,7 @@ func NewKeeper(
 		cdc:              cdc,
 		storeKey:         storeKey,
 		paramstore:       ps,
+		authority:        authority,
 		stakingKeeper:    stakingKeeper,
 		icaKeeper:        icaKeeper,
 		msgRouter:        msgRouter,
@@ -75,4 +78,8 @@ func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k *Keeper) StackVersions(stackName string) *versions.Versions {
 	return k.stackVersions[stackName]
+}
+
+func (k *Keeper) GetAuthority() string {
+	return k.authority
 }

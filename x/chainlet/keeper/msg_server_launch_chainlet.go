@@ -152,7 +152,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 
 		// Bill for the chainlet just after it is launched
 		totalFee := epochfee.Add(setupfee)
-		err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, feeOption.EpochLength, "launching chainlet")
+		err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, "launching chainlet")
 		if err == nil {
 			billed = true
 			break

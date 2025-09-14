@@ -64,6 +64,9 @@ func (msg *MsgCreateChainletStack) ValidateBasic() error {
 	if !coin.Amount.IsPositive() {
 		return ErrInvalidCoin
 	}
+	if msg.Fees.Denom != coin.Denom {
+		return ErrInvalidDenom
+	}
 
 	coin, err = sdk.ParseCoinNormalized(msg.Fees.SetupFee)
 	if err != nil {
@@ -71,6 +74,9 @@ func (msg *MsgCreateChainletStack) ValidateBasic() error {
 	}
 	if !coin.Amount.IsPositive() {
 		return ErrInvalidCoin
+	}
+	if msg.Fees.Denom != coin.Denom {
+		return ErrInvalidDenom
 	}
 
 	return nil

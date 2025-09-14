@@ -8,7 +8,7 @@ import (
 
 // x/chainlet module sentinel errors
 var (
-	ErrInvalidEpoch            = cosmossdkerrors.Register(ModuleName, 6900, "invalid epoch length")
+	ErrInvalidDenom            = cosmossdkerrors.Register(ModuleName, 6900, "invalid denom")
 	ErrInvalidCoin             = cosmossdkerrors.Register(ModuleName, 6901, "invalid coin")
 	ErrInvalidChainletStack    = cosmossdkerrors.Register(ModuleName, 6902, "invalid chainlet stack")
 	ErrInvalidChainId          = cosmossdkerrors.Register(ModuleName, 6903, "invalid chain id")
@@ -19,5 +19,4 @@ var (
 	ErrChainletStartFailure    = cosmossdkerrors.Register(ModuleName, 6908, "failed to start chainlet")
 	ErrTooManyChainlets        = cosmossdkerrors.Register(ModuleName, 6909, "chainlet limit exceeded")
 	ErrUnauthorized            = cosmossdkerrors.Register(ModuleName, 6910, "not authorized to launch a service chainlet")
-	ErrMismatchedDenom         = cosmossdkerrors.Register(ModuleName, 6911, "mismatched denom")
 )

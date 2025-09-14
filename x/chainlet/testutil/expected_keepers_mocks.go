@@ -461,17 +461,17 @@ func (m *MockBillingKeeper) EXPECT() *MockBillingKeeperMockRecorder {
 }
 
 // BillAccount mocks base method.
-func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types7.Chainlet, epochIdentifier, memo string) error {
+func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types7.Chainlet, memo string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, epochIdentifier, memo)
+	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, memo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BillAccount indicates an expected call of BillAccount.
-func (mr *MockBillingKeeperMockRecorder) BillAccount(ctx, amount, chainlet, epochIdentifier, memo interface{}) *gomock.Call {
+func (mr *MockBillingKeeperMockRecorder) BillAccount(ctx, amount, chainlet, memo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAccount", reflect.TypeOf((*MockBillingKeeper)(nil).BillAccount), ctx, amount, chainlet, epochIdentifier, memo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAccount", reflect.TypeOf((*MockBillingKeeper)(nil).BillAccount), ctx, amount, chainlet, memo)
 }
 
 // PayEpochFeeToValidator mocks base method.

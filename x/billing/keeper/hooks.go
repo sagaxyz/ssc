@@ -14,93 +14,94 @@ import (
 	epochstypes "github.com/sagaxyz/ssc/x/epochs/types"
 )
 
-// BeforeEpochStart is the epoch start hook.
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	stacks, err := k.chainletkeeper.ListChainletStack(ctx, &chainlettypes.QueryListChainletStackRequest{})
-	if err != nil {
-		ctx.Logger().Error("could not list chainlet stacks. Error: " + err.Error())
-		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlet stacks. Error: %s", err.Error())
-	}
 
 	kvs := make(map[string]*chainlettypes.ChainletStack)
 	for _, stack := range stacks.ChainletStacks {
-		if stack.Fees.EpochLength == epochIdentifier {
-			ctx.Logger().Info("billing for chainlets in chainlet stack: " + stack.DisplayName + " as its epoch length is " + epochIdentifier)
-			kvs[stack.DisplayName] = stack
-		} else {
-			ctx.Logger().Debug("skipping billing for chainlets in chainlet stack: " + stack.DisplayName + " as its epoch length is " +
-				stack.Fees.EpochLength + " and we only bill for epoch length " + epochIdentifier)
-		}
+		kvs[stack.DisplayName] = stack
 	}
-
-	chainlets, err := k.chainletkeeper.ListChainlets(ctx, &chainlettypes.QueryListChainletsRequest{Pagination: &query.PageRequest{Limit: k.chainletkeeper.GetParams(ctx).MaxChainlets}})
+	resp, err := k.chainletkeeper.ListChainlets(ctx, &chainlettypes.QueryListChainletsRequest{
+		Pagination: &query.PageRequest{Limit: k.chainletkeeper.GetParams(ctx).MaxChainlets},
+	})
 	if err != nil {
 		ctx.Logger().Error("could not list chainlets. Error: " + err.Error())
 		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlets. Error: %s", err.Error())
 	}
 
 	epochInfo := k.epochskeeper.GetEpochInfo(ctx, epochIdentifier)
-	epochEventStartTime := epochInfo.CurrentEpochStartTime.Format(time.RFC3339)
-	ctx.Logger().Debug("Current epoch start time is " + epochEventStartTime)
-
+	ctx.Logger().Debug("Current epoch start time is " + epochInfo.CurrentEpochStartTime.Format(time.RFC3339))
 	ctx.Logger().Info("attempting billing of chainlets for epoch " + fmt.Sprintf("%d", epochNumber) + " with epoch identifier " + epochIdentifier)
 
-	skipped := []string{}
-	billed := []string{}
-	failed := []string{}
+	var skipped, billed, failed []string
 
-	if chainlets.Chainlets == nil {
+	if resp.Chainlets == nil || len(resp.Chainlets) == 0 {
 		ctx.Logger().Info("no active chainlets to be billed this epoch: " + fmt.Sprintf("%d", epochNumber))
 		return nil
 	}
 
-	for _, chainlet := range chainlets.Chainlets {
-		if chainlet.IsServiceChainlet {
-			// skip billing for service chainlet
-			ctx.Logger().Debug("skipping billing for service chainlet: " + chainlet.ChainId)
-			skipped = append(skipped, chainlet.ChainId)
+	for _, ch := range resp.Chainlets {
+		// Skip service or offline
+		if ch.IsServiceChainlet {
+			ctx.Logger().Debug("skipping billing for service chainlet: " + ch.ChainId)
+			skipped = append(skipped, ch.ChainId)
+			continue
+		}
+		if ch.Status == chainlettypes.Status_STATUS_OFFLINE {
+			ctx.Logger().Debug("skipping billing for inactive chainlet: " + ch.ChainId)
+			skipped = append(skipped, ch.ChainId)
 			continue
 		}
 
-		// Skip inactive (OFFLINE) chainlets
-		if chainlet.Status == chainlettypes.Status_STATUS_OFFLINE {
-			ctx.Logger().Debug("skipping billing for inactive chainlet: " + chainlet.ChainId)
-			skipped = append(skipped, chainlet.ChainId)
-			continue
-		}
-
-		// here we limit the billing for chainlets we find in our kvs map. If it does not exist there, we do not bill it
-		stack, ok := kvs[chainlet.ChainletStackName]
+		// Only bill chainlets that appear in kvs (as per your comment)
+		stack, ok := kvs[ch.ChainletStackName]
 		if !ok {
-			ctx.Logger().Debug("skipping billing for chainlet: " + chainlet.ChainId)
-			skipped = append(skipped, chainlet.ChainId)
+			ctx.Logger().Debug("skipping billing for chainlet (no stack in kvs): " + ch.ChainId)
+			skipped = append(skipped, ch.ChainId)
 			continue
 		}
 
-		epochfee, err := sdk.ParseCoinNormalized(stack.Fees.EpochFee)
+		// Try multiple fee options until one works
+		succeeded := false
+		var errs []string
 
-		if err != nil {
-			ctx.Logger().Error("could not calculate epoch fee for chainlet " + chainlet.ChainId + ". Error: " + err.Error())
-			err = k.chainletkeeper.StopChainlet(ctx, chainlet.ChainId)
-			if err != nil {
-				ctx.Logger().Error("could not stop chainlet " + chainlet.ChainId + ". Error: " + err.Error())
+		for i, fee := range stack.Fees {
+			epochFee, perr := sdk.ParseCoinNormalized(fee.EpochFee)
+			if perr != nil {
+				msg := fmt.Sprintf("fee[%d] parse failed: %q err=%v", i, fee.EpochFee, perr)
+				ctx.Logger().Error("billing parse error for " + ch.ChainId + ": " + msg)
+				errs = append(errs, msg)
+				continue // try next fee option
 			}
-			failed = append(failed, chainlet.ChainId)
-			continue
-		}
 
-		err = k.BillAccount(ctx, epochfee, *chainlet, epochIdentifier, "epoch-start-billing")
-		if err != nil {
-			ctx.Logger().Error("could not bill account " + chainlet.ChainId + ". Error: " + err.Error())
-			err = k.chainletkeeper.StopChainlet(ctx, chainlet.ChainId)
-			if err != nil {
-				ctx.Logger().Error("could not stop chainlet " + chainlet.ChainId + ". Error: " + err.Error())
+			// Attempt billing with this coin option
+			berr := k.BillAccount(ctx, epochFee, *ch, "epoch-start-billing")
+			if berr != nil {
+				msg := fmt.Sprintf("fee[%d] %s billing failed: %v", i, epochFee.String(), berr)
+				ctx.Logger().Error("billing error for " + ch.ChainId + ": " + msg)
+				errs = append(errs, msg)
+				continue // try next fee option
 			}
-			failed = append(failed, chainlet.ChainId)
+
+			// Success on this fee option; stop trying others
+			succeeded = true
+			ctx.Logger().Info(fmt.Sprintf("billed %s successfully with %s", ch.ChainId, epochFee.String()))
+			break
+		}
+
+		if succeeded {
+			billed = append(billed, ch.ChainId)
 			continue
 		}
 
-		billed = append(billed, chainlet.ChainId)
+		// All fee options failed -> stop chainlet and record failure
+		stopErr := k.chainletkeeper.StopChainlet(ctx, ch.ChainId)
+		if stopErr != nil {
+			ctx.Logger().Error("could not stop chainlet " + ch.ChainId + ". Error: " + stopErr.Error())
+			errs = append(errs, "stop failed: "+stopErr.Error())
+		}
+		ctx.Logger().Error(fmt.Sprintf("all billing options failed for %s; reasons: %v", ch.ChainId, errs))
+		failed = append(failed, ch.ChainId)
 	}
 
 	ctx.Logger().Info("skipped billing for chainlets: " + fmt.Sprintf("%v", skipped))

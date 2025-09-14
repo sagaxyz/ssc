@@ -4,7 +4,6 @@ import (
 	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"k8s.io/utils/strings/slices"
 )
 
 const TypeMsgCreateChainletStack = "create_chainlet_stack"
@@ -74,8 +73,5 @@ func (msg *MsgCreateChainletStack) ValidateBasic() error {
 		return ErrInvalidCoin
 	}
 
-	if !slices.Contains([]string{"day", "week", "hour", "minute"}, msg.Fees.EpochLength) {
-		return ErrInvalidEpoch
-	}
 	return nil
 }

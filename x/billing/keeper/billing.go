@@ -12,7 +12,7 @@ import (
 	chainlettypes "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlettypes.Chainlet, epochIdentifier, memo string) error {
+func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlettypes.Chainlet, memo string) error {
 	err := k.escrowkeeper.BillAccount(ctx, amount, chainlet.ChainId, "billing")
 	if err != nil {
 		ctx.Logger().Info(fmt.Sprintf("failed to bill account %s for %s at epoch %s", chainlet.ChainId, amount.String(), memo))
@@ -34,6 +34,7 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlett
 		Debit:   true,
 	})
 	// Save billing history
+	epochIdentifier := k.GetParams(ctx).BillingEpoch
 	epochInfo := k.epochskeeper.GetEpochInfo(ctx, epochIdentifier)
 	epochEventStartTime := epochInfo.CurrentEpochStartTime.Format(time.RFC3339)
 
@@ -227,7 +228,7 @@ func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
 		}
 
 		// Check if there is enough funds to restart the chainlet
-		err = k.BillAccount(ctx, epochfee, *chainlet, "billing", "restarting chainlet")
+		err = k.BillAccount(ctx, epochfee, *chainlet, "restarting chainlet")
 		if err == nil {
 			billed = true
 			break

@@ -6,13 +6,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/spf13/cobra"
 )
 
 func CmdCreateChainletStack() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-chainlet-stack [display-name] [description] [image] [version] [checksum] [epochfee] [epochlength] [upfrontfee] [ccv-consumer]",
+		Use:   "create-chainlet-stack [display-name] [description] [image] [version] [checksum] [epochfee] [upfrontfee] [ccv-consumer]",
 		Short: "Broadcast message create-chainlet-stack",
 		Args:  cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -22,9 +23,8 @@ func CmdCreateChainletStack() *cobra.Command {
 			argVersion := args[3]
 			argChecksum := args[4]
 			argEpochFee := args[5]
-			argEpochLength := args[6]
-			argSetupFee := args[7]
-			argCcvConsumer := args[8]
+			argSetupFee := args[6]
+			argCcvConsumer := args[7]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -36,6 +36,20 @@ func CmdCreateChainletStack() *cobra.Command {
 				return err
 			}
 
+			epochDenom, err := sdk.ParseCoinNormalized(argEpochFee)
+			if err != nil {
+				return err
+			}
+
+			setupDenom, err := sdk.ParseCoinNormalized(argSetupFee)
+			if err != nil {
+				return err
+			}
+
+			if epochDenom.GetDenom() != setupDenom.GetDenom() {
+				return types.ErrMismatchedDenom
+			}
+
 			msg := types.NewMsgCreateChainletStack(
 				clientCtx.GetFromAddress().String(),
 				argDisplayName,
@@ -44,9 +58,9 @@ func CmdCreateChainletStack() *cobra.Command {
 				argVersion,
 				argChecksum,
 				types.ChainletStackFees{
-					EpochFee:    argEpochFee,
-					EpochLength: argEpochLength,
-					SetupFee:    argSetupFee,
+					Denom:    epochDenom.GetDenom(),
+					EpochFee: argEpochFee,
+					SetupFee: argSetupFee,
 				},
 				ccvConsumer,
 			)

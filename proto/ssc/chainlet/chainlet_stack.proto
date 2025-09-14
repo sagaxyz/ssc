@@ -17,6 +17,5 @@ message ChainletStack {
 message ChainletStackFees {
   string denom = 1;
   string epochFee = 2;
-  string epochLength = 3;
-  string setupFee = 4;
+  string setupFee = 3;
 }

@@ -114,39 +114,52 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		})
 	}
 
-	// logic to launch non-service chainlets
-	epochfee, err := sdk.ParseCoinNormalized(stack.Fees.EpochFee)
-	if err != nil {
-		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
-	}
-	setupfee, err := sdk.ParseCoinNormalized(stack.Fees.SetupFee)
-	if err != nil {
-		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
-	}
-	owner, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return &types.MsgLaunchChainletResponse{}, err
+	if len(stack.Fees) == 0 {
+		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "chainlet stack has no fees configured")
 	}
 
-	multiplier, ok := math.NewIntFromString(k.GetParams(ctx).NEpochDeposit)
-	if !ok {
-		return &types.MsgLaunchChainletResponse{}, fmt.Errorf("bad multiplier")
+	billed := false
+	for _, feeOption := range stack.Fees {
+
+		// logic to launch non-service chainlets
+		epochfee, err := sdk.ParseCoinNormalized(feeOption.EpochFee)
+		if err != nil {
+			return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
+		}
+		setupfee, err := sdk.ParseCoinNormalized(feeOption.SetupFee)
+		if err != nil {
+			return &types.MsgLaunchChainletResponse{}, types.ErrInvalidCoin
+		}
+		owner, err := sdk.AccAddressFromBech32(msg.Creator)
+		if err != nil {
+			return &types.MsgLaunchChainletResponse{}, err
+		}
+
+		multiplier, ok := math.NewIntFromString(k.GetParams(ctx).NEpochDeposit)
+		if !ok {
+			return &types.MsgLaunchChainletResponse{}, fmt.Errorf("bad multiplier")
+		}
+
+		deposit := sdk.Coin{
+			Amount: epochfee.Amount.Mul(multiplier),
+			Denom:  epochfee.Denom,
+		}
+		deposit.Add(setupfee)
+		err = k.escrowKeeper.NewChainletAccount(ctx, owner, msg.ChainId, deposit)
+		if err != nil {
+			return &types.MsgLaunchChainletResponse{}, err
+		}
+
+		// Bill for the chainlet just after it is launched
+		totalFee := epochfee.Add(setupfee)
+		err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, feeOption.EpochLength, "launching chainlet")
+		if err == nil {
+			billed = true
+			break
+		}
 	}
 
-	deposit := sdk.Coin{
-		Amount: epochfee.Amount.Mul(multiplier),
-		Denom:  epochfee.Denom,
-	}
-	deposit.Add(setupfee)
-	err = k.escrowKeeper.NewChainletAccount(ctx, owner, msg.ChainId, deposit)
-	if err != nil {
-		return &types.MsgLaunchChainletResponse{}, err
-	}
-
-	// Bill for the chainlet just after it is launched
-	totalFee := epochfee.Add(setupfee)
-	err = k.billingKeeper.BillAccount(ctx, totalFee, chainlet, stack.Fees.EpochLength, "launching chainlet")
-	if err != nil {
+	if !billed {
 		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "failed to bill new account %s", err.Error())
 	}
 

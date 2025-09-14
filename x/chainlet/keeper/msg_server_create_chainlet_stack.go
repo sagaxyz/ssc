@@ -40,7 +40,7 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 		DisplayName: msg.DisplayName,
 		Description: msg.Description,
 		Versions:    metaDataUpsert,
-		Fees:        msg.Fees,
+		Fees:        []types.ChainletStackFees{msg.Fees},
 	}
 	err = k.NewChainletStack(ctx, chainletStack)
 	if err != nil {

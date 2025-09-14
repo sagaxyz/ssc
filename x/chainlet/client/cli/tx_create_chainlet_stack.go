@@ -47,7 +47,7 @@ func CmdCreateChainletStack() *cobra.Command {
 			}
 
 			if epochDenom.GetDenom() != setupDenom.GetDenom() {
-				return types.ErrMismatchedDenom
+				return types.ErrInvalidDenom
 			}
 
 			msg := types.NewMsgCreateChainletStack(

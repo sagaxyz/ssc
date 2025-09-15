@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
+
+	cosmossdkerrors "cosmossdk.io/errors"
 
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -128,4 +131,42 @@ func (k *Keeper) getChainletStackVersion(ctx sdk.Context, name, version string) 
 
 	err = fmt.Errorf("stack version %s is not found", version)
 	return
+}
+
+// UpdateChainletStackFees updates the per-stack fees in the exact order submitted.
+func (k *Keeper) updateChainletStackFees(ctx sdk.Context, creator sdk.AccAddress, stackName string, fees []types.ChainletStackFees) error {
+	// Load stack
+	stack, err := k.getChainletStack(ctx, stackName)
+	if err != nil {
+		return fmt.Errorf("cannot get chainlet stack %s: %w", stackName, err)
+	}
+
+	if !k.aclKeeper.Allowed(ctx, creator) {
+		return cosmossdkerrors.Wrapf(types.ErrUnauthorized, "address %s is not allowed to update fees", creator.String())
+	}
+	// Persist exact order and strings (copy to avoid caller mutation)
+	stack.Fees = append([]types.ChainletStackFees(nil), fees...)
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
+	store.Set([]byte(stackName), k.cdc.MustMarshal(&stack))
+
+	// Emit event using original strings in original order
+	ctx.EventManager().EmitTypedEvent(&types.EventUpdateChainletFees{
+		StackName: stackName,
+		Fees:      joinFeesOriginal(fees),
+		By:        creator.String(),
+	})
+
+	return nil
+}
+
+func joinFeesOriginal(fees []types.ChainletStackFees) string {
+	if len(fees) == 0 {
+		return ""
+	}
+	out := make([]string, 0, len(fees))
+	for _, f := range fees {
+		out = append(out, f.EpochFee) // original strings, original order
+	}
+	return strings.Join(out, ",")
 }

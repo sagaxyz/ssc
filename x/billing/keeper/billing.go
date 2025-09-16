@@ -5,7 +5,6 @@ import (
 	"time"
 
 	cosmossdkerrors "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sagaxyz/ssc/x/billing/types"
@@ -197,29 +196,6 @@ func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
 		epochfee, err := sdk.ParseCoinNormalized(feeOption.EpochFee)
 		if err != nil {
 			return err
-		}
-
-		dep := k.chainletkeeper.GetParams(ctx).NEpochDeposit
-		multiplier, ok := math.NewIntFromString(dep)
-		if !ok {
-			return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "cannot parse multiplier value: %s", dep)
-		}
-
-		minBalance := sdk.Coin{
-			Amount: epochfee.Amount.Mul(multiplier),
-			Denom:  epochfee.Denom,
-		}
-
-		acc, err := k.escrowkeeper.GetKprChainletAccount(ctx, chainId)
-		if err != nil {
-			return err
-		}
-		amount := acc.GetBalance()
-
-		_, err = amount.SafeSub(minBalance)
-		if err != nil {
-			ctx.Logger().Info(fmt.Sprintf("not enough funds to restart the chainlet %s: got %s but needed at least %s", chainId, amount.String(), minBalance.String()))
-			return nil
 		}
 
 		chainlet, err := k.chainletkeeper.GetChainletInfo(ctx, chainId)

@@ -27,7 +27,8 @@ message MsgDepositResponse {}
 message MsgWithdraw {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
-  string chainId = 2;
+  string denom = 2;
+  string chainId = 3;
 }
 
 message MsgWithdrawResponse {}

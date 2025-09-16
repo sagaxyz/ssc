@@ -1,43 +1,34 @@
 package cli
 
-import (
-	"fmt"
+// func CmdBalance() *cobra.Command {
+// 	cmd := &cobra.Command{
+// 		Use:   "balance [address]",
+// 		Short: "Query balance",
+// 		Args:  cobra.ExactArgs(1),
+// 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+// 			reqAddress := args[0]
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/sagaxyz/ssc/x/escrow/types"
-	"github.com/spf13/cobra"
-)
+// 			clientCtx, err := client.GetClientQueryContext(cmd)
+// 			if err != nil {
+// 				return fmt.Errorf("failed to get client query context: %v", err)
+// 			}
 
-func CmdBalance() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "balance [address]",
-		Short: "Query balance",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			reqAddress := args[0]
+// 			queryClient := types.NewQueryClient(clientCtx)
 
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return fmt.Errorf("failed to get client query context: %v", err)
-			}
+// 			params := &types.QueryBalanceRequest{
+// 				Address: reqAddress,
+// 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
+// 			res, err := queryClient.Balance(cmd.Context(), params)
+// 			if err != nil {
+// 				return err
+// 			}
 
-			params := &types.QueryBalanceRequest{
-				Address: reqAddress,
-			}
+// 			return clientCtx.PrintProto(res)
+// 		},
+// 	}
 
-			res, err := queryClient.Balance(cmd.Context(), params)
-			if err != nil {
-				return err
-			}
+// 	flags.AddQueryFlagsToCmd(cmd)
 
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
+// 	return cmd
+// }

@@ -21,7 +21,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return &types.MsgWithdrawResponse{}, err
 	}
 
-	err = k.withdraw(ctx, addr, msg.ChainId)
+	err = k.withdraw(ctx, addr, msg.ChainId, msg.Denom)
 	if err != nil {
 		return &types.MsgWithdrawResponse{}, err
 	}

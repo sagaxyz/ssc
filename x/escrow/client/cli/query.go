@@ -25,7 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdBalance())
+	// cmd.AddCommand(CmdBalance())
 
 	cmd.AddCommand(CmdGetChainletAccount())
 

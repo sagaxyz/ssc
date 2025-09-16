@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"fmt"
 
 	cosmossdkerrors "cosmossdk.io/errors"
@@ -12,227 +11,284 @@ import (
 	"github.com/sagaxyz/ssc/x/escrow/types"
 )
 
-func (k Keeper) ChainletAccountStore(ctx sdk.Context) prefix.Store {
-	return prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.ChainletAccKey))
-}
-func (k Keeper) UserAccountStore(ctx sdk.Context) prefix.Store {
-	return prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.UserAccKey))
+// ---------- helpers: get/set state rows ----------
+
+func (k Keeper) getChainlet(ctx sdk.Context, chainID string) (types.ChainletAccount, bool) {
+	bz := ctx.KVStore(k.storeKey).Get(types.ChainletKey(chainID))
+	if bz == nil {
+		return types.ChainletAccount{}, false
+	}
+	var acc types.ChainletAccount
+	k.cdc.MustUnmarshal(bz, &acc)
+	return acc, true
 }
 
-func (k Keeper) NewChainletAccount(ctx sdk.Context, address sdk.AccAddress, chainId string, depositAmount sdk.Coin) error {
-	store := k.ChainletAccountStore(ctx)
-	key := []byte(chainId)
-	if store.Has(key) {
+func (k Keeper) setChainlet(ctx sdk.Context, acc types.ChainletAccount) {
+	bz := k.cdc.MustMarshal(&acc)
+	ctx.KVStore(k.storeKey).Set(types.ChainletKey(acc.ChainId), bz)
+}
+
+func (k Keeper) getPool(ctx sdk.Context, chainID, denom string) (types.DenomPool, bool) {
+	bz := ctx.KVStore(k.storeKey).Get(types.PoolKey(chainID, denom))
+	if bz == nil {
+		return types.DenomPool{}, false
+	}
+	var p types.DenomPool
+	k.cdc.MustUnmarshal(bz, &p)
+	return p, true
+}
+
+func (k Keeper) setPool(ctx sdk.Context, p types.DenomPool) {
+	bz := k.cdc.MustMarshal(&p)
+	ctx.KVStore(k.storeKey).Set(types.PoolKey(p.ChainId, p.Denom), bz)
+}
+
+func (k Keeper) getFunder(ctx sdk.Context, chainID, denom, addr string) (types.Funder, bool) {
+	bz := ctx.KVStore(k.storeKey).Get(types.FunderKey(chainID, denom, addr))
+	if bz == nil {
+		return types.Funder{}, false
+	}
+	var f types.Funder
+	k.cdc.MustUnmarshal(bz, &f)
+	return f, true
+}
+
+func (k Keeper) setFunder(ctx sdk.Context, chainID, denom, addr string, f types.Funder) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.FunderKey(chainID, denom, addr), k.cdc.MustMarshal(&f))
+	// optional reverse index for "my positions"
+	store.Set(types.ByFunderKey(addr, chainID, denom), []byte{})
+}
+
+func (k Keeper) deleteFunder(ctx sdk.Context, chainID, denom, addr string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.FunderKey(chainID, denom, addr))
+	// optional reverse index cleanup
+	store.Delete(types.ByFunderKey(addr, chainID, denom))
+}
+
+// ---------- params / validation ----------
+
+func (k Keeper) assertSupportedDenom(ctx sdk.Context, denom string) error {
+	params := k.GetParams(ctx)
+	// assuming Params.supportedDenoms []string
+	for _, d := range params.SupportedDenoms {
+		if d == denom {
+			return nil
+		}
+	}
+	return cosmossdkerrors.Wrapf(types.ErrInvalidDenom, "unsupported denom %s", denom)
+}
+
+// ---------- public API ----------
+
+// Creates the chainlet head (if not exists) and bootstraps the pool/funder with the initial deposit.
+func (k Keeper) NewChainletAccount(ctx sdk.Context, addr sdk.AccAddress, chainID string, deposit sdk.Coin) error {
+	denom := deposit.Denom
+	if err := k.assertSupportedDenom(ctx, denom); err != nil {
+		return err
+	}
+
+	// Create head if not exists
+	if _, ok := k.getChainlet(ctx, chainID); ok {
 		return fmt.Errorf("chainlet account already exists")
 	}
+	k.setChainlet(ctx, types.ChainletAccount{ChainId: chainID})
 
-	if depositAmount.Denom != k.GetParams(ctx).SupportedDenom {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidDenom, "invalid denom %s, only %s is allowed", depositAmount.Denom, k.GetParams(ctx).SupportedDenom)
-	}
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, sdk.NewCoins(depositAmount))
-	if err != nil {
-		return cosmossdkerrors.Wrapf(types.ErrInsufficientBalance, "insufficient balance in account %s for deposit: %s required", address, depositAmount.String())
+	// move funds into module
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, sdk.NewCoins(deposit)); err != nil {
+		return cosmossdkerrors.Wrapf(types.ErrInsufficientBalance, "insufficient balance in %s for deposit: %s required", addr, deposit.String())
 	}
 
-	shares, err := sdk.ParseDecCoin(depositAmount.String())
-	if err != nil {
-		return err
-	}
-
-	chainlet := types.ChainletAccount{
-		ChainId: chainId,
-		Balance: depositAmount,
-		Shares:  shares.Amount,
-		Funders: map[string]types.Funder{},
-	}
-
-	chainlet.Funders[address.String()] = types.Funder{
-		Shares: shares.Amount,
-	}
-	err = k.SetChainletAccount(ctx, chainlet)
+	// pool math (bootstrap -> 1:1 shares)
+	decCoin, err := sdk.ParseDecCoin(deposit.String())
 	if err != nil {
 		return err
 	}
+	newShares := decCoin.Amount
 
-	ctx.Logger().Info(fmt.Sprintf("successfully created a new chainlet escrow account for %s. balance: %s", chainlet.ChainId, chainlet.Balance))
-	return nil
+	pool := types.DenomPool{
+		ChainId: chainID,
+		Denom:   denom,
+		Balance: deposit,
+		Shares:  newShares,
+	}
+	k.setPool(ctx, pool)
+
+	k.setFunder(ctx, chainID, denom, addr.String(), types.Funder{Shares: newShares})
+
+	ctx.Logger().Info(fmt.Sprintf("created chainlet %s and pool %s; balance=%s", chainID, denom, deposit.String()))
+	return ctx.EventManager().EmitTypedEvent(&types.EventDeposit{
+		User:     addr.String(),
+		Chainlet: chainID,
+		Denom:    denom,
+		Amount:   deposit.String(),
+		NewTotal: pool.Balance.String(),
+	})
 }
 
-func (k Keeper) deposit(ctx sdk.Context, address sdk.AccAddress, amount sdk.Coin, chainId string) error {
-	chainlet, err := k.GetKprChainletAccount(ctx, chainId)
-	if err != nil {
+// Deposit into a specific {chainID, denom} pool.
+func (k Keeper) deposit(ctx sdk.Context, addr sdk.AccAddress, chainID string, amount sdk.Coin) error {
+	denom := amount.Denom
+	if err := k.assertSupportedDenom(ctx, denom); err != nil {
 		return err
 	}
-
-	if chainlet.Balance.Amount.Equal(math.ZeroInt()) {
-		chainlet.Shares = math.LegacyZeroDec()
-		chainlet.Funders = make(map[string]types.Funder)
+	// ensure head exists
+	if _, ok := k.getChainlet(ctx, chainID); !ok {
+		return cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "chainlet %s not found", chainID)
 	}
 
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, sdk.NewCoins(amount))
-	if err != nil {
-		return fmt.Errorf("failed to send coins from account to module: %v", err)
+	// move funds in
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, sdk.NewCoins(amount)); err != nil {
+		return fmt.Errorf("failed to send coins from account to module: %w", err)
 	}
 
-	// Calculation of shares: https://docs.cosmos.network/v0.47/modules/staking#how-shares-are-calculated
-	// S_j = S * T_j / T
-	// Implementation Example: https://github.com/cosmos/cosmos-sdk/blob/bfba5491f39f0e0af100480a3194a30c2dc4b9c3/x/staking/types/validator.go#L326
-	var newShares math.LegacyDec
-	if chainlet.Balance.IsPositive() {
-		newShares = chainlet.Shares.MulInt(amount.Amount).QuoInt(chainlet.Balance.Amount)
-	} else if chainlet.Balance.IsZero() {
-		coinShares, err := sdk.ParseDecCoin(amount.String())
+	pool, ok := k.getPool(ctx, chainID, denom)
+	if !ok {
+		// bootstrap pool
+		dec, err := sdk.ParseDecCoin(amount.String())
 		if err != nil {
-			return fmt.Errorf("failed to parse deposit amount as DecCoin: %v", err)
+			return err
 		}
-		newShares = coinShares.Amount
-	}
-
-	addrString := address.String()
-
-	_, ok := chainlet.Funders[addrString]
-
-	if ok {
-		chainlet.Funders[addrString] = types.Funder{
-			Shares: chainlet.Funders[addrString].Shares.Add(newShares),
+		pool = types.DenomPool{
+			ChainId: chainID,
+			Denom:   denom,
+			Balance: amount,
+			Shares:  dec.Amount,
 		}
 	} else {
-		chainlet.Funders[addrString] = types.Funder{
-			Shares: newShares,
+		// S_j = S * T_j / T
+		var newShares math.LegacyDec
+		if pool.Balance.IsPositive() {
+			newShares = pool.Shares.MulInt(amount.Amount).QuoInt(pool.Balance.Amount)
+		} else {
+			dec, err := sdk.ParseDecCoin(amount.String())
+			if err != nil {
+				return err
+			}
+			newShares = dec.Amount
 		}
+		pool.Shares = pool.Shares.Add(newShares)
+		pool.Balance = pool.Balance.Add(amount)
+
+		// update funder
+		f, exists := k.getFunder(ctx, chainID, denom, addr.String())
+		if exists {
+			f.Shares = f.Shares.Add(newShares)
+		} else {
+			f.Shares = newShares
+		}
+		k.setFunder(ctx, chainID, denom, addr.String(), f)
 	}
 
-	chainlet.Shares = chainlet.Shares.Add(newShares)
-	chainlet.Balance = chainlet.Balance.Add(amount)
-	err = k.SetChainletAccount(ctx, chainlet)
-	if err != nil {
+	// if pool was bootstrapped above, also set initial funder
+	if _, exists := k.getFunder(ctx, chainID, denom, addr.String()); !exists {
+		dec, _ := sdk.ParseDecCoin(amount.String())
+		k.setFunder(ctx, chainID, denom, addr.String(), types.Funder{Shares: dec.Amount})
+	}
+
+	k.setPool(ctx, pool)
+
+	// optional: billing hook
+	if err := k.billingKeeper.BillAndRestartChainlet(ctx, chainID); err != nil {
 		return err
 	}
 
-	err = k.billingKeeper.BillAndRestartChainlet(ctx, chainId)
-	if err != nil {
-		return err
-	}
-
-	return ctx.EventManager().EmitTypedEvent(&types.EventDeposit{ //nolint:errcheck
-		User:     addrString,
-		Chainlet: chainlet.ChainId,
+	return ctx.EventManager().EmitTypedEvent(&types.EventDeposit{
+		User:     addr.String(),
+		Chainlet: chainID,
+		Denom:    denom,
 		Amount:   amount.String(),
-		NewTotal: chainlet.Balance.String(),
+		NewTotal: pool.Balance.String(),
 	})
 }
 
-func (k Keeper) withdraw(ctx sdk.Context, address sdk.AccAddress, chainId string) error {
-	chainlet, err := k.GetKprChainletAccount(ctx, chainId)
-	if err != nil {
-		return err
-	}
-
-	sf := ScalingFactor(chainlet)
-	addr := address.String()
-
-	c, ok := chainlet.Funders[addr]
+// Withdraw the entire position for {chainID, denom} (or adapt to partials if needed).
+func (k Keeper) withdraw(ctx sdk.Context, addr sdk.AccAddress, chainID, denom string) error {
+	pool, ok := k.getPool(ctx, chainID, denom)
 	if !ok {
-		return cosmossdkerrors.Wrap(types.ErrFunderNotFound, addr)
+		return cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "pool %s/%s not found", chainID, denom)
 	}
-	tokens := c.Shares.Quo(sf)
-	coins := sdk.NewCoin(k.GetParams(ctx).SupportedDenom, tokens.RoundInt())
-	newChainletBalance, err := chainlet.Balance.SafeSub(coins)
-	if err != nil {
-		return err
+	f, exists := k.getFunder(ctx, chainID, denom, addr.String())
+	if !exists {
+		return cosmossdkerrors.Wrap(types.ErrFunderNotFound, addr.String())
 	}
-	ctx.Logger().Info(fmt.Sprintf("sending %s coins to %s", coins.String(), addr))
 
-	toaddr, err := sdk.AccAddressFromBech32(addr)
-	if err != nil {
-		return err
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toaddr, sdk.NewCoins(coins))
+	sf := ScalingFactor(pool) // shares per token
+	tokens := f.Shares.Quo(sf)
+	coins := sdk.NewCoin(denom, tokens.RoundInt())
+
+	newBal, err := pool.Balance.SafeSub(coins)
 	if err != nil {
 		return err
 	}
 
-	delete(chainlet.Funders, addr)
-	chainlet.Balance = newChainletBalance
-
-	chainlet.Shares = chainlet.Shares.Sub(c.Shares)
-
-	err = k.SetChainletAccount(ctx, chainlet)
-	if err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, sdk.NewCoins(coins)); err != nil {
 		return err
 	}
+
+	// update state
+	k.deleteFunder(ctx, chainID, denom, addr.String())
+	pool.Balance = newBal
+	pool.Shares = pool.Shares.Sub(f.Shares)
+	k.setPool(ctx, pool)
 
 	return ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
-		User:      addr,
-		Chainlet:  chainlet.ChainId,
-		Amount:    coins.String(),
-		Remaining: chainlet.Balance.String(),
+		User:      addr.String(),
+		Chainlet:  chainID,
+		Denom:     denom,
+		Remaining: pool.Balance.String(),
 	})
 }
 
-func (k Keeper) GetKprChainletAccount(ctx sdk.Context, chainId string) (acc types.ChainletAccount, err error) {
-	store := k.ChainletAccountStore(ctx)
-	key := []byte(chainId)
-
-	if !store.Has(key) {
-		return acc, cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "chainlet escrow account for chain %s not found", chainId)
+// GetKprChainletAccount (kept for compatibility) — now just returns the head.
+// This was previously used to get the full account with funders and pools etc.
+func (k Keeper) GetKprChainletAccount(ctx sdk.Context, chainID string) (types.ChainletAccount, error) {
+	acc, ok := k.getChainlet(ctx, chainID)
+	if !ok {
+		return types.ChainletAccount{}, cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "chainlet %s not found", chainID)
 	}
-
-	account := store.Get(key)
-	err = json.Unmarshal(account, &acc)
-	if err != nil {
-		return acc, fmt.Errorf("failed to unmarshal chainlet %s", chainId)
-	}
-	return
+	return acc, nil
 }
 
+// SetChainletAccount (compat) — uses protobuf codec.
 func (k Keeper) SetChainletAccount(ctx sdk.Context, chainlet types.ChainletAccount) error {
-	store := k.ChainletAccountStore(ctx)
-	key := []byte(chainlet.ChainId)
-
-	bz, err := json.Marshal(chainlet)
-	if err != nil {
-		return err
-	}
-
-	store.Set(key, bz)
+	k.setChainlet(ctx, chainlet)
 	return nil
 }
 
-func (k Keeper) checkEnoughBalance(ctx sdk.Context, chainId string, amount sdk.Coin) (sdk.Coin, error) {
-	acc, err := k.GetKprChainletAccount(ctx, chainId)
-	if err != nil {
-		return amount, err
+// Check that a pool has enough balance for a debit.
+func (k Keeper) checkEnoughBalance(ctx sdk.Context, chainID string, amount sdk.Coin) (sdk.Coin, error) {
+	pool, ok := k.getPool(ctx, chainID, amount.Denom)
+	if !ok {
+		return amount, cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "pool %s/%s not found", chainID, amount.Denom)
 	}
-	return acc.Balance.SafeSub(amount)
+	return pool.Balance.SafeSub(amount)
 }
 
-// logic for billing
-func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainId string, toModule string) error {
-
-	acc, err := k.GetKprChainletAccount(ctx, chainId)
+// Module-to-module billing from a specific denom pool.
+func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainID, toModule string) error {
+	// ensure enough balance
+	nb, err := k.checkEnoughBalance(ctx, chainID, amount)
 	if err != nil {
 		return err
 	}
-	nb, err := k.checkEnoughBalance(ctx, chainId, amount)
-	if err != nil {
-		return err
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, toModule, sdk.NewCoins(amount))
-	if err != nil {
+	// move funds
+	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, toModule, sdk.NewCoins(amount)); err != nil {
 		return cosmossdkerrors.Wrap(types.ErrBankFailure, err.Error())
 	}
-	acc.Balance = nb
-	err = k.SetChainletAccount(ctx, acc)
-	if err != nil {
-		return err
-	}
+	// update pool
+	pool, _ := k.getPool(ctx, chainID, amount.Denom)
+	pool.Balance = nb
+	k.setPool(ctx, pool)
 	return nil
 }
 
-func ScalingFactor(chainlet types.ChainletAccount) math.LegacyDec {
-	totalPoolShares := chainlet.Shares
-	decCoins, _ := sdk.ParseDecCoin(chainlet.Balance.String())
+// ---------- math ----------
+
+func ScalingFactor(pool types.DenomPool) math.LegacyDec {
+	totalPoolShares := pool.Shares
+	decCoins, _ := sdk.ParseDecCoin(pool.Balance.String())
 	totalDeposit := decCoins.Amount
 	if totalDeposit.IsZero() {
 		return math.LegacyMustNewDecFromStr("1")
@@ -240,6 +296,37 @@ func ScalingFactor(chainlet types.ChainletAccount) math.LegacyDec {
 	return totalPoolShares.Quo(totalDeposit)
 }
 
-func InverseScalingFactor(chainlet types.ChainletAccount) math.LegacyDec {
-	return math.LegacyNewDec(int64(1)).Quo(ScalingFactor(chainlet))
+func InverseScalingFactor(pool types.DenomPool) math.LegacyDec {
+	return math.LegacyNewDec(int64(1)).Quo(ScalingFactor(pool))
+}
+
+// GetChainletWithPools returns the ChainletAccount head and all DenomPool rows
+// for the given chainID. If the chainlet doesn't exist, returns NotFound.
+func (k Keeper) GetChainletWithPools(
+	ctx sdk.Context,
+	chainID string,
+) (types.ChainletAccount, []*types.DenomPool, error) {
+	// Fetch chainlet head
+	acc, ok := k.getChainlet(ctx, chainID)
+	if !ok {
+		return types.ChainletAccount{}, nil, cosmossdkerrors.Wrapf(
+			types.ErrChainletAccountNotFound, "chainlet %s not found", chainID,
+		)
+	}
+
+	// Collect all pools under the chainlet
+	store := ctx.KVStore(k.storeKey)
+	pfx := prefix.NewStore(store, types.PoolPrefix(chainID))
+
+	it := pfx.Iterator(nil, nil)
+	defer it.Close()
+
+	pools := make([]*types.DenomPool, 0, 8) // small default cap; grows as needed
+	for ; it.Valid(); it.Next() {
+		p := new(types.DenomPool)
+		k.cdc.MustUnmarshal(it.Value(), p)
+		pools = append(pools, p)
+	}
+
+	return acc, pools, nil
 }

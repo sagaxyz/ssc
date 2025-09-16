@@ -28,25 +28,25 @@ service Query {
   }
 
   // List all denom pools for a chainlet (paginated).
-  rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
+  rpc GetPools(QueryPoolsRequest) returns (QueryPoolsResponse) {
     option (google.api.http).get = "/ssc/escrow/chainlets/{chainId}/pools";
   }
 
   // List funders for a specific {chainId, denom} pool (paginated).
-  rpc Funders(QueryFundersRequest) returns (QueryFundersResponse) {
+  rpc GetFunders(QueryFundersRequest) returns (QueryFundersResponse) {
     option (google.api.http).get =
         "/ssc/escrow/chainlets/{chainId}/pools/{denom}/funders";
   }
 
   // Fetch a single funder row for {chainId, denom, address}.
-  rpc Funder(QueryFunderSharesRequest) returns (QueryFunderSharesResponse) {
+  rpc GetFunder(QueryFunderSharesRequest) returns (QueryFunderSharesResponse) {
     option (google.api.http).get = "/ssc/escrow/chainlets/{chainId}/"
                                    "pools/{denom}/funders/{address}";
   }
 
   // Optional convenience: all positions for a wallet across chainlets/denoms
   // (paginated).
-  rpc MyPositions(QueryFunderPositionsRequest)
+  rpc GetFunderBalance(QueryFunderPositionsRequest)
       returns (QueryFunderPositionsResponse) {
     option (google.api.http).get = "/ssc/escrow/funders/{address}/positions";
   }

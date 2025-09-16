@@ -36,6 +36,8 @@ jq ".app_state[\"acl\"][\"admins\"]=[\"$(sscd keys show bob -a $SSC_HOME $KEYRIN
 jq '.app_state["gov"]["params"]["max_deposit_period"]="600s"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set max_deposit_period"
 jq '.app_state["gov"]["params"]["voting_period"]="600s"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set voting_period"
 jq '.app_state["gov"]["params"]["expedited_voting_period"]="60s"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set expedited_voting_period"
+jq '.app_state["billing"]["params"]["billing_epoch"]="minute"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set expedited_voting_period"
+jq '.app_state["billing"]["params"]["validator_payout_epoch"]="minute"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set expedited_voting_period"
 
 sed -i.bak 's/^timeout_propose *=.*/timeout_propose = "500ms"/' "$DIR/config/config.toml" && rm -f "$DIR/config/config.toml.bak" || fail "failed to set timeout_propose"
 sed -i.bak 's/^timeout_propose_delta *=.*/timeout_propose_delta = "500ms"/' "$DIR/config/config.toml" && rm -f "$DIR/config/config.toml.bak" || fail "failed to set timeout_propose_delta"

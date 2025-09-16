@@ -40,7 +40,7 @@ type BankKeeper interface {
 
 type EscrowKeeper interface {
 	BillAccount(ctx sdk.Context, amount sdk.Coin, chainId string, toModule string) error
-	GetChainletWithPools(ctx sdk.Context, chainId string) (acc escrowtypes.ChainletAccount, err error)
+	GetChainletWithPools(ctx sdk.Context, chainId string) (acc escrowtypes.ChainletAccount, pool []*escrowtypes.DenomPool, err error)
 }
 
 type StakingKeeper interface {

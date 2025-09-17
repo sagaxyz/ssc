@@ -139,7 +139,7 @@ func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
 				Return(nil)
 			chainId := "test_12345-42"
 			_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
-				creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{}, nil, false,
+				creator.String(), nil, "test", tt.current, "test_chainlet", chainId, "asaga", types.ChainletParams{}, nil, false, "",
 			))
 			s.Require().NoError(err)
 

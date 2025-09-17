@@ -69,6 +69,9 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 
 	launcher := msg.Creator
 	if msg.CustomLauncher != "" {
+		if !admin {
+			return &types.MsgLaunchChainletResponse{}, types.ErrUnauthorized.Wrap("custom launcher can only be set by admin")
+		}
 		launcher = msg.CustomLauncher
 	}
 

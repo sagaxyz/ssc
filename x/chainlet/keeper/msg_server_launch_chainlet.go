@@ -89,6 +89,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		GenesisValidators:    k.validators(ctx),
 		IsServiceChainlet:    msg.IsServiceChainlet,
 		IsCCVConsumer:        stackVersion.CcvConsumer,
+		GenesisStackVersion:  msg.ChainletStackVersion,
 	}
 
 	// launching a service chainlet means we can skip the billing setup and just create the chainlet

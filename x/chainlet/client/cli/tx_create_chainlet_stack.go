@@ -15,7 +15,7 @@ func CmdCreateChainletStack() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-chainlet-stack [display-name] [description] [image] [version] [checksum] [epochfee] [upfrontfee] [ccv-consumer]",
 		Short: "Broadcast message create-chainlet-stack",
-		Args:  cobra.ExactArgs(9),
+		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argDisplayName := args[0]
 			argDescription := args[1]

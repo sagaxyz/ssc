@@ -43,6 +43,7 @@ func CmdLaunchChainlet() *cobra.Command {
 			networkVersion, _ := cmd.Flags().GetInt64("network-version")
 			tags, _ := cmd.Flags().GetStringArray("tags")
 			serviceChainlet, _ := cmd.Flags().GetBool("service-chainlet")
+			customLauncher, _ := cmd.Flags().GetString("custom-launcher")
 			if evmChainId < 1 {
 				return fmt.Errorf("invalid evm chain id %d", evmChainId)
 			}
@@ -61,6 +62,7 @@ func CmdLaunchChainlet() *cobra.Command {
 				params,
 				tags,
 				serviceChainlet,
+				customLauncher,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -76,6 +78,6 @@ func CmdLaunchChainlet() *cobra.Command {
 	cmd.Flags().Int64("network-version", 1, "network version")
 	cmd.Flags().StringArray("tags", []string{}, "chainlet tags. non-admin use will be overwritten")
 	cmd.Flags().Bool("service-chainlet", false, "service chainlet. non-admin use will be overwritten")
-
+	cmd.Flags().String("custom-launcher", "", "custom launcher address. non-admin use will be overwritten")
 	return cmd
 }

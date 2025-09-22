@@ -24,7 +24,8 @@ func NewMsgLaunchChainlet(
 	denom string,
 	params ChainletParams,
 	tags []string,
-	serviceChainlet bool) *MsgLaunchChainlet {
+	serviceChainlet bool,
+	customLauncher string) *MsgLaunchChainlet {
 	return &MsgLaunchChainlet{
 		Creator:              creator,
 		Maintainers:          maintainers,
@@ -36,6 +37,7 @@ func NewMsgLaunchChainlet(
 		Params:               params,
 		Tags:                 tags,
 		IsServiceChainlet:    serviceChainlet,
+		CustomLauncher:       customLauncher,
 	}
 }
 
@@ -125,6 +127,12 @@ func (msg *MsgLaunchChainlet) ValidateBasic() error {
 	}
 	if _, ok := tags.VerifyAndTruncate(msg.Tags); !ok {
 		return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid tags")
+	}
+	if msg.CustomLauncher != "" {
+		_, err := sdk.AccAddressFromBech32(msg.CustomLauncher)
+		if err != nil {
+			return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid custom launcher address: %s", err)
+		}
 	}
 	return nil
 }

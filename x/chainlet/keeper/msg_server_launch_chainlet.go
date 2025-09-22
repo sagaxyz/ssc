@@ -67,8 +67,16 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainletStack
 	}
 
+	launcher := msg.Creator
+	if msg.CustomLauncher != "" {
+		if !admin {
+			return &types.MsgLaunchChainletResponse{}, types.ErrUnauthorized.Wrap("custom launcher can only be set by admin")
+		}
+		launcher = msg.CustomLauncher
+	}
+
 	chainlet := types.Chainlet{
-		Launcher:             msg.Creator,
+		Launcher:             launcher,
 		Maintainers:          msg.Maintainers,
 		ChainletStackName:    msg.ChainletStackName,
 		ChainletStackVersion: msg.ChainletStackVersion,

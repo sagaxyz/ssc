@@ -52,6 +52,7 @@ message MsgLaunchChainlet {
   bool disableAutomaticStackUpgrades = 9;
   bool isServiceChainlet = 10;
   repeated string tags = 11;
+  string customLauncher = 12;
 }
 
 message MsgLaunchChainletResponse {}

@@ -120,6 +120,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -157,12 +158,13 @@ import (
 	gmpmodulekeeper "github.com/sagaxyz/ssc/x/gmp/keeper"
 	gmpmoduletypes "github.com/sagaxyz/ssc/x/gmp/types"
 
+	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
+	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	ante "github.com/sagaxyz/ssc/app/ante"
 	"github.com/sagaxyz/ssc/docs"
-
-	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 )
 
 const (
@@ -658,6 +660,8 @@ func New(
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(ccvprovidertypes.RouterKey, ccvprovider.NewProviderProposalHandler(app.ProviderKeeper))
+	//nolint:staticcheck // SA1019: ibcclient.NewClientProposalHandler is deprecated but still needed for governance control over IBC clients
+	govRouter.AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 	govConfig := govtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -670,13 +674,9 @@ func New(
 		govConfig,
 		govModuleAddress,
 	)
-	// govkeeper.SetLegacyRouter(govRouter)
-
-	// app.GovKeeper = govKeeper.SetHooks(
-	// 	govtypes.NewMultiGovHooks(
-	// 	// register the governance hooks
-	// 	),
-	// )
+	//nolint:staticcheck
+	//already fixed in main
+	app.GovKeeper.SetLegacyRouter(govRouter)
 
 	app.ProviderKeeper = ccvproviderkeeper.NewKeeper(
 		appCodec,
@@ -1299,6 +1299,7 @@ func (app *App) ModuleManager() *module.Manager {
 func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

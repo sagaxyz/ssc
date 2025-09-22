@@ -4,15 +4,12 @@ set -u
 # Expand globs to nothing
 shopt -s nullglob
 
-# Validate dependencies are installed
-command -v jq &> /dev/null || fail "jq not installed"
-command -v curl &> /dev/null || fail "curl not installed"
-
 function log() {
   local msg=$1
 
   echo "$(date) $msg" >&2
 }
+
 function fail() {
   if [ $# -gt 0 ]; then
     local msg=$1
@@ -21,6 +18,10 @@ function fail() {
 
   exit 1
 }
+
+# Validate dependencies are installed
+command -v jq &> /dev/null || fail "jq not installed"
+command -v curl &> /dev/null || fail "curl not installed"
 
 function check_env_vars() {
   for name in "$@"; do

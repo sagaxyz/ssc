@@ -49,12 +49,6 @@ func init() {
 	simcli.GetSimulatorFlags()
 }
 
-// fauxMerkleModeOpt returns a BaseApp option to use a dbStoreAdapter instead of
-// an IAVLStore for faster simulation speed.
-// func fauxMerkleModeOpt(bapp *baseapp.BaseApp) {
-// 	bapp.SetFauxMerkleMode()
-// }
-
 // BenchmarkSimulation run the chain simulation
 // Running using starport command:
 // `starport chain simulate -v --numBlocks 200 --blockSize 50`
@@ -315,12 +309,10 @@ func TestAppImportExport(t *testing.T) {
 
 	ctxA := bApp.NewContextLegacy(true, tmproto.Header{Height: bApp.LastBlockHeight()})
 	ctxB := newApp.NewContextLegacy(true, tmproto.Header{Height: bApp.LastBlockHeight()})
-	if _, err = newApp.ModuleManager().InitGenesis(ctxB, bApp.AppCodec(), genesisState); err != nil {
-		panic(err)
-	}
-	if err = newApp.StoreConsensusParams(ctxB, exported.ConsensusParams); err != nil {
-		panic(err)
-	}
+	_, err = newApp.ModuleManager().InitGenesis(ctxB, bApp.AppCodec(), genesisState)
+	require.NoError(t, err)
+	err = newApp.StoreConsensusParams(ctxB, exported.ConsensusParams)
+	require.NoError(t, err)
 	fmt.Printf("comparing stores...\n")
 
 	storeKeysPrefixes := []storeKeysPrefixes{

@@ -170,6 +170,7 @@ import (
 const (
 	AccountAddressPrefix = "saga"
 	Name                 = "ssc"
+	SagaAddress          = "saga1z3sp72f7cw5sgz3ljrhd0e3kdlt7fzl6m3luvd"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -514,7 +515,7 @@ func New(
 		app.BankKeeper,
 		app.StakingKeeper,
 		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		SagaAddress,
 	)
 
 	app.SlashingKeeper = slashingkeeper.NewKeeper(

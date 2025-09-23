@@ -16,7 +16,6 @@ type (
 		paramstore paramtypes.Subspace
 
 		channelKeeper types.ChannelKeeper
-		portKeeper    types.PortKeeper
 	}
 )
 
@@ -25,7 +24,6 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper,
-	portKeeper types.PortKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -38,7 +36,6 @@ func NewKeeper(
 		paramstore: ps,
 
 		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
 	}
 }
 

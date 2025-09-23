@@ -10,7 +10,7 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 )
 
@@ -46,8 +46,7 @@ type ICAKeeper interface {
 }
 
 type ClientKeeper interface {
-	GetClientState(sdk.Context, string) (ibcexported.ClientState, bool)
-	GetClientLatestHeight(sdk.Context, string) (ibcexported.Height)
+	GetClientLatestHeight(sdk.Context, string) (clienttypes.Height)
 }
 type ChannelKeeper interface {
 	GetChannel(sdk.Context, string, string) (ibcchanneltypes.Channel, bool)

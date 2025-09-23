@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
@@ -20,8 +19,6 @@ type Keeper struct {
 	storeKey         storetypes.StoreKey
 	paramstore       paramtypes.Subspace
 	stakingKeeper    types.StakingKeeper
-	icaKeeper        types.ICAKeeper
-	msgRouter        icatypes.MessageRouter
 	clientKeeper     types.ClientKeeper
 	channelKeeper    types.ChannelKeeper
 	connectionKeeper types.ConnectionKeeper
@@ -41,8 +38,6 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	ibcKeeperFn func() *ibckeeper.Keeper,
 	stakingKeeper types.StakingKeeper,
-	icaKeeper types.ICAKeeper,
-	msgRouter icatypes.MessageRouter,
 	clientKeeper types.ClientKeeper,
 	channelKeeper types.ChannelKeeper,
 	connectionKeeper types.ConnectionKeeper,
@@ -62,8 +57,6 @@ func NewKeeper(
 		paramstore:       ps,
 		ibcKeeperFn:      ibcKeeperFn,
 		stakingKeeper:    stakingKeeper,
-		icaKeeper:        icaKeeper,
-		msgRouter:        msgRouter,
 		clientKeeper:     clientKeeper,
 		channelKeeper:    channelKeeper,
 		connectionKeeper: connectionKeeper,

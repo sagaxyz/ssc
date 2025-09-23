@@ -32,6 +32,7 @@ run_test() {
 
   echo "▶️  ${pass_msg}"
   txhash=$(eval "${cmd}" | jq -r .txhash)
+  echo "txhash: $txhash"
   wait_tx "$txhash"
 
   code=$(sscd q tx "$txhash" -o json | jq -r .code)
@@ -87,13 +88,13 @@ run_test "sscd tx chainlet update-chainlet-stack sagaevm2 \
 # === Testing launch-chainlet ===
 echo "=== launch-chainlet ==="
 
-count=0
+c=0
 
 run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 100001 --network-version 1 --gas ${gas_limit} \
   --from ${key} --fees ${fees} -o json -y" \
   0 "launched chainlet from valid stack" "failed to launch chainlet from valid stack"
-count=$((count + 1))
+c=$((c + 1))
 
 run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagavm 2.0.0 mychainabc ${chainlet_denom} '{}' \
   --evm-chain-id 100001 --network-version 1 --gas ${gas_limit} \
@@ -104,12 +105,12 @@ run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" saga
   --evm-chain-id 13371337 --network-version 1 --gas ${gas_limit} \
   --from ${key} --fees ${fees} -o json -y" \
   0 "launched another chainlet from valid stack" "failed second valid launch"
-count=$((count + 1))
+c=$((c + 1))
 
 run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key})\" sagaevm 0.8.0 kukkoo ${chainlet_denom} '{\"gasLimit\":10000000,\"genAcctBalances\":\"saga1mk92pa54q8ehgcdqh0qp4pj6ddjwgt25aknqxn=1000,saga18xqr6cnyezq4pudqnf53klj3ppq3mvm4eea6dp=100000\"}' \
   --gas ${gas_limit} --from ${key} --fees ${fees} -o json -y" \
   0 "launched with custom params" "failed launch with custom params"
-count=$((count + 1))
+c=$((c + 1))
 
 run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 515151 --network-version 1 --gas ${gas_limit} --service-chainlet \
@@ -120,20 +121,20 @@ run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyri
   --evm-chain-id 424242 --network-version 1 --gas ${gas_limit} --service-chainlet \
   --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
   0 "launched service chainlet from admin" "failed admin service launch"
-count=$((count + 1))
+c=$((c + 1))
 
 run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 424243 --network-version 1 --gas ${gas_limit} \
   --custom-genesis-validators \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" \
   --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
   0 "launched chainlet with custom genesis validators" "failed launch with custom genesis validators"
-count=$((count + 1))
+c=$((c + 1))
 
 run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
   --evm-chain-id 424244 --network-version 1 --gas ${gas_limit} \
   --custom-genesis-validators \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" \
   --from alice --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
-  0 "did not launch chainlet with custom genesis validators from a non-admin account" "launch with custom genesis validators from a non-admin account"
+  6910 "did not launch chainlet with custom genesis validators from a non-admin account" "launch with custom genesis validators from a non-admin account"
 
 
 # === Queries & billing ===
@@ -156,7 +157,7 @@ else
 fi
 
 # list chainlets
-if sscd q chainlet list-chainlets -o json | jq '.Chainlets | length' | grep -q "^[${count}]$"; then
+if sscd q chainlet list-chainlets -o json | jq '.Chainlets | length' | grep -q "^[${c}]$"; then
   echo "✅ chainlet count OK"
 else
   cleanup_sscd

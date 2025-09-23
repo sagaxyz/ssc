@@ -2,7 +2,7 @@
 DIR=~/.ssc
 SSC_HOME="--home $DIR"
 KEYRING="--keyring-backend=test"
-
+rm -r $DIR
 function log() {
   local msg=$1
 

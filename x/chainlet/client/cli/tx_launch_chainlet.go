@@ -81,6 +81,6 @@ func CmdLaunchChainlet() *cobra.Command {
 	cmd.Flags().StringArray("tags", []string{}, "chainlet tags. non-admin use will be overwritten")
 	cmd.Flags().Bool("service-chainlet", false, "service chainlet. non-admin use will be overwritten")
 	cmd.Flags().String("custom-launcher", "", "custom launcher address. non-admin use will be overwritten")
-	cmd.Flags().String("custom-genesis-validators", "", "custom genesis validators. non-admin use will be overwritten")
+	cmd.Flags().StringArray("custom-genesis-validators", []string{}, "custom genesis validators. non-admin use will be overwritten")
 	return cmd
 }

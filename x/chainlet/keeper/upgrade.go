@@ -96,13 +96,11 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 		return
 	}
 
+	clientRevisionHeight := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionHeight()
+	clientRevisionNumber := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionNumber()
+
 	// Create the IBC packet
-	clientState, ex := k.clientKeeper.GetClientState(ctx, clientID)
-	if !ex {
-		err = fmt.Errorf("client state missing for client ID '%s'", clientID)
-		return
-	}
-	upgradeHeight := clientState.(*ClientState).GetLatestHeight().GetRevisionHeight() + heightDelta
+	upgradeHeight := clientRevisionHeight + heightDelta
 	planName, err := upgradePlanName(chainlet.ChainletStackVersion, newVersion)
 	if err != nil {
 		return
@@ -122,8 +120,8 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 	TimeoutHeight := uint64(300) //TODO p
 	TimeoutTime := 2 * time.Hour //TODO p
 	timeoutHeight := clienttypes.Height{
-		RevisionNumber: clientState.GetLatestHeight().GetRevisionNumber(),
-		RevisionHeight: clientState.GetLatestHeight().GetRevisionHeight() + TimeoutHeight,
+		RevisionNumber: clientRevisionNumber, 
+		RevisionHeight: clientRevisionHeight + TimeoutHeight,
 	}
 	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
 

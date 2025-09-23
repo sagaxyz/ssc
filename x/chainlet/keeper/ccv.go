@@ -70,13 +70,6 @@ func (k *Keeper) InitConsumers(ctx sdk.Context) {
 		ctx.Logger().Info(fmt.Sprintf("force-sending queued VSC packets to a new chainlet %s", chainId))
 		k.providerKeeper.SendVSCPacketsToChain(ctx, chainId, channelId)
 
-		// ICA setup for upgrades
-		err := k.InitICA(ctx, chainId)
-		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("initializing ICA for chainlet %s failed: %s", chainId, err))
-			continue
-		}
-
 		defer store.Delete(iterator.Key())
 	}
 }

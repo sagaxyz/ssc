@@ -47,6 +47,7 @@ type ICAKeeper interface {
 
 type ClientKeeper interface {
 	GetClientState(sdk.Context, string) (ibcexported.ClientState, bool)
+	GetClientLatestHeight(sdk.Context, string) (ibcexported.Height)
 }
 type ChannelKeeper interface {
 	GetChannel(sdk.Context, string, string) (ibcchanneltypes.Channel, bool)

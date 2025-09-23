@@ -13,7 +13,7 @@ require (
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/store v1.1.2
 	cosmossdk.io/tools/confix v0.1.2
-	cosmossdk.io/x/evidence v0.1.1
+	cosmossdk.io/x/evidence v0.2.0-rc.2
 	cosmossdk.io/x/feegrant v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
@@ -22,10 +22,10 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.1.0
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10 v10.1.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v10 v10.1.1
-	github.com/cosmos/interchain-security/v7 v7.0.1
+	github.com/cosmos/interchain-security/v7 v7.0.0-20250408210344-06e0dc6bf6d6
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.6.0

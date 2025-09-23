@@ -22,11 +22,10 @@ type (
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
+	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {

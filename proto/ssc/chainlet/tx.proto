@@ -53,6 +53,7 @@ message MsgLaunchChainlet {
   bool isServiceChainlet = 10;
   repeated string tags = 11;
   string customLauncher = 12;
+  repeated string customGenesisValidators = 13;
 }
 
 message MsgLaunchChainletResponse {}

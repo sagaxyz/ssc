@@ -44,6 +44,7 @@ func CmdLaunchChainlet() *cobra.Command {
 			tags, _ := cmd.Flags().GetStringArray("tags")
 			serviceChainlet, _ := cmd.Flags().GetBool("service-chainlet")
 			customLauncher, _ := cmd.Flags().GetString("custom-launcher")
+			customGenesisValidators, _ := cmd.Flags().GetStringArray("custom-genesis-validators")
 			if evmChainId < 1 {
 				return fmt.Errorf("invalid evm chain id %d", evmChainId)
 			}
@@ -63,6 +64,7 @@ func CmdLaunchChainlet() *cobra.Command {
 				tags,
 				serviceChainlet,
 				customLauncher,
+				customGenesisValidators,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -79,5 +81,6 @@ func CmdLaunchChainlet() *cobra.Command {
 	cmd.Flags().StringArray("tags", []string{}, "chainlet tags. non-admin use will be overwritten")
 	cmd.Flags().Bool("service-chainlet", false, "service chainlet. non-admin use will be overwritten")
 	cmd.Flags().String("custom-launcher", "", "custom launcher address. non-admin use will be overwritten")
+	cmd.Flags().String("custom-genesis-validators", "", "custom genesis validators. non-admin use will be overwritten")
 	return cmd
 }

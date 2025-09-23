@@ -25,19 +25,22 @@ func NewMsgLaunchChainlet(
 	params ChainletParams,
 	tags []string,
 	serviceChainlet bool,
-	customLauncher string) *MsgLaunchChainlet {
+	customLauncher string,
+	customGenesisValidators []string,
+) *MsgLaunchChainlet {
 	return &MsgLaunchChainlet{
-		Creator:              creator,
-		Maintainers:          maintainers,
-		ChainletStackName:    chainletStackName,
-		ChainletStackVersion: chainletStackVersion,
-		ChainletName:         chainletName,
-		ChainId:              chainId,
-		Denom:                denom,
-		Params:               params,
-		Tags:                 tags,
-		IsServiceChainlet:    serviceChainlet,
-		CustomLauncher:       customLauncher,
+		Creator:                 creator,
+		Maintainers:             maintainers,
+		ChainletStackName:       chainletStackName,
+		ChainletStackVersion:    chainletStackVersion,
+		ChainletName:            chainletName,
+		ChainId:                 chainId,
+		Denom:                   denom,
+		Params:                  params,
+		Tags:                    tags,
+		IsServiceChainlet:       serviceChainlet,
+		CustomLauncher:          customLauncher,
+		CustomGenesisValidators: customGenesisValidators,
 	}
 }
 
@@ -132,6 +135,12 @@ func (msg *MsgLaunchChainlet) ValidateBasic() error {
 		_, err := sdk.AccAddressFromBech32(msg.CustomLauncher)
 		if err != nil {
 			return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid custom launcher address: %s", err)
+		}
+	}
+	for _, val := range msg.CustomGenesisValidators {
+		_, err := sdk.AccAddressFromBech32(val)
+		if err != nil {
+			return cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "could not parse genesis validator address from supplied string %s. Error: %s", val, err)
 		}
 	}
 	return nil

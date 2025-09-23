@@ -19,4 +19,6 @@ var (
 	ErrChainletStartFailure    = cosmossdkerrors.Register(ModuleName, 6908, "failed to start chainlet")
 	ErrTooManyChainlets        = cosmossdkerrors.Register(ModuleName, 6909, "chainlet limit exceeded")
 	ErrUnauthorized            = cosmossdkerrors.Register(ModuleName, 6910, "not authorized to launch a service chainlet")
+	ErrInvalidFees             = cosmossdkerrors.Register(ModuleName, 6911, "invalid fees")
+	ErrDuplicateDenom          = cosmossdkerrors.Register(ModuleName, 6912, "duplicate denom in fees")
 )

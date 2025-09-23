@@ -116,6 +116,19 @@ run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyri
   --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
   0 "launched service chainlet from admin" "failed admin service launch"
 
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
+  --evm-chain-id 424243 --network-version 1 --gas ${gas_limit} \
+  --custom-genesis-validators \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" \
+  --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
+  0 "launched chainlet with custom genesis validators" "failed launch with custom genesis validators"
+
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" sagaevm 0.7.0 mychain ${chainlet_denom} '{}' \
+  --evm-chain-id 424243 --network-version 1 --gas ${gas_limit} \
+  --custom-genesis-validators \"\$(sscd keys show -a alice --keyring-backend ${keyring_backend})\" \
+  --from alice --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
+  0 "did not launch chainlet with custom genesis validators from a non-admin account" "launch with custom genesis validators from a non-admin account"
+
+
 # === Queries & billing ===
 echo "=== queries & billing ==="
 sscd q epochs epoch-infos

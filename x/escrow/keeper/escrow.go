@@ -337,16 +337,6 @@ func (k Keeper) withdrawOne(
 	return coin, nil
 }
 
-// GetKprChainletAccount (kept for compatibility) — now just returns the head.
-// This was previously used to get the full account with funders and pools etc.
-func (k Keeper) GetKprChainletAccount(ctx sdk.Context, chainID string) (types.ChainletAccount, error) {
-	acc, ok := k.getChainlet(ctx, chainID)
-	if !ok {
-		return types.ChainletAccount{}, cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "chainlet %s not found", chainID)
-	}
-	return acc, nil
-}
-
 // SetChainletAccount (compat) — uses protobuf codec.
 func (k Keeper) SetChainletAccount(ctx sdk.Context, chainlet types.ChainletAccount) error {
 	k.setChainlet(ctx, chainlet)

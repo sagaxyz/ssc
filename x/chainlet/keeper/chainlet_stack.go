@@ -151,11 +151,14 @@ func (k *Keeper) updateChainletStackFees(ctx sdk.Context, creator sdk.AccAddress
 	store.Set([]byte(stackName), k.cdc.MustMarshal(&stack))
 
 	// Emit event using original strings in original order
-	ctx.EventManager().EmitTypedEvent(&types.EventUpdateChainletFees{
+	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateChainletFees{
 		StackName: stackName,
 		Fees:      joinFeesOriginal(fees),
 		By:        creator.String(),
 	})
+	if err != nil {
+		return fmt.Errorf("failed to emit event: %w", err)
+	}
 
 	return nil
 }

@@ -17,6 +17,10 @@ import (
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	stacks, err := k.chainletkeeper.ListChainletStack(ctx, &chainlettypes.QueryListChainletStackRequest{})
 
+	if err != nil {
+		ctx.Logger().Error("could not list chainlet stacks. Error: " + err.Error())
+		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not list chainlet stacks. Error: %s", err.Error())
+	}
 	kvs := make(map[string]*chainlettypes.ChainletStack)
 	for _, stack := range stacks.ChainletStacks {
 		kvs[stack.DisplayName] = stack
@@ -35,7 +39,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 
 	var skipped, billed, failed []string
 
-	if resp.Chainlets == nil || len(resp.Chainlets) == 0 {
+	if len(resp.Chainlets) == 0 {
 		ctx.Logger().Info("no active chainlets to be billed this epoch: " + fmt.Sprintf("%d", epochNumber))
 		return nil
 	}

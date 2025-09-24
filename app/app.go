@@ -114,7 +114,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	//ibcfeetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -855,7 +854,6 @@ func New(
 		packetforwardtypes.ModuleName,
 		ccvprovidertypes.ModuleName,
 		icatypes.ModuleName,
-		//ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -898,7 +896,6 @@ func New(
 		ibctransfertypes.ModuleName,
 		ccvprovidertypes.ModuleName,
 		icatypes.ModuleName,
-		//ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
@@ -1187,7 +1184,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(govtypes.ModuleName)
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ccvprovidertypes.ModuleName)
-	//paramsKeeper.Subspace(ibcfeetypes.ModuleName)
 	paramsKeeper.Subspace(chainletmoduletypes.ModuleName)
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(escrowmoduletypes.ModuleName)

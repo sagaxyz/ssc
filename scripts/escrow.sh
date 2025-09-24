@@ -128,11 +128,24 @@ _print_pool_from_json() {
 # Print a funder position if it exists
 _print_funder_if_any() {
   local cid="$1" d="$2" addr="$3"
-  if sscd q escrow funder "$cid" "$d" "$addr" -o json >/dev/null 2>&1; then
-    sscd q escrow funder "$cid" "$d" "$addr" -o json | jq '{chainId: (.chainId // .ChainId), denom: (.denom // .Denom), address: (.address // .Address), shares: (.shares // .Shares)}'
-  else
+  local json shares
+
+  if ! json="$(sscd q escrow funder "$cid" "$d" "$addr" -o json 2>/dev/null)"; then
     echo "no position"
+    return 0
   fi
+
+  # Extract decimal string from common shapes
+  shares="$(jq -r '.shares.shares' <<<"$json")"
+
+  if [[ -z "$shares" || "$shares" == "null" ]]; then
+    echo "no position"
+    return 0
+  fi
+
+  # Print a consistent object with context from parameters
+  jq -n --arg cid "$cid" --arg d "$d" --arg addr "$addr" --arg shares "$shares" \
+    '{chainId:$cid, denom:$d, address:$addr, shares:$shares}'
 }
 
 # One-call state dump for both pools & both addresses

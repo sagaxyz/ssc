@@ -328,8 +328,10 @@ func (k Keeper) withdrawOne(
 	amt := tokensDec.TruncateInt()
 
 	// ---- Dust flush for the last withdrawer ----
-	// If this funder holds all remaining shares, pay out the entire pool balance
-	// so we don't strand a 1-unit remainder from truncation.
+	// Critical edge case: If this funder holds all remaining shares, pay out the entire pool balance.
+	// This ensures that any remainder tokens ("dust") resulting from previous truncation or rounding
+	// are not left stranded in the pool. Without this, the last withdrawer could receive less than
+	// their fair share, and a small amount of tokens would be permanently locked in the contract.
 	if pool.Shares.Equal(f.Shares) {
 		amt = pool.Balance.Amount
 	}

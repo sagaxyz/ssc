@@ -30,6 +30,7 @@ message Chainlet {
   bool isServiceChainlet = 14;
   bool isCCVConsumer = 15;
   Upgrade upgrade = 16;
+  string consumerId = 17;
 }
 
 message Upgrade {

@@ -18,22 +18,45 @@ func (k *Keeper) setPendingInit(ctx sdk.Context, chainId string) {
 	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingInit{}))
 }
 
-func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) (string, error) {
 	revision := ibcclienttypes.ParseChainID(chainId)
-	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
-		ChainId:                           chainId,
-		InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
-		SpawnTime:                         spawnTime,
-		UnbondingPeriod:                   ccvtypes.DefaultConsumerUnbondingPeriod,
-		CcvTimeoutPeriod:                  ccvtypes.DefaultCCVTimeoutPeriod,
-		TransferTimeoutPeriod:             ccvtypes.DefaultTransferTimeoutPeriod,
-		ConsumerRedistributionFraction:    "0.0",
-		BlocksPerDistributionTransmission: ccvtypes.DefaultBlocksPerDistributionTransmission,
-		HistoricalEntries:                 ccvtypes.DefaultHistoricalEntries,
+	res, err := k.providerKeeper.CreateConsumer(ctx, &ccvprovidertypes.MsgCreateConsumer{
+		//Submitter:
+		ChainId: chainId,
+		InitializationParameters: &ccvprovidertypes.ConsumerInitializationParameters{
+			InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
+			SpawnTime:                         spawnTime,
+			UnbondingPeriod:                   ccvtypes.DefaultConsumerUnbondingPeriod, //TODO
+			CcvTimeoutPeriod:                  ccvtypes.DefaultCCVTimeoutPeriod,
+			TransferTimeoutPeriod:             ccvtypes.DefaultTransferTimeoutPeriod,
+			ConsumerRedistributionFraction:    "0.0",
+			BlocksPerDistributionTransmission: ccvtypes.DefaultBlocksPerDistributionTransmission,
+			HistoricalEntries:                 ccvtypes.DefaultHistoricalEntries,
+		},
+		PowerShapingParameters: &ccvprovidertypes.PowerShapingParameters{
+			Top_N:              0, // Start chainlets as opt-in chains
+			ValidatorsPowerCap: 32,
+		},
+		AllowlistedRewardDenoms: &ccvprovidertypes.AllowlistedRewardDenoms{
+			Denoms: []string{},
+		},
+		InfractionParameters: &ccvprovidertypes.InfractionParameters{
+			DoubleSign: &ccvprovidertypes.SlashJailParameters{
+				//SlashFraction: 0, //TODO
+				JailDuration:  0,
+				Tombstone:     false,
+			},
+			Downtime: &ccvprovidertypes.SlashJailParameters{
+				//SlashFraction: 0, //TODO
+				JailDuration:  0,
+				Tombstone:     false,
+			},
+		},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
+	consumerId := res.ConsumerId
 
 	// Enqueue an empty VSC packet
 	valUpdateID := k.providerKeeper.GetValidatorSetUpdateId(ctx)
@@ -42,7 +65,7 @@ func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Tim
 	k.providerKeeper.IncrementValidatorSetUpdateId(ctx)
 
 	k.setPendingInit(ctx, chainId)
-	return nil
+	return consumerId, nil
 }
 
 // Forces sending queued VSC packets of new chainlets without waiting for the the provider epoch to end.

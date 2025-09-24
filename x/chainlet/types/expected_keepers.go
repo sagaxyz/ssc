@@ -5,12 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
 	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 )
 
@@ -25,12 +23,11 @@ type BankKeeper interface {
 }
 
 type StakingKeeper interface {
-	// GetAllValidators(sdk.Context) []stakingtypes.Validator
 	GetAllValidators(ctx context.Context) (validators []stakingtypes.Validator, err error)
 }
 
 type ProviderKeeper interface {
-	HandleConsumerAdditionProposal(ctx sdk.Context, prop *ccvprovidertypes.MsgConsumerAddition) error
+	CreateConsumer(goCtx context.Context, msg *ccvprovidertypes.MsgCreateConsumer) (*ccvprovidertypes.MsgCreateConsumerResponse, error)
 	AppendPendingVSCPackets(ctx sdk.Context, chainID string, newPackets ...ccvtypes.ValidatorSetChangePacketData)
 	GetValidatorSetUpdateId(ctx sdk.Context) (validatorSetUpdateId uint64)
 	IncrementValidatorSetUpdateId(ctx sdk.Context)
@@ -39,14 +36,8 @@ type ProviderKeeper interface {
 	GetConsumerClientId(ctx sdk.Context, chainID string) (string, bool)
 }
 
-type ICAKeeper interface {
-	GetInterchainAccountAddress(sdk.Context, string, string) (string, bool)
-	GetOpenActiveChannel(sdk.Context, string, string) (string, bool)
-	SendTx(sdk.Context, *capabilitytypes.Capability, string, string, icatypes.InterchainAccountPacketData, uint64) (uint64, error)
-}
-
 type ClientKeeper interface {
-	GetClientLatestHeight(sdk.Context, string) (clienttypes.Height)
+	GetClientLatestHeight(sdk.Context, string) clienttypes.Height
 }
 type ChannelKeeper interface {
 	GetChannel(sdk.Context, string, string) (ibcchanneltypes.Channel, bool)

@@ -62,17 +62,19 @@ func (k *Keeper) EnableConsumer(ctx sdk.Context, chainId string, spawnTime time.
 	if chainlet.IsCCVConsumer {
 		panic("chainlet already a consumer")
 	}
+
+	consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+	if err != nil {
+		return err
+	}
+	
 	chainlet.IsCCVConsumer = true
 	chainlet.SpawnTime = spawnTime
+	chainlet.ConsumerId = consumerId
 
 	updatedValue := k.cdc.MustMarshal(&chainlet)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 	store.Set([]byte(chainId), updatedValue)
-
-	err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }

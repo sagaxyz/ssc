@@ -98,6 +98,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	no_valupdates_genutil "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_genutil"
 	no_valupdates_staking "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_staking"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
@@ -545,7 +546,7 @@ func New(
 		runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]),
 		app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-		app.IBCKeeper.ChannelKeeper, 
+		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -705,23 +706,17 @@ func New(
 	)
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
 
-	// callbacks wraps the transfer stack as its base app, and uses PacketForwardKeeper as the ICS4Wrapper
-	// i.e. packet-forward-middleware is higher on the stack and sits between callbacks and the ibc channel keeper
-	// Since this is the lowest level middleware of the transfer stack, it should be the first entrypoint for transfer keeper's
-	// WriteAcknowledgement.
-	cbStack := ibccallbacks.NewIBCMiddleware(transferStack, app.PacketForwardKeeper, wasmStackIBCHandler, maxCallbackGas)
-	var transferStack ibcporttypes.IBCModule
+	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+
+	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = packetforward.NewIBCMiddleware(
-		cbStack,
+		transferStack,
 		app.PacketForwardKeeper,
 		0, // retries on timeout
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 	)
-	transferStack = gmpmodule.NewIBCModule(transferStack)
-	app.TransferKeeper.WithICS4Wrapper(cbStack)
-
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+	transferStack = ccvprovider.NewIBCMiddleware(transferStack, app.ProviderKeeper)
 
 	/**** IBC Routing ****/
 	icaControllerStack := icacontroller.NewIBCMiddleware(icaControllerKeeper)

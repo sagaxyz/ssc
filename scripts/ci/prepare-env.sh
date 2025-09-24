@@ -3,6 +3,7 @@ DIR=~/.ssc
 SSC_HOME="--home $DIR"
 KEYRING="--keyring-backend=test"
 
+rm -r $DIR
 function log() {
   local msg=$1
 
@@ -25,8 +26,8 @@ cp ./scripts/ci/config/client.toml $DIR/config/ || fail "failed to copy client.t
 sscd keys add alice $SSC_HOME $KEYRING || fail "failed to add key alice"
 sscd keys add bob $SSC_HOME $KEYRING || fail "failed to add key bob"
 
-sscd add-genesis-account "$(sscd keys show alice -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000stake $SSC_HOME || fail "failed to add genesis account for alice"
-sscd add-genesis-account "$(sscd keys show bob -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000stake $SSC_HOME || fail "failed to add genesis account for bob"
+sscd add-genesis-account "$(sscd keys show alice -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000000000000000000000utagas,100000000stake $SSC_HOME || fail "failed to add genesis account for alice"
+sscd add-genesis-account "$(sscd keys show bob -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000000000000000000000utagas,100000000stake $SSC_HOME || fail "failed to add genesis account for bob"
 
 jq '.app_state["chainlet"]["params"]["chainletStackProtections"]=true' $DIR/config/genesis.json > $DIR/config/tmp_genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set chainletStackProtections"
 jq '.app_state["chainlet"]["params"]["nEpochDeposit"]="30"' $DIR/config/genesis.json > $DIR/config/tmp_genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set nEpochDeposit"

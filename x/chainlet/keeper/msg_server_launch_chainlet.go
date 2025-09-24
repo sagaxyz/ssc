@@ -92,6 +92,13 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 		GenesisStackVersion:  msg.ChainletStackVersion,
 	}
 
+	if len(msg.CustomGenesisValidators) > 0 {
+		if !admin {
+			return &types.MsgLaunchChainletResponse{}, types.ErrUnauthorized.Wrap("custom genesis validators can only be set by admin")
+		}
+		chainlet.GenesisValidators = msg.CustomGenesisValidators
+	}
+
 	// launching a service chainlet means we can skip the billing setup and just create the chainlet
 	if msg.IsServiceChainlet {
 		if !admin {

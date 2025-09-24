@@ -34,7 +34,7 @@ type ProviderKeeper interface {
 	AppendPendingVSCPackets(ctx sdk.Context, chainID string, newPackets ...ccvtypes.ValidatorSetChangePacketData)
 	GetValidatorSetUpdateId(ctx sdk.Context) (validatorSetUpdateId uint64)
 	IncrementValidatorSetUpdateId(ctx sdk.Context)
-	GetChainToChannel(ctx sdk.Context, chainID string) (string, bool)
+	GetConsumerIdToChannelId(ctx sdk.Context, consumerId string) (string, bool)
 	SendVSCPacketsToChain(ctx sdk.Context, chainID string, channelID string)
 	GetConsumerClientId(ctx sdk.Context, chainID string) (string, bool)
 }

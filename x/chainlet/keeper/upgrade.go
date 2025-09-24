@@ -18,7 +18,7 @@ import (
 
 func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, chainID string) (controllerConnectionID, hostConnectionID string, err error) {
 	// Get controller/local connection ID
-	ccvChannelID, found := k.providerKeeper.GetChainToChannel(ctx, chainID)
+	ccvChannelID, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, chainID)
 	if !found {
 		err = fmt.Errorf("channel ID for consumer %s not found", chainID)
 		return

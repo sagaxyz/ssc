@@ -61,7 +61,7 @@ func (k *Keeper) InitConsumers(ctx sdk.Context) {
 		}
 
 		// Check if the channel is open
-		channelId, found := k.providerKeeper.GetChainToChannel(ctx, chainId)
+		channelId, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, chainId)
 		if !found {
 			continue
 		}

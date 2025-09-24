@@ -115,7 +115,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 
 	if len(stack.Fees) == 0 {
-		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "chainlet stack '%s' has no fees configured", stack.Name)
+		return &types.MsgLaunchChainletResponse{}, cosmossdkerrors.Wrapf(types.ErrBillingFailure, "chainlet stack '%s' has no fees configured", stack.DisplayName)
 	}
 
 	billed := false

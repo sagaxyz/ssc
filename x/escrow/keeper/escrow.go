@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 
 	cosmossdkerrors "cosmossdk.io/errors"
@@ -204,41 +205,136 @@ func (k Keeper) deposit(ctx sdk.Context, addr sdk.AccAddress, chainID string, am
 }
 
 // Withdraw the entire position for {chainID, denom} (or adapt to partials if needed).
-func (k Keeper) withdraw(ctx sdk.Context, addr sdk.AccAddress, chainID, denom string) error {
+// Withdraw all positions (all denoms) a user has on a given chainlet.
+func (k Keeper) WithdrawAll(ctx sdk.Context, addr sdk.AccAddress, chainID string) error {
+	store := ctx.KVStore(k.storeKey)
+	addrStr := addr.String()
+
+	// Open a substore scoped to this funder
+	pstore := prefix.NewStore(store, types.ByFunderPrefix(addrStr))
+	it := pstore.Iterator(nil, nil)
+	defer it.Close()
+
+	total := sdk.NewCoins()
+	foundAny := false
+
+	for ; it.Valid(); it.Next() {
+		// key = "{chainId}/{denom}"
+		parts := bytes.SplitN(it.Key(), []byte{'/'}, 2)
+		if len(parts) != 2 {
+			continue
+		}
+		if string(parts[0]) != chainID {
+			continue
+		}
+		denom := string(parts[1])
+
+		pool, ok := k.getPool(ctx, chainID, denom)
+		if !ok {
+			continue
+		}
+		f, exists := k.getFunder(ctx, chainID, denom, addrStr)
+		if !exists || f.Shares.IsZero() {
+			continue
+		}
+
+		coinOut, err := k.withdrawOne(ctx, addr, &pool, chainID, denom, f)
+		if err != nil {
+			return err
+		}
+		if !coinOut.IsZero() {
+			total = total.Add(coinOut)
+			foundAny = true
+			k.setPool(ctx, pool)
+			_ = ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
+				User:      addrStr,
+				Chainlet:  chainID,
+				Denom:     denom,
+				Remaining: pool.Balance.String(),
+			})
+		}
+	}
+
+	if !foundAny {
+		return cosmossdkerrors.Wrapf(types.ErrFunderNotFound,
+			"no positions for %s on chainlet %s", addrStr, chainID)
+	}
+
+	return nil
+}
+
+// OPTIONAL: allow withdrawing a single denom position, if you keep a denom-specific Msg later.
+func (k Keeper) WithdrawDenom(ctx sdk.Context, addr sdk.AccAddress, chainID, denom string) error {
+	addrStr := addr.String()
+
 	pool, ok := k.getPool(ctx, chainID, denom)
 	if !ok {
 		return cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "pool %s/%s not found", chainID, denom)
 	}
-	f, exists := k.getFunder(ctx, chainID, denom, addr.String())
-	if !exists {
-		return cosmossdkerrors.Wrap(types.ErrFunderNotFound, addr.String())
+	f, exists := k.getFunder(ctx, chainID, denom, addrStr)
+	if !exists || f.Shares.IsZero() {
+		return cosmossdkerrors.Wrap(types.ErrFunderNotFound, addrStr)
 	}
 
-	sf := ScalingFactor(pool) // shares per token
-	tokens := f.Shares.Quo(sf)
-	coins := sdk.NewCoin(denom, tokens.RoundInt())
-
-	newBal, err := pool.Balance.SafeSub(coins)
+	_, err := k.withdrawOne(ctx, addr, &pool, chainID, denom, f)
 	if err != nil {
 		return err
 	}
 
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, sdk.NewCoins(coins)); err != nil {
-		return err
-	}
-
-	// update state
-	k.deleteFunder(ctx, chainID, denom, addr.String())
-	pool.Balance = newBal
-	pool.Shares = pool.Shares.Sub(f.Shares)
 	k.setPool(ctx, pool)
-
-	return ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
-		User:      addr.String(),
+	_ = ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
+		User:      addrStr,
 		Chainlet:  chainID,
 		Denom:     denom,
 		Remaining: pool.Balance.String(),
 	})
+	return nil
+}
+
+// Helper: withdraw ENTIRE position for a single denom.
+// Returns the coin paid out for this denom and mutates 'pool' in place.
+func (k Keeper) withdrawOne(
+	ctx sdk.Context,
+	addr sdk.AccAddress,
+	pool *types.DenomPool,
+	chainID, denom string,
+	f types.Funder,
+) (sdk.Coin, error) {
+	// Defensive checks
+	if pool.Shares.IsZero() || f.Shares.IsZero() {
+		return sdk.NewCoin(denom, math.ZeroInt()), nil
+	}
+
+	sf := ScalingFactor(*pool) // shares -> tokens scale (sdk.Dec)
+	if sf.IsZero() {
+		return sdk.NewCoin(denom, math.ZeroInt()), nil
+	}
+
+	// tokens = floor(f.Shares / sf); floor to avoid overpaying by rounding.
+	tokensDec := f.Shares.Quo(sf)
+	amt := tokensDec.TruncateInt()
+	if !amt.IsPositive() {
+		return sdk.NewCoin(denom, math.ZeroInt()), nil
+	}
+
+	coin := sdk.NewCoin(denom, amt)
+
+	newBal, err := pool.Balance.SafeSub(coin)
+	if err != nil {
+		return sdk.NewCoin(denom, math.ZeroInt()), err
+	}
+
+	// Transfer
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, sdk.NewCoins(coin)); err != nil {
+		return sdk.NewCoin(denom, math.ZeroInt()), err
+	}
+
+	// State updates (also clears reverse index via deleteFunder if implemented there)
+	k.deleteFunder(ctx, chainID, denom, addr.String())
+	pool.Balance = newBal
+	pool.Shares = pool.Shares.Sub(f.Shares)
+
+	return coin, nil
 }
 
 // GetKprChainletAccount (kept for compatibility) — now just returns the head.

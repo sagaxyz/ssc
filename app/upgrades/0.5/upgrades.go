@@ -6,7 +6,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
@@ -35,7 +34,7 @@ func ensureTempMinter(ctx sdk.Context, ak authkeeper.AccountKeeper, name string,
 	}
 	ma := authtypes.NewEmptyModuleAccount(name, perms...)
 	acc := ak.NewAccount(ctx, ma) // assigns account number
-	mai, ok := acc.(types.ModuleAccountI)
+	mai, ok := acc.(sdk.ModuleAccountI)
 	if !ok {
 		return fmt.Errorf("expected ModuleAccountI, got %T", acc)
 	}

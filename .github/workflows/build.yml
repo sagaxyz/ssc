@@ -37,10 +37,10 @@ jobs:
           ./scripts/ci/prepare-env.sh
           ./scripts/happypath.sh
 
-      - name: Restart
+      - name: Escrow
         run: |
           sleep 5
           rm -rf ~/.ssc/
           export PATH=./build/:$PATH
           ./scripts/ci/prepare-env.sh
-          ./scripts/escrow-chainlet-restart.sh
+          ./scripts/escrow.sh

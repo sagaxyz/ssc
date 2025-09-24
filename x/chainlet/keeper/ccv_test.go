@@ -22,7 +22,7 @@ func (s *TestSuite) TestConsumerVSC() {
 		Return(nil).
 		AnyTimes()
 	s.billingKeeper.EXPECT().
-		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		AnyTimes()
 

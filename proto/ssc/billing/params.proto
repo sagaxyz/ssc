@@ -10,4 +10,5 @@ message Params {
   option (gogoproto.goproto_stringer) = false;
 
   string validator_payout_epoch = 1;
+  string billing_epoch = 2;
 }

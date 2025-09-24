@@ -14,7 +14,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	types2 "github.com/sagaxyz/ssc/x/chainlet/types"
 	types3 "github.com/sagaxyz/ssc/x/epochs/types"
-	types4 "github.com/sagaxyz/ssc/x/escrow/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -290,21 +289,6 @@ func (m *MockEscrowKeeper) BillAccount(ctx types.Context, amount types.Coin, cha
 func (mr *MockEscrowKeeperMockRecorder) BillAccount(ctx, amount, chainId, toModule interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).BillAccount), ctx, amount, chainId, toModule)
-}
-
-// GetKprChainletAccount mocks base method.
-func (m *MockEscrowKeeper) GetKprChainletAccount(ctx types.Context, chainId string) (types4.ChainletAccount, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKprChainletAccount", ctx, chainId)
-	ret0, _ := ret[0].(types4.ChainletAccount)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetKprChainletAccount indicates an expected call of GetKprChainletAccount.
-func (mr *MockEscrowKeeperMockRecorder) GetKprChainletAccount(ctx, chainId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKprChainletAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).GetKprChainletAccount), ctx, chainId)
 }
 
 // MockStakingKeeper is a mock of StakingKeeper interface.

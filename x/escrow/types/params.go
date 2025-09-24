@@ -16,7 +16,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams() Params {
 	return Params{
-		SupportedDenom: "utsaga",
+		SupportedDenoms: []string{"utsaga", "utagas"},
 	}
 }
 
@@ -28,7 +28,7 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	psp := paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair([]byte("SupportedDenom"), &p.SupportedDenom, validateDenom),
+		paramtypes.NewParamSetPair([]byte("SupportedDenoms"), &p.SupportedDenoms, validateDenoms),
 	}
 
 	return psp
@@ -36,6 +36,19 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	return nil
+}
+
+func validateDenoms(v interface{}) error {
+	denoms, ok := v.([]string)
+	if !ok {
+		return fmt.Errorf("not a string slice")
+	}
+	for _, denom := range denoms {
+		if err := validateDenom(denom); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

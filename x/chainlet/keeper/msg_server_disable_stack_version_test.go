@@ -15,7 +15,7 @@ func (s *TestSuite) TestDisabledVersionsLaunch() {
 		Return(nil).
 		AnyTimes()
 	s.billingKeeper.EXPECT().
-		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		AnyTimes()
 
@@ -58,7 +58,7 @@ func (s *TestSuite) TestDisabledVersionsUpgrade() {
 		NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 	s.billingKeeper.EXPECT().
-		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 	_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(
 		creator.String(), nil, "test", ver, "test_chainlet", "test_12345-1", "asaga", types.ChainletParams{}, nil, false, "",
@@ -135,7 +135,7 @@ func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
 				NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(nil)
 			s.billingKeeper.EXPECT().
-				BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(nil)
 			chainId := "test_12345-42"
 			_, err = s.msgServer.LaunchChainlet(s.ctx, types.NewMsgLaunchChainlet(

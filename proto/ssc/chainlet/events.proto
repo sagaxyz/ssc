@@ -49,3 +49,10 @@ message EventChainletRestarted {
   string chainId = 1;
   string by = 2;
 }
+
+message EventUpdateChainletFees {
+  // option (gogoproto.goproto_stringer) = false;
+  string stackName = 1;
+  string fees = 2;
+  string by = 3;
+}

@@ -42,7 +42,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 // Params
 // ---------------------
 func CmdQueryParams() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "params",
 		Short: "Show the current escrow module parameters",
 		Args:  cobra.NoArgs,
@@ -57,13 +57,15 @@ func CmdQueryParams() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // ---------------------
 // Chainlet head
 // ---------------------
 func CmdGetChainletAccount() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "chainlet [chain-id]",
 		Short: "Get the chainlet head account record",
 		Args:  cobra.ExactArgs(1),
@@ -81,6 +83,8 @@ func CmdGetChainletAccount() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // ---------------------
@@ -154,7 +158,7 @@ func CmdGetFunders() *cobra.Command {
 // Single funder shares
 // ---------------------
 func CmdGetFunder() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "funder [chain-id] [denom] [address]",
 		Short: "Show a single funder's shares for {chain-id, denom, address}",
 		Args:  cobra.ExactArgs(3),
@@ -174,6 +178,9 @@ func CmdGetFunder() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // ---------------------

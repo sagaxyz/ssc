@@ -13,11 +13,12 @@ import (
 
 type (
 	Keeper struct {
-		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		paramstore    paramtypes.Subspace
-		bankKeeper    types.BankKeeper
-		billingKeeper types.BillingKeeper
+		cdc            codec.BinaryCodec
+		storeKey       storetypes.StoreKey
+		paramstore     paramtypes.Subspace
+		bankKeeper     types.BankKeeper
+		billingKeeper  types.BillingKeeper
+		chainletKeeper types.ChainletKeeper
 	}
 )
 
@@ -27,6 +28,7 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	bk types.BankKeeper,
 	billingKeeper types.BillingKeeper,
+	chainletKeeper types.ChainletKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -35,11 +37,12 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramstore:    ps,
-		bankKeeper:    bk,
-		billingKeeper: billingKeeper,
+		cdc:            cdc,
+		storeKey:       storeKey,
+		paramstore:     ps,
+		bankKeeper:     bk,
+		billingKeeper:  billingKeeper,
+		chainletKeeper: chainletKeeper,
 	}
 }
 
@@ -48,7 +51,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k *Keeper) UpdateKeeper(newKeeper interface{}) {
-	if newk, ok := newKeeper.(types.BillingKeeper); ok {
-		k.billingKeeper = newk
+	switch v := newKeeper.(type) {
+	case types.BillingKeeper:
+		k.billingKeeper = v
+	case types.ChainletKeeper:
+		k.chainletKeeper = v
 	}
 }

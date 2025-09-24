@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	chainlettypes "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -24,4 +25,8 @@ type BankKeeper interface {
 
 type BillingKeeper interface {
 	BillAndRestartChainlet(ctx sdk.Context, chainId string) error
+}
+
+type ChainletKeeper interface {
+	GetChainletStackInfo(ctx sdk.Context, chainId string) (*chainlettypes.ChainletStack, error)
 }

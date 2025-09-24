@@ -134,6 +134,22 @@ func (k Keeper) deposit(ctx sdk.Context, addr sdk.AccAddress, chainID string, am
 	if err := k.assertSupportedDenom(ctx, denom); err != nil {
 		return err
 	}
+	// validate denom is supported by chainlet stack
+	stack, err := k.chainletKeeper.GetChainletStackInfo(ctx, chainID)
+	if err != nil {
+		return err
+	}
+	ok := false
+	for _, fee := range stack.Fees {
+		if fee.Denom == denom {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidDenom, "denom %s not supported by chainlet stack %s", denom, stack.DisplayName)
+	}
+
 	// ensure head exists
 	if _, ok := k.getChainlet(ctx, chainID); !ok {
 		return cosmossdkerrors.Wrapf(types.ErrChainletAccountNotFound, "chainlet %s not found", chainID)
@@ -163,11 +179,7 @@ func (k Keeper) deposit(ctx sdk.Context, addr sdk.AccAddress, chainID string, am
 		if pool.Balance.IsPositive() {
 			newShares = pool.Shares.MulInt(amount.Amount).QuoInt(pool.Balance.Amount)
 		} else {
-			dec, err := sdk.ParseDecCoin(amount.String())
-			if err != nil {
-				return err
-			}
-			newShares = dec.Amount
+			newShares = math.LegacyNewDecFromInt(amount.Amount) // bootstrap 1:1 shares
 		}
 		pool.Shares = pool.Shares.Add(newShares)
 		pool.Balance = pool.Balance.Add(amount)
@@ -305,34 +317,50 @@ func (k Keeper) withdrawOne(
 		return sdk.NewCoin(denom, math.ZeroInt()), nil
 	}
 
-	sf := ScalingFactor(*pool) // shares -> tokens scale (sdk.Dec)
+	sf := ScalingFactor(*pool) // shares -> tokens scale (S / T)
 	if sf.IsZero() {
+		// No meaningful scaling; nothing to pay out.
 		return sdk.NewCoin(denom, math.ZeroInt()), nil
 	}
 
-	// tokens = floor(f.Shares / sf); floor to avoid overpaying by rounding.
+	// Default: tokens = floor(f.Shares / sf) == floor(f.Shares * T / S)
 	tokensDec := f.Shares.Quo(sf)
 	amt := tokensDec.TruncateInt()
+
+	// ---- Dust flush for the last withdrawer ----
+	// If this funder holds all remaining shares, pay out the entire pool balance
+	// so we don't strand a 1-unit remainder from truncation.
+	if pool.Shares.Equal(f.Shares) {
+		amt = pool.Balance.Amount
+	}
+
 	if !amt.IsPositive() {
 		return sdk.NewCoin(denom, math.ZeroInt()), nil
 	}
 
 	coin := sdk.NewCoin(denom, amt)
 
-	newBal, err := pool.Balance.SafeSub(coin)
-	if err != nil {
-		return sdk.NewCoin(denom, math.ZeroInt()), err
+	// Compute new pool balance (avoid SafeSub when paying full balance)
+	var newBal sdk.Coin
+	if amt.Equal(pool.Balance.Amount) {
+		newBal = sdk.NewCoin(denom, math.ZeroInt())
+	} else {
+		nb, err := pool.Balance.SafeSub(coin)
+		if err != nil {
+			return sdk.NewCoin(denom, math.ZeroInt()), err
+		}
+		newBal = nb
 	}
 
-	// Transfer
+	// Transfer out
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, sdk.NewCoins(coin)); err != nil {
 		return sdk.NewCoin(denom, math.ZeroInt()), err
 	}
 
-	// State updates (also clears reverse index via deleteFunder if implemented there)
+	// Update state
 	k.deleteFunder(ctx, chainID, denom, addr.String())
 	pool.Balance = newBal
-	pool.Shares = pool.Shares.Sub(f.Shares)
+	pool.Shares = pool.Shares.Sub(f.Shares) // becomes zero in last-withdrawer case
 
 	return coin, nil
 }

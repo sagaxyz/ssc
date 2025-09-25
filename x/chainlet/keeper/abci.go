@@ -21,11 +21,5 @@ func (k *Keeper) BeginBlock(ctx sdk.Context) error {
 		}
 	}
 
-
-	err := k.HandleUpgradingChainlets(ctx)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

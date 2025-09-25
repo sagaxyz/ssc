@@ -18,7 +18,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	admin := k.aclKeeper.Admin(ctx, msg.GetSigners()[0])
+	admin := k.aclKeeper.IsAdmin(ctx, msg.GetSigners()[0])
 	if !admin {
 		ok, err := types.ValidateNonAdminChainId(msg.ChainId)
 		if !ok {
@@ -153,10 +153,11 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	// Add as a CCV consumer if enabled
 	if chainlet.IsCCVConsumer {
 		chainlet.SpawnTime = ctx.BlockTime().Add(p.LaunchDelay)
-		err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+		consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
 		if err != nil {
 			return nil, err
 		}
+		chainlet.ConsumerId = consumerId
 	}
 
 	err = k.NewChainlet(ctx, chainlet)

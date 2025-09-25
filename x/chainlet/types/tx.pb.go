@@ -551,7 +551,6 @@ func (m *MsgDisableChainletStackVersionResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDisableChainletStackVersionResponse proto.InternalMessageInfo
 
-// this line is used by starport scaffolding # proto/tx/message
 type MsgUpgradeChainlet struct {
 	Creator      string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	ChainId      string `protobuf:"bytes,2,opt,name=chainId,proto3" json:"chainId,omitempty"`

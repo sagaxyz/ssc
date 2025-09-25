@@ -7,11 +7,10 @@ import (
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
@@ -60,11 +59,10 @@ func (im IBCModule) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, version)
+	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCModule interface
@@ -74,11 +72,10 @@ func (im IBCModule) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
+	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -122,6 +119,7 @@ func (im IBCModule) OnChanCloseConfirm(
 // OnRecvPacket implements the IBCModule interface
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
@@ -130,23 +128,23 @@ func (im IBCModule) OnRecvPacket(
 	var data transfertypes.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(modulePacket.GetData(), &data); err != nil {
 		ctx.Logger().Debug(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
-		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 	}
 
 	var msg Message
 	if err := json.Unmarshal([]byte(data.GetMemo()), &msg); err != nil {
 		ctx.Logger().Debug(fmt.Sprintf("cannot unmarshal memo: %s", err.Error()))
-		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 	}
 
 	if len(msg.Payload) == 0 {
-		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 	}
 
 	switch msg.Type {
 	case TypeGeneralMessage:
 		ctx.Logger().Debug(fmt.Sprintf("Got pure general message: %v", msg))
-		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 	case TypeGeneralMessageWithToken:
 		ctx.Logger().Debug(fmt.Sprintf("Got general message with token: %v", msg))
 		payloadType, err := abi.NewType("string", "", nil)
@@ -161,7 +159,7 @@ func (im IBCModule) OnRecvPacket(
 		if err != nil {
 			// unpack can fail for payloads like "{}", in this case we just forward the packet
 			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))
-			return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+			return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 		}
 		pfmPayload := args[0].(string)
 		data.Memo = pfmPayload
@@ -170,7 +168,7 @@ func (im IBCModule) OnRecvPacket(
 			ctx.Logger().Error(fmt.Sprintf("failed to marshal updated data: %s", err.Error()))
 			return channeltypes.NewErrorAcknowledgement(cosmossdkerrors.Wrapf(transfertypes.ErrInvalidMemo, "cannot marshal updated data: %s", err.Error()))
 		}
-		return im.app.OnRecvPacket(ctx, modulePacket, relayer)
+		return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 
 	default:
 		ctx.Logger().Info(fmt.Sprintf("unrecognized message type: %v", msg))
@@ -181,18 +179,20 @@ func (im IBCModule) OnRecvPacket(
 // OnAcknowledgementPacket implements the IBCModule interface
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	modulePacket channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	return im.app.OnAcknowledgementPacket(ctx, modulePacket, acknowledgement, relayer)
+	return im.app.OnAcknowledgementPacket(ctx, channelVersion, modulePacket, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
 func (im IBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	modulePacket channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	return im.app.OnTimeoutPacket(ctx, modulePacket, relayer)
+	return im.app.OnTimeoutPacket(ctx, channelVersion, modulePacket, relayer)
 }

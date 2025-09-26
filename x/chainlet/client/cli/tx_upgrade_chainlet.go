@@ -12,9 +12,9 @@ import (
 
 func CmdUpgradeChainlet() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "upgrade-chainlet <chain-id> <stack-version> [height-delta]",
+		Use:   "upgrade-chainlet <chain-id> <stack-version> [height-delta] [channel-id]",
 		Short: "Broadcast message upgradeChainlet",
-		Args:  cobra.RangeArgs(2, 3),
+		Args:  cobra.RangeArgs(2, 4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argChainId := args[0]
 			argStackVersion := args[1]
@@ -25,6 +25,10 @@ func CmdUpgradeChainlet() *cobra.Command {
 				if err != nil {
 					return err
 				}
+			}
+			var argChannelID string
+			if len(args) > 3 {
+				argChannelID = args[3]
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -37,6 +41,7 @@ func CmdUpgradeChainlet() *cobra.Command {
 				argChainId,
 				argStackVersion,
 				heightDelta,
+				argChannelID,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

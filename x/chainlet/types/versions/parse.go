@@ -33,10 +33,10 @@ func CheckUpgrade(old, new string) (major bool, err error) {
 		oldMajor = oldMinor
 	}
 	if newMajor != oldMajor {
-		if newMajor != oldMajor+1 {
+		/*if newMajor != oldMajor+1 {
 			err = errors.New("major upgrades have to be increments of 1")
 			return
-		}
+		}*/
 		major = true
 	}
 

@@ -12,6 +12,7 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/evidence"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -255,6 +256,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	sdk.DefaultPowerReduction = sdkmath.NewIntFromUint64(1000000)
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }
@@ -714,6 +717,7 @@ func New(
 		app.DacKeeper,
 	)
 	chainletModule := chainletmodule.NewAppModule(appCodec, app.ChainletKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(chainletmoduletypes.ModuleName))
+	chainletIBCModule := chainletmodule.NewIBCModule(app.ChainletKeeper)
 
 	app.PeersKeeper = peerskeeper.New(
 		appCodec,
@@ -763,7 +767,8 @@ func New(
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
-		AddRoute(ccvprovidertypes.ModuleName, providerModule)
+		AddRoute(ccvprovidertypes.ModuleName, providerModule).
+		AddRoute(chainletmoduletypes.ModuleName, chainletIBCModule)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -1292,4 +1297,3 @@ func (app *App) AutoCliOpts() autocli.AppOptions {
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	}
 }
-

@@ -92,8 +92,9 @@ message MsgUpgradeChainletResponse { uint64 height = 1; }
 message MsgCancelChainletUpgrade {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
-  string version = 2;
-  string channelId = 3;
+  string chainId = 2;
+  string version = 3;
+  string channelId = 4;
 }
 
 message MsgCancelChainletUpgradeResponse {}

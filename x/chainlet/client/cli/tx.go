@@ -23,6 +23,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdLaunchChainlet())
 	cmd.AddCommand(CmdUpdateChainletStack())
 	cmd.AddCommand(CmdUpgradeChainlet())
+	cmd.AddCommand(CmdCancelChainletUpgrade())
 	cmd.AddCommand(CmdDisableChainletStackVersion())
 	// this line is used by starport scaffolding # 1
 

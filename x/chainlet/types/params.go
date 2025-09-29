@@ -25,7 +25,7 @@ func NewParams() Params {
 		AutomaticChainletUpgradeInterval: 100,
 		LaunchDelay:                      3 * time.Minute,
 		MaxChainlets:                     500,
-		EnableCCV:                        false,
+		EnableCCV:                        true,
 		MinimumUpgradeHeightDelta:        100,
 	}
 }
@@ -67,6 +67,9 @@ func (p Params) Validate() error {
 	}
 	if err := validateBool(p.EnableCCV); err != nil {
 		return fmt.Errorf("param EnableCCV validation failed: %v", err)
+	}
+	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
+		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)
 	}
 	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
 		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)

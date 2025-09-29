@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"github.com/golang/mock/gomock"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
@@ -28,10 +29,12 @@ func (s *TestSuite) TestConsumerVSC() {
 
 	// Set up expectations in order (only one round)
 	gomock.InOrder(
-		// HandleConsumerAdditionProposal call
-		s.providerKeeper.EXPECT().
-			HandleConsumerAdditionProposal(gomock.Any(), gomock.Any()).
-			Return(nil),
+		// CreateConsumer call
+		s.providerMsgServer.EXPECT().
+			CreateConsumer(gomock.Any(), gomock.Any()).
+			Return(&ccvprovidertypes.MsgCreateConsumerResponse{
+				ConsumerId: "0",
+			}, nil),
 		s.providerKeeper.EXPECT().
 			GetValidatorSetUpdateId(gomock.Any()).
 			Return(uint64(1)),
@@ -45,7 +48,7 @@ func (s *TestSuite) TestConsumerVSC() {
 			GetConsumerClientId(gomock.Any(), gomock.Eq(chainID)).
 			Return("client-1", true),
 		s.providerKeeper.EXPECT().
-			GetChainToChannel(gomock.Any(), gomock.Eq(chainID)).
+			GetConsumerIdToChannelId(gomock.Any(), gomock.Eq(chainID)).
 			Return("", false),
 		s.providerKeeper.EXPECT().
 			SendVSCPacketsToChain(gomock.Any(), gomock.Eq(chainID), gomock.Eq("channel-42")).
@@ -56,13 +59,10 @@ func (s *TestSuite) TestConsumerVSC() {
 			GetConsumerClientId(gomock.Any(), gomock.Eq(chainID)).
 			Return("client-1", true),
 		s.providerKeeper.EXPECT().
-			GetChainToChannel(gomock.Any(), gomock.Eq(chainID)).
+			GetConsumerIdToChannelId(gomock.Any(), gomock.Eq(chainID)).
 			Return("channel-42", true),
 		s.providerKeeper.EXPECT().
 			SendVSCPacketsToChain(gomock.Any(), gomock.Eq(chainID), gomock.Eq("channel-42")),
-		s.providerKeeper.EXPECT().
-			GetChainToChannel(gomock.Any(), gomock.Eq(chainID)).
-			Return("", false),
 	)
 
 	// Create a stack

@@ -12,10 +12,9 @@ import (
 	"github.com/sagaxyz/ssc/x/gmp/types"
 	"github.com/stretchr/testify/require"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 type mockIBCModule struct {
@@ -27,6 +26,7 @@ type mockIBCModule struct {
 
 func (m *mockIBCModule) OnRecvPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
@@ -45,7 +45,6 @@ func (m *mockIBCModule) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
@@ -58,7 +57,6 @@ func (m *mockIBCModule) OnChanOpenTry(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -101,6 +99,7 @@ func (m *mockIBCModule) OnChanCloseConfirm(
 
 func (m *mockIBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
@@ -110,6 +109,7 @@ func (m *mockIBCModule) OnAcknowledgementPacket(
 
 func (m *mockIBCModule) OnTimeoutPacket(
 	ctx sdk.Context,
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
@@ -140,7 +140,7 @@ func TestOnRecvPacket(t *testing.T) {
 		mod := gmp.NewIBCModule(mock)
 		// invalid JSON
 		packet := channeltypes.Packet{Data: []byte("{invalid-json")}
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.Equal(t, "OnRecvPacket", mock.lastCalled)
 		require.NotNil(t, ack)
 	})
@@ -159,7 +159,7 @@ func TestOnRecvPacket(t *testing.T) {
 		bz, err := types.ModuleCdc.MarshalJSON(&data)
 		require.NoError(t, err)
 		packet := channeltypes.Packet{Data: bz}
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.Equal(t, "OnRecvPacket", mock.lastCalled)
 		require.NotNil(t, ack)
 	})
@@ -176,7 +176,7 @@ func TestOnRecvPacket(t *testing.T) {
 		memo, err := json.Marshal(msg)
 		require.NoError(t, err)
 		packet := makePacketWithMemo(t, string(memo))
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.Equal(t, "OnRecvPacket", mock.lastCalled)
 		require.NotNil(t, ack)
 	})
@@ -193,7 +193,7 @@ func TestOnRecvPacket(t *testing.T) {
 		memo, err := json.Marshal(msg)
 		require.NoError(t, err)
 		packet := makePacketWithMemo(t, string(memo))
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.Equal(t, "OnRecvPacket", mock.lastCalled)
 		require.NotNil(t, ack)
 	})
@@ -215,7 +215,7 @@ func TestOnRecvPacket(t *testing.T) {
 		memo, err := json.Marshal(msg)
 		require.NoError(t, err)
 		packet := makePacketWithMemo(t, string(memo))
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.Equal(t, "OnRecvPacket", mock.lastCalled)
 		require.NotNil(t, ack)
 	})
@@ -232,7 +232,7 @@ func TestOnRecvPacket(t *testing.T) {
 		memo, err := json.Marshal(msg)
 		require.NoError(t, err)
 		packet := makePacketWithMemo(t, string(memo))
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.Equal(t, "OnRecvPacket", mock.lastCalled)
 		require.NotNil(t, ack)
 	})
@@ -249,7 +249,7 @@ func TestOnRecvPacket(t *testing.T) {
 		memo, err := json.Marshal(msg)
 		require.NoError(t, err)
 		packet := makePacketWithMemo(t, string(memo))
-		ack := mod.OnRecvPacket(ctx, packet, relayer)
+		ack := mod.OnRecvPacket(ctx, types.Version, packet, relayer)
 		require.NotNil(t, ack)
 		// Should not call underlying OnRecvPacket for unrecognized type
 		require.NotEqual(t, "OnRecvPacket", mock.lastCalled)

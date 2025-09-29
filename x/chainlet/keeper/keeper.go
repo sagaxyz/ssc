@@ -8,26 +8,27 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
 
 type Keeper struct {
-	cdc              codec.Codec
-	storeKey         storetypes.StoreKey
-	paramstore       paramtypes.Subspace
-	stakingKeeper    types.StakingKeeper
-	icaKeeper        types.ICAKeeper
-	msgRouter        icatypes.MessageRouter
-	clientKeeper     types.ClientKeeper
-	channelKeeper    types.ChannelKeeper
-	connectionKeeper types.ConnectionKeeper
-	billingKeeper    types.BillingKeeper
-	providerKeeper   types.ProviderKeeper
-	escrowKeeper     types.EscrowKeeper
-	aclKeeper        types.AclKeeper
+	cdc               codec.Codec
+	storeKey          storetypes.StoreKey
+	paramstore        paramtypes.Subspace
+	providerMsgServer types.ProviderMsgServer
+	stakingKeeper     types.StakingKeeper
+	clientKeeper      types.ClientKeeper
+	channelKeeper     types.ChannelKeeper
+	connectionKeeper  types.ConnectionKeeper
+	billingKeeper     types.BillingKeeper
+	providerKeeper    types.ProviderKeeper
+	escrowKeeper      types.EscrowKeeper
+	aclKeeper         types.AclKeeper
+
+	ibcKeeperFn func() *ibckeeper.Keeper
 
 	stackVersions map[string]*versions.Versions // display name => version tree
 }
@@ -36,9 +37,9 @@ func NewKeeper(
 	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	providerMsgServer types.ProviderMsgServer,
+	ibcKeeperFn func() *ibckeeper.Keeper,
 	stakingKeeper types.StakingKeeper,
-	icaKeeper types.ICAKeeper,
-	msgRouter icatypes.MessageRouter,
 	clientKeeper types.ClientKeeper,
 	channelKeeper types.ChannelKeeper,
 	connectionKeeper types.ConnectionKeeper,
@@ -53,19 +54,19 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:              cdc,
-		storeKey:         storeKey,
-		paramstore:       ps,
-		stakingKeeper:    stakingKeeper,
-		icaKeeper:        icaKeeper,
-		msgRouter:        msgRouter,
-		clientKeeper:     clientKeeper,
-		channelKeeper:    channelKeeper,
-		connectionKeeper: connectionKeeper,
-		billingKeeper:    billingKeeper,
-		providerKeeper:   providerKeeper,
-		escrowKeeper:     escrowKeeper,
-		aclKeeper:        aclKeeper,
+		cdc:               cdc,
+		storeKey:          storeKey,
+		paramstore:        ps,
+		providerMsgServer: providerMsgServer,
+		ibcKeeperFn:       ibcKeeperFn,
+		stakingKeeper:     stakingKeeper,
+		clientKeeper:      clientKeeper,
+		channelKeeper:     channelKeeper,
+		connectionKeeper:  connectionKeeper,
+		billingKeeper:     billingKeeper,
+		providerKeeper:    providerKeeper,
+		escrowKeeper:      escrowKeeper,
+		aclKeeper:         aclKeeper,
 	}
 }
 

@@ -10,15 +10,13 @@ import (
 
 	types "github.com/cosmos/cosmos-sdk/types"
 	types0 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	types1 "github.com/cosmos/ibc-go/modules/capability/types"
-	types2 "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	types3 "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	types4 "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	exported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	types5 "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
-	types6 "github.com/cosmos/interchain-security/v5/x/ccv/types"
+	types1 "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	types2 "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	types3 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	types4 "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
+	types5 "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	gomock "github.com/golang/mock/gomock"
-	types7 "github.com/sagaxyz/ssc/x/chainlet/types"
+	types6 "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -157,7 +155,7 @@ func (m *MockProviderKeeper) EXPECT() *MockProviderKeeperMockRecorder {
 }
 
 // AppendPendingVSCPackets mocks base method.
-func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types6.ValidatorSetChangePacketData) {
+func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types5.ValidatorSetChangePacketData) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, chainID}
 	for _, a := range newPackets {
@@ -171,21 +169,6 @@ func (mr *MockProviderKeeperMockRecorder) AppendPendingVSCPackets(ctx, chainID i
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, chainID}, newPackets...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendPendingVSCPackets", reflect.TypeOf((*MockProviderKeeper)(nil).AppendPendingVSCPackets), varargs...)
-}
-
-// GetChainToChannel mocks base method.
-func (m *MockProviderKeeper) GetChainToChannel(ctx types.Context, chainID string) (string, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChainToChannel", ctx, chainID)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetChainToChannel indicates an expected call of GetChainToChannel.
-func (mr *MockProviderKeeperMockRecorder) GetChainToChannel(ctx, chainID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainToChannel", reflect.TypeOf((*MockProviderKeeper)(nil).GetChainToChannel), ctx, chainID)
 }
 
 // GetConsumerClientId mocks base method.
@@ -203,6 +186,21 @@ func (mr *MockProviderKeeperMockRecorder) GetConsumerClientId(ctx, chainID inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsumerClientId", reflect.TypeOf((*MockProviderKeeper)(nil).GetConsumerClientId), ctx, chainID)
 }
 
+// GetConsumerIdToChannelId mocks base method.
+func (m *MockProviderKeeper) GetConsumerIdToChannelId(ctx types.Context, consumerId string) (string, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConsumerIdToChannelId", ctx, consumerId)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetConsumerIdToChannelId indicates an expected call of GetConsumerIdToChannelId.
+func (mr *MockProviderKeeperMockRecorder) GetConsumerIdToChannelId(ctx, consumerId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsumerIdToChannelId", reflect.TypeOf((*MockProviderKeeper)(nil).GetConsumerIdToChannelId), ctx, consumerId)
+}
+
 // GetValidatorSetUpdateId mocks base method.
 func (m *MockProviderKeeper) GetValidatorSetUpdateId(ctx types.Context) uint64 {
 	m.ctrl.T.Helper()
@@ -215,20 +213,6 @@ func (m *MockProviderKeeper) GetValidatorSetUpdateId(ctx types.Context) uint64 {
 func (mr *MockProviderKeeperMockRecorder) GetValidatorSetUpdateId(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValidatorSetUpdateId", reflect.TypeOf((*MockProviderKeeper)(nil).GetValidatorSetUpdateId), ctx)
-}
-
-// HandleConsumerAdditionProposal mocks base method.
-func (m *MockProviderKeeper) HandleConsumerAdditionProposal(ctx types.Context, prop *types5.MsgConsumerAddition) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HandleConsumerAdditionProposal", ctx, prop)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HandleConsumerAdditionProposal indicates an expected call of HandleConsumerAdditionProposal.
-func (mr *MockProviderKeeperMockRecorder) HandleConsumerAdditionProposal(ctx, prop interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleConsumerAdditionProposal", reflect.TypeOf((*MockProviderKeeper)(nil).HandleConsumerAdditionProposal), ctx, prop)
 }
 
 // IncrementValidatorSetUpdateId mocks base method.
@@ -244,9 +228,11 @@ func (mr *MockProviderKeeperMockRecorder) IncrementValidatorSetUpdateId(ctx inte
 }
 
 // SendVSCPacketsToChain mocks base method.
-func (m *MockProviderKeeper) SendVSCPacketsToChain(ctx types.Context, chainID, channelID string) {
+func (m *MockProviderKeeper) SendVSCPacketsToChain(ctx types.Context, chainID, channelID string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendVSCPacketsToChain", ctx, chainID, channelID)
+	ret := m.ctrl.Call(m, "SendVSCPacketsToChain", ctx, chainID, channelID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SendVSCPacketsToChain indicates an expected call of SendVSCPacketsToChain.
@@ -255,72 +241,42 @@ func (mr *MockProviderKeeperMockRecorder) SendVSCPacketsToChain(ctx, chainID, ch
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVSCPacketsToChain", reflect.TypeOf((*MockProviderKeeper)(nil).SendVSCPacketsToChain), ctx, chainID, channelID)
 }
 
-// MockICAKeeper is a mock of ICAKeeper interface.
-type MockICAKeeper struct {
+// MockProviderMsgServer is a mock of ProviderMsgServer interface.
+type MockProviderMsgServer struct {
 	ctrl     *gomock.Controller
-	recorder *MockICAKeeperMockRecorder
+	recorder *MockProviderMsgServerMockRecorder
 }
 
-// MockICAKeeperMockRecorder is the mock recorder for MockICAKeeper.
-type MockICAKeeperMockRecorder struct {
-	mock *MockICAKeeper
+// MockProviderMsgServerMockRecorder is the mock recorder for MockProviderMsgServer.
+type MockProviderMsgServerMockRecorder struct {
+	mock *MockProviderMsgServer
 }
 
-// NewMockICAKeeper creates a new mock instance.
-func NewMockICAKeeper(ctrl *gomock.Controller) *MockICAKeeper {
-	mock := &MockICAKeeper{ctrl: ctrl}
-	mock.recorder = &MockICAKeeperMockRecorder{mock}
+// NewMockProviderMsgServer creates a new mock instance.
+func NewMockProviderMsgServer(ctrl *gomock.Controller) *MockProviderMsgServer {
+	mock := &MockProviderMsgServer{ctrl: ctrl}
+	mock.recorder = &MockProviderMsgServerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockICAKeeper) EXPECT() *MockICAKeeperMockRecorder {
+func (m *MockProviderMsgServer) EXPECT() *MockProviderMsgServerMockRecorder {
 	return m.recorder
 }
 
-// GetInterchainAccountAddress mocks base method.
-func (m *MockICAKeeper) GetInterchainAccountAddress(arg0 types.Context, arg1, arg2 string) (string, bool) {
+// CreateConsumer mocks base method.
+func (m *MockProviderMsgServer) CreateConsumer(goCtx context.Context, msg *types4.MsgCreateConsumer) (*types4.MsgCreateConsumerResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetInterchainAccountAddress", arg0, arg1, arg2)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetInterchainAccountAddress indicates an expected call of GetInterchainAccountAddress.
-func (mr *MockICAKeeperMockRecorder) GetInterchainAccountAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInterchainAccountAddress", reflect.TypeOf((*MockICAKeeper)(nil).GetInterchainAccountAddress), arg0, arg1, arg2)
-}
-
-// GetOpenActiveChannel mocks base method.
-func (m *MockICAKeeper) GetOpenActiveChannel(arg0 types.Context, arg1, arg2 string) (string, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOpenActiveChannel", arg0, arg1, arg2)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetOpenActiveChannel indicates an expected call of GetOpenActiveChannel.
-func (mr *MockICAKeeperMockRecorder) GetOpenActiveChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOpenActiveChannel", reflect.TypeOf((*MockICAKeeper)(nil).GetOpenActiveChannel), arg0, arg1, arg2)
-}
-
-// SendTx mocks base method.
-func (m *MockICAKeeper) SendTx(arg0 types.Context, arg1 *types1.Capability, arg2, arg3 string, arg4 types2.InterchainAccountPacketData, arg5 uint64) (uint64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendTx", arg0, arg1, arg2, arg3, arg4, arg5)
-	ret0, _ := ret[0].(uint64)
+	ret := m.ctrl.Call(m, "CreateConsumer", goCtx, msg)
+	ret0, _ := ret[0].(*types4.MsgCreateConsumerResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SendTx indicates an expected call of SendTx.
-func (mr *MockICAKeeperMockRecorder) SendTx(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+// CreateConsumer indicates an expected call of CreateConsumer.
+func (mr *MockProviderMsgServerMockRecorder) CreateConsumer(goCtx, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTx", reflect.TypeOf((*MockICAKeeper)(nil).SendTx), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateConsumer", reflect.TypeOf((*MockProviderMsgServer)(nil).CreateConsumer), goCtx, msg)
 }
 
 // MockClientKeeper is a mock of ClientKeeper interface.
@@ -346,19 +302,18 @@ func (m *MockClientKeeper) EXPECT() *MockClientKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetClientState mocks base method.
-func (m *MockClientKeeper) GetClientState(arg0 types.Context, arg1 string) (exported.ClientState, bool) {
+// GetClientLatestHeight mocks base method.
+func (m *MockClientKeeper) GetClientLatestHeight(arg0 types.Context, arg1 string) types1.Height {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetClientState", arg0, arg1)
-	ret0, _ := ret[0].(exported.ClientState)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "GetClientLatestHeight", arg0, arg1)
+	ret0, _ := ret[0].(types1.Height)
+	return ret0
 }
 
-// GetClientState indicates an expected call of GetClientState.
-func (mr *MockClientKeeperMockRecorder) GetClientState(arg0, arg1 interface{}) *gomock.Call {
+// GetClientLatestHeight indicates an expected call of GetClientLatestHeight.
+func (mr *MockClientKeeperMockRecorder) GetClientLatestHeight(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientState", reflect.TypeOf((*MockClientKeeper)(nil).GetClientState), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientLatestHeight", reflect.TypeOf((*MockClientKeeper)(nil).GetClientLatestHeight), arg0, arg1)
 }
 
 // MockChannelKeeper is a mock of ChannelKeeper interface.
@@ -385,10 +340,10 @@ func (m *MockChannelKeeper) EXPECT() *MockChannelKeeperMockRecorder {
 }
 
 // GetChannel mocks base method.
-func (m *MockChannelKeeper) GetChannel(arg0 types.Context, arg1, arg2 string) (types4.Channel, bool) {
+func (m *MockChannelKeeper) GetChannel(arg0 types.Context, arg1, arg2 string) (types3.Channel, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannel", arg0, arg1, arg2)
-	ret0, _ := ret[0].(types4.Channel)
+	ret0, _ := ret[0].(types3.Channel)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -423,10 +378,10 @@ func (m *MockConnectionKeeper) EXPECT() *MockConnectionKeeperMockRecorder {
 }
 
 // GetConnection mocks base method.
-func (m *MockConnectionKeeper) GetConnection(arg0 types.Context, arg1 string) (types3.ConnectionEnd, bool) {
+func (m *MockConnectionKeeper) GetConnection(arg0 types.Context, arg1 string) (types2.ConnectionEnd, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConnection", arg0, arg1)
-	ret0, _ := ret[0].(types3.ConnectionEnd)
+	ret0, _ := ret[0].(types2.ConnectionEnd)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -461,7 +416,7 @@ func (m *MockBillingKeeper) EXPECT() *MockBillingKeeperMockRecorder {
 }
 
 // BillAccount mocks base method.
-func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types7.Chainlet, epochIdentifier, memo string) error {
+func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types6.Chainlet, epochIdentifier, memo string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, epochIdentifier, memo)
 	ret0, _ := ret[0].(error)
@@ -548,20 +503,6 @@ func (m *MockAclKeeper) EXPECT() *MockAclKeeperMockRecorder {
 	return m.recorder
 }
 
-// Admin mocks base method.
-func (m *MockAclKeeper) Admin(ctx types.Context, addr types.AccAddress) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Admin", ctx, addr)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Admin indicates an expected call of Admin.
-func (mr *MockAclKeeperMockRecorder) Admin(ctx, addr interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Admin", reflect.TypeOf((*MockAclKeeper)(nil).Admin), ctx, addr)
-}
-
 // Allowed mocks base method.
 func (m *MockAclKeeper) Allowed(ctx types.Context, addr types.AccAddress) bool {
 	m.ctrl.T.Helper()
@@ -574,4 +515,18 @@ func (m *MockAclKeeper) Allowed(ctx types.Context, addr types.AccAddress) bool {
 func (mr *MockAclKeeperMockRecorder) Allowed(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allowed", reflect.TypeOf((*MockAclKeeper)(nil).Allowed), ctx, addr)
+}
+
+// IsAdmin mocks base method.
+func (m *MockAclKeeper) IsAdmin(ctx types.Context, addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsAdmin", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsAdmin indicates an expected call of IsAdmin.
+func (mr *MockAclKeeperMockRecorder) IsAdmin(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAdmin", reflect.TypeOf((*MockAclKeeper)(nil).IsAdmin), ctx, addr)
 }

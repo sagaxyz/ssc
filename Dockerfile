@@ -17,7 +17,7 @@ FROM golang:${GO_VERSION}-alpine3.22
 COPY --from=build-env /root/build/sscd /usr/bin/
 COPY --from=build-env /root/start.sh /root/
 
-RUN apk add gcompat bash curl
+RUN apk add gcompat bash curl jq
 
 EXPOSE 26656
 EXPOSE 26660

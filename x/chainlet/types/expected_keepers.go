@@ -5,13 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ccvprovidertypes "github.com/cosmos/interchain-security/v5/x/ccv/provider/types"
-	ccvtypes "github.com/cosmos/interchain-security/v5/x/ccv/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
+	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -25,28 +23,24 @@ type BankKeeper interface {
 }
 
 type StakingKeeper interface {
-	// GetAllValidators(sdk.Context) []stakingtypes.Validator
 	GetAllValidators(ctx context.Context) (validators []stakingtypes.Validator, err error)
 }
 
 type ProviderKeeper interface {
-	HandleConsumerAdditionProposal(ctx sdk.Context, prop *ccvprovidertypes.MsgConsumerAddition) error
 	AppendPendingVSCPackets(ctx sdk.Context, chainID string, newPackets ...ccvtypes.ValidatorSetChangePacketData)
 	GetValidatorSetUpdateId(ctx sdk.Context) (validatorSetUpdateId uint64)
 	IncrementValidatorSetUpdateId(ctx sdk.Context)
-	GetChainToChannel(ctx sdk.Context, chainID string) (string, bool)
-	SendVSCPacketsToChain(ctx sdk.Context, chainID string, channelID string)
+	GetConsumerIdToChannelId(ctx sdk.Context, consumerId string) (string, bool)
+	SendVSCPacketsToChain(ctx sdk.Context, chainID string, channelID string) error
 	GetConsumerClientId(ctx sdk.Context, chainID string) (string, bool)
 }
 
-type ICAKeeper interface {
-	GetInterchainAccountAddress(sdk.Context, string, string) (string, bool)
-	GetOpenActiveChannel(sdk.Context, string, string) (string, bool)
-	SendTx(sdk.Context, *capabilitytypes.Capability, string, string, icatypes.InterchainAccountPacketData, uint64) (uint64, error)
+type ProviderMsgServer interface {
+	CreateConsumer(goCtx context.Context, msg *ccvprovidertypes.MsgCreateConsumer) (*ccvprovidertypes.MsgCreateConsumerResponse, error)
 }
 
 type ClientKeeper interface {
-	GetClientState(sdk.Context, string) (ibcexported.ClientState, bool)
+	GetClientLatestHeight(sdk.Context, string) clienttypes.Height
 }
 type ChannelKeeper interface {
 	GetChannel(sdk.Context, string, string) (ibcchanneltypes.Channel, bool)
@@ -66,5 +60,5 @@ type EscrowKeeper interface {
 
 type AclKeeper interface {
 	Allowed(ctx sdk.Context, addr sdk.AccAddress) bool
-	Admin(ctx sdk.Context, addr sdk.AccAddress) bool
+	IsAdmin(ctx sdk.Context, addr sdk.AccAddress) bool
 }

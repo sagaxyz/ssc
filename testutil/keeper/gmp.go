@@ -16,10 +16,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +34,6 @@ func (gmpChannelKeeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID s
 
 func (gmpChannelKeeper) SendPacket(
 	ctx sdk.Context,
-	channelCap *capabilitytypes.Capability,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -46,15 +43,8 @@ func (gmpChannelKeeper) SendPacket(
 	return 0, nil
 }
 
-func (gmpChannelKeeper) ChanCloseInit(ctx sdk.Context, portID, channelID string, chanCap *capabilitytypes.Capability) error {
+func (gmpChannelKeeper) ChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	return nil
-}
-
-// gmpportKeeper is a stub of cosmosibckeeper.PortKeeper
-type gmpPortKeeper struct{}
-
-func (gmpPortKeeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
-	return &capabilitytypes.Capability{}
 }
 
 func GmpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -71,7 +61,6 @@ func GmpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	appCodec := codec.NewProtoCodec(registry)
-	capabilityKeeper := capabilitykeeper.NewKeeper(appCodec, storeKey, memStoreKey)
 
 	paramsSubspace := typesparams.NewSubspace(appCodec,
 		types.Amino,
@@ -82,11 +71,8 @@ func GmpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k := keeper.NewKeeper(
 		appCodec,
 		storeKey,
-		memStoreKey,
 		paramsSubspace,
 		gmpChannelKeeper{},
-		gmpPortKeeper{},
-		capabilityKeeper.ScopeToModule("GmpScopedKeeper"),
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, logger)

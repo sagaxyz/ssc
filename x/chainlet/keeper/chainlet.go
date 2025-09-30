@@ -65,14 +65,15 @@ func (k *Keeper) EnableConsumer(ctx sdk.Context, chainId string, spawnTime time.
 	chainlet.IsCCVConsumer = true
 	chainlet.SpawnTime = spawnTime
 
-	updatedValue := k.cdc.MustMarshal(&chainlet)
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
-	store.Set([]byte(chainId), updatedValue)
-
-	err = k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+	consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
 	if err != nil {
 		return err
 	}
+	chainlet.ConsumerId = consumerId
+
+	updatedValue := k.cdc.MustMarshal(&chainlet)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+	store.Set([]byte(chainId), updatedValue)
 
 	return nil
 }

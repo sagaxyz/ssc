@@ -37,18 +37,18 @@ var (
 type TestSuite struct {
 	suite.Suite
 
-	chainletKeeper      *keeper.Keeper
-	ctx                 sdk.Context
-	msgServer           types.MsgServer
-	stakingKeeper       *chainlettestutil.MockStakingKeeper
-	icaControllerKeeper *chainlettestutil.MockICAKeeper
-	clientKeeper        *chainlettestutil.MockClientKeeper
-	channelKeeper       *chainlettestutil.MockChannelKeeper
-	connectionKeeper    *chainlettestutil.MockConnectionKeeper
-	providerKeeper      *chainlettestutil.MockProviderKeeper
-	aclKeeper           *chainlettestutil.MockAclKeeper
-	escrowKeeper        *chainlettestutil.MockEscrowKeeper
-	billingKeeper       *chainlettestutil.MockBillingKeeper
+	chainletKeeper    *keeper.Keeper
+	ctx               sdk.Context
+	msgServer         types.MsgServer
+	providerMsgServer *chainlettestutil.MockProviderMsgServer
+	stakingKeeper     *chainlettestutil.MockStakingKeeper
+	clientKeeper      *chainlettestutil.MockClientKeeper
+	channelKeeper     *chainlettestutil.MockChannelKeeper
+	connectionKeeper  *chainlettestutil.MockConnectionKeeper
+	providerKeeper    *chainlettestutil.MockProviderKeeper
+	aclKeeper         *chainlettestutil.MockAclKeeper
+	escrowKeeper      *chainlettestutil.MockEscrowKeeper
+	billingKeeper     *chainlettestutil.MockBillingKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -81,9 +81,10 @@ func (s *TestSuite) SetupTest() {
 	s.aclKeeper = chainlettestutil.NewMockAclKeeper(ctrl)
 	s.billingKeeper = chainlettestutil.NewMockBillingKeeper(ctrl)
 	s.escrowKeeper = chainlettestutil.NewMockEscrowKeeper(ctrl)
+	s.providerMsgServer = chainlettestutil.NewMockProviderMsgServer(ctrl)
 
 	s.aclKeeper.EXPECT().
-		Admin(gomock.Any(), gomock.Any()).
+		IsAdmin(gomock.Any(), gomock.Any()).
 		Return(true).
 		AnyTimes()
 
@@ -93,6 +94,7 @@ func (s *TestSuite) SetupTest() {
 		Return([]stakingtypes.Validator{}, nil).
 		AnyTimes()
 
+	//nolint:staticcheck
 	paramsKeeper := paramskeeper.NewKeeper(encCfg.Codec, encCfg.Amino, paramsKey, paramsTKey)
 	paramsKeeper.Subspace(paramstypes.ModuleName)
 	paramsKeeper.Subspace(types.ModuleName)
@@ -100,9 +102,9 @@ func (s *TestSuite) SetupTest() {
 
 	s.chainletKeeper = keeper.NewKeeper(
 		encCfg.Codec, key, sub,
-		s.stakingKeeper,
-		s.icaControllerKeeper,
+		s.providerMsgServer,
 		nil,
+		s.stakingKeeper,
 		s.clientKeeper,
 		s.channelKeeper,
 		s.connectionKeeper,

@@ -23,7 +23,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	sagaserver "github.com/sagaxyz/saga-sdk/server"
 	"github.com/spf13/cobra"
@@ -217,7 +216,6 @@ func txCommand() *cobra.Command {
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd)
 	// this line is used by starport scaffolding # root/arguments
 }
 

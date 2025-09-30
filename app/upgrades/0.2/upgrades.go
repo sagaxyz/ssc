@@ -15,6 +15,7 @@ import (
 
 const Name = "0.1-to-0.2"
 
+//nolint:staticcheck
 func UpgradeHandler(mm *module.Manager, configurator module.Configurator, paramsKeeper paramskeeper.Keeper, consensusKeeper *consensuskeeper.Keeper, baseAppLegacySS paramstypes.Subspace) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)

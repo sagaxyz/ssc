@@ -17,10 +17,10 @@ message Chainlet {
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
   string launcher = 2;
   repeated string maintainers = 3;
-  string chainletStackName = 4; //TODO rename to stackName
-  string chainletStackVersion = 5; //TODO rename to stackVersion
+  string chainletStackName = 4;    // TODO rename to stackName
+  string chainletStackVersion = 5; // TODO rename to stackVersion
   string chainId = 6;
-  string chainletName = 7; //TODO rename to name
+  string chainletName = 7; // TODO rename to name
   string denom = 8;
   ChainletParams params = 9 [ (gogoproto.nullable) = false ];
   Status status = 10;
@@ -31,6 +31,7 @@ message Chainlet {
   bool isCCVConsumer = 15;
   Upgrade upgrade = 16;
   string genesisStackVersion = 17;
+  string consumerId = 18;
 }
 
 message Upgrade {

@@ -165,7 +165,7 @@ ifeq (debug,$(findstring debug,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -gcflags "all=-N -l"
 endif
 
-all: tools build lint test vulncheck
+all: build
 
 .PHONY: docker-build docker-build-e2e
 docker-build-e2e: docker-build

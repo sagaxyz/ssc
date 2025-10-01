@@ -16,6 +16,7 @@ import (
 	types4 "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
 	types5 "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	gomock "github.com/golang/mock/gomock"
+	types6 "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -415,7 +416,7 @@ func (m *MockBillingKeeper) EXPECT() *MockBillingKeeperMockRecorder {
 }
 
 // BillAccount mocks base method.
-func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types7.Chainlet, memo string) error {
+func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types6.Chainlet, memo string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, memo)
 	ret0, _ := ret[0].(error)

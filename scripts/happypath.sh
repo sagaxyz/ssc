@@ -57,17 +57,17 @@ run_test() {
 echo "=== create-chainlet-stack ==="
 
 run_test "sscd tx chainlet create-chainlet-stack sagaevm \"Your personal EVM\" \
-  sagaxyz/sagaevm:0.7.0 0.7.0 abc123 1000${denom} minute 1000${denom} false \
+  sagaxyz/sagaevm:0.7.0 0.7.0 abc123 1000${denom} 1000${denom} false \
   --from ${key} --fees ${fees} -o json -y" \
   0 "created sagaevm chainlet stack" "failed to create sagaevm stack"
 
 run_test "sscd tx chainlet create-chainlet-stack sagaevm \"Your personal EVM\" \
-  sagaxyz/sagaevm:2.0.0 2.0.0 def456 1000${denom} minute 1000${denom} false \
+  sagaxyz/sagaevm:2.0.0 2.0.0 def456 1000${denom} 1000${denom} false \
   --from ${key} --fees ${fees} -o json -y" \
   nonzero "rejected duplicate sagaevm stack name" "accepted duplicate sagaevm name"
 
 run_test "sscd tx chainlet create-chainlet-stack sagavm \"Your personal EVM\" \
-  sagaxyz/sagavm:1.0.0 1.0.0 123123 1000${denom} minute 1000${denom} false \
+  sagaxyz/sagavm:1.0.0 1.0.0 123123 1000${denom} 1000${denom} false \
   --from alice --fees ${fees} -o json -y" \
   nonzero "rejected non-admin creation" "accepted non-admin creation"
 

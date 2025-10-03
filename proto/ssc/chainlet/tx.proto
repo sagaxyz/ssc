@@ -21,6 +21,8 @@ service Msg {
       returns (MsgUpdateChainletStackResponse);
   rpc DisableChainletStackVersion(MsgDisableChainletStackVersion)
       returns (MsgDisableChainletStackVersionResponse);
+  rpc UpdateChainletStackFees(MsgUpdateChainletStackFees)
+      returns (MsgUpdateChainletStackFeesResponse);
 
   // this line is used by starport scaffolding # proto/tx/rpc
   rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
@@ -86,5 +88,13 @@ message MsgUpgradeChainlet {
 }
 
 message MsgUpgradeChainletResponse { uint64 height = 1; }
-// this line is used by starport scaffolding # proto/tx/message
 
+message MsgUpdateChainletStackFees {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  string chainletStackName = 2;
+  repeated ChainletStackFees fees = 3 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateChainletStackFeesResponse {}
+// this line is used by starport scaffolding # proto/tx/message

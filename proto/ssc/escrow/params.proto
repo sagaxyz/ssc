@@ -8,5 +8,5 @@ option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
 // Params defines the parameters for the module.
 message Params {
   // option (gogoproto.goproto_stringer) = false;
-  string supportedDenom = 1;
+  repeated string supportedDenoms = 1;
 }

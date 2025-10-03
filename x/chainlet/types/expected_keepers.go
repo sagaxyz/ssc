@@ -50,7 +50,7 @@ type ConnectionKeeper interface {
 }
 
 type BillingKeeper interface {
-	BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet Chainlet, epochIdentifier, memo string) error
+	BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet Chainlet, memo string) error
 	PayEpochFeeToValidator(ctx sdk.Context, epochFee sdk.Coins, fromModuleName string, valAddr sdk.AccAddress, memo string) (err error)
 }
 

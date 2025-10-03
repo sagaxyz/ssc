@@ -3,6 +3,7 @@ DIR=~/.ssc
 SSC_HOME="--home $DIR"
 KEYRING="--keyring-backend=test"
 
+rm -r $DIR
 function log() {
   local msg=$1
 
@@ -25,8 +26,8 @@ cp ./scripts/ci/config/client.toml $DIR/config/ || fail "failed to copy client.t
 sscd keys add alice $SSC_HOME $KEYRING || fail "failed to add key alice"
 sscd keys add bob $SSC_HOME $KEYRING || fail "failed to add key bob"
 
-sscd add-genesis-account "$(sscd keys show alice -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000stake $SSC_HOME || fail "failed to add genesis account for alice"
-sscd add-genesis-account "$(sscd keys show bob -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000stake $SSC_HOME || fail "failed to add genesis account for bob"
+sscd add-genesis-account "$(sscd keys show alice -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000000000000000000000utagas,100000000stake $SSC_HOME || fail "failed to add genesis account for alice"
+sscd add-genesis-account "$(sscd keys show bob -a $SSC_HOME $KEYRING)" 100000000000000000000000000utsaga,100000000000000000000000000utagas,100000000stake $SSC_HOME || fail "failed to add genesis account for bob"
 
 jq '.app_state["chainlet"]["params"]["chainletStackProtections"]=true' $DIR/config/genesis.json > $DIR/config/tmp_genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set chainletStackProtections"
 jq '.app_state["chainlet"]["params"]["nEpochDeposit"]="30"' $DIR/config/genesis.json > $DIR/config/tmp_genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set nEpochDeposit"
@@ -36,6 +37,8 @@ jq ".app_state[\"acl\"][\"admins\"]=[\"$(sscd keys show bob -a $SSC_HOME $KEYRIN
 jq '.app_state["gov"]["params"]["max_deposit_period"]="600s"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set max_deposit_period"
 jq '.app_state["gov"]["params"]["voting_period"]="600s"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set voting_period"
 jq '.app_state["gov"]["params"]["expedited_voting_period"]="60s"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set expedited_voting_period"
+jq '.app_state["billing"]["params"]["billing_epoch"]="minute"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set expedited_voting_period"
+jq '.app_state["billing"]["params"]["validator_payout_epoch"]="minute"' > $DIR/config/tmp_genesis.json $DIR/config/genesis.json && mv $DIR/config/tmp_genesis.json $DIR/config/genesis.json || fail "failed to set expedited_voting_period"
 
 sed -i.bak 's/^timeout_propose *=.*/timeout_propose = "500ms"/' "$DIR/config/config.toml" && rm -f "$DIR/config/config.toml.bak" || fail "failed to set timeout_propose"
 sed -i.bak 's/^timeout_propose_delta *=.*/timeout_propose_delta = "500ms"/' "$DIR/config/config.toml" && rm -f "$DIR/config/config.toml.bak" || fail "failed to set timeout_propose_delta"

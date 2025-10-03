@@ -16,7 +16,10 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams() Params {
-	return Params{ValidatorPayoutEpoch: SAGA_EPOCH_IDENTIFIER}
+	return Params{
+		ValidatorPayoutEpoch: SAGA_EPOCH_IDENTIFIER,
+		BillingEpoch:         SAGA_EPOCH_IDENTIFIER,
+	}
 }
 
 // DefaultParams returns a default set of parameters
@@ -28,7 +31,8 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 	psp := paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair([]byte("ValidatorPayoutEpoch"), &p.ValidatorPayoutEpoch, validatePayoutEpochParam),
+		paramtypes.NewParamSetPair([]byte("ValidatorPayoutEpoch"), &p.ValidatorPayoutEpoch, validateEpochParam),
+		paramtypes.NewParamSetPair([]byte("BillingEpoch"), &p.BillingEpoch, validateEpochParam),
 	}
 
 	return psp
@@ -45,7 +49,7 @@ func (p Params) String() string {
 	return string(out)
 }
 
-func validatePayoutEpochParam(v interface{}) error {
+func validateEpochParam(v interface{}) error {
 	_, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("could not unmarshal validator-payout-epoch parm for validation")

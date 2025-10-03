@@ -23,9 +23,9 @@ import (
 
 var (
 	fees = types.ChainletStackFees{
-		EpochFee:    "10utsaga",
-		EpochLength: "minute",
-		SetupFee:    "10utsaga",
+		Denom:    "utsaga",
+		EpochFee: "10utsaga",
+		SetupFee: "10utsaga",
 	}
 	addrs = []sdk.AccAddress{
 		sdk.AccAddress("test1"),

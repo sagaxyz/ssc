@@ -15,9 +15,9 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) setPendingInit(ctx sdk.Context, chainId string) {
+func (k *Keeper) setPendingInit(ctx sdk.Context, consumerID string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletInit)
-	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingInit{}))
+	store.Set([]byte(consumerID), k.cdc.MustMarshal(&types.PendingInit{}))
 }
 
 func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) (string, error) {
@@ -60,14 +60,16 @@ func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Tim
 		return "", err
 	}
 
+	consumerID := res.ConsumerId
+
 	// Enqueue an empty VSC packet
 	valUpdateID := k.providerKeeper.GetValidatorSetUpdateId(ctx)
 	packet := ccvtypes.NewValidatorSetChangePacketData(nil, valUpdateID, nil)
-	k.providerKeeper.AppendPendingVSCPackets(ctx, chainId, packet)
+	k.providerKeeper.AppendPendingVSCPackets(ctx, consumerID, packet)
 	k.providerKeeper.IncrementValidatorSetUpdateId(ctx)
 
-	k.setPendingInit(ctx, chainId)
-	return res.ConsumerId, nil
+	k.setPendingInit(ctx, consumerID)
+	return consumerID, nil
 }
 
 // Forces sending queued VSC packets of new chainlets without waiting for the the provider epoch to end.
@@ -77,25 +79,27 @@ func (k *Keeper) InitConsumers(ctx sdk.Context) {
 	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		chainId := string(iterator.Key())
+		consumerID := string(iterator.Key())
+		ctx.Logger().Debug(fmt.Sprintf("trying to initialize consumer %s", consumerID))
 
-		// Check if the consumer exists yet
-		_, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainId)
-		if !consumerRegistered {
+		// Check if the consumer is in the launched phase
+		if k.providerKeeper.GetConsumerPhase(ctx, consumerID) != ccvprovidertypes.CONSUMER_PHASE_LAUNCHED {
+			ctx.Logger().Debug(fmt.Sprintf("not initializing consumer %s: not launched phase", consumerID))
 			continue
 		}
 
 		// Check if the channel is open
-		channelId, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, chainId)
+		channelId, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, consumerID)
 		if !found {
+			ctx.Logger().Debug(fmt.Sprintf("not initializing consumer %s: channel not found", consumerID))
 			continue
 		}
 
 		// Send the queued VSC packet immediately
-		ctx.Logger().Info(fmt.Sprintf("force-sending queued VSC packets to a new chainlet %s", chainId))
-		err := k.providerKeeper.SendVSCPacketsToChain(ctx, chainId, channelId)
+		ctx.Logger().Info(fmt.Sprintf("force-sending queued VSC packets to consumer %s", consumerID))
+		err := k.providerKeeper.SendVSCPacketsToChain(ctx, consumerID, channelId)
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("force-sending VSC packets for %s failed: %s", chainId, err))
+			ctx.Logger().Error(fmt.Sprintf("force-sending VSC packets for %s failed: %s", consumerID, err))
 			//NOTE: We can ignore the error as it only delays the packet
 		}
 

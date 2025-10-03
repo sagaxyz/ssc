@@ -14,16 +14,16 @@ import (
 )
 
 //nolint:unused
-func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, chainID string) (controllerConnectionID, hostConnectionID string, err error) {
+func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, consumerID string) (controllerConnectionID, hostConnectionID string, err error) {
 	// Get controller/local connection ID
-	ccvChannelID, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, chainID)
+	ccvChannelID, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, consumerID)
 	if !found {
-		err = fmt.Errorf("channel ID for consumer %s not found", chainID)
+		err = fmt.Errorf("channel ID for consumer ID %s not found", consumerID)
 		return
 	}
 	ccvChannel, found := k.channelKeeper.GetChannel(ctx, ccvtypes.ProviderPortID, ccvChannelID)
 	if !found {
-		err = fmt.Errorf("channel %s for consumer %s not found", ccvChannelID, chainID)
+		err = fmt.Errorf("channel %s for consumer %s not found", ccvChannelID, consumerID)
 		return
 	}
 	if len(ccvChannel.ConnectionHops) == 0 {
@@ -35,7 +35,7 @@ func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, chainID string) (cont
 	// Get host/counterparty connection ID
 	connection, found := k.connectionKeeper.GetConnection(ctx, controllerConnectionID)
 	if !found {
-		err = fmt.Errorf("connection %s for consumer %s not found", controllerConnectionID, chainID)
+		err = fmt.Errorf("connection %s for consumer ID %s not found", controllerConnectionID, consumerID)
 		return
 	}
 	hostConnectionID = connection.Counterparty.ConnectionId

@@ -8,7 +8,7 @@ import (
 
 // x/chainlet module sentinel errors
 var (
-	ErrInvalidEpoch            = sdkerrors.Register(ModuleName, 6900, "invalid epoch length")
+	ErrInvalidDenom            = sdkerrors.Register(ModuleName, 6900, "invalid denom")
 	ErrInvalidCoin             = sdkerrors.Register(ModuleName, 6901, "invalid coin")
 	ErrInvalidChainletStack    = sdkerrors.Register(ModuleName, 6902, "invalid chainlet stack")
 	ErrInvalidChainId          = sdkerrors.Register(ModuleName, 6903, "invalid chain id")
@@ -21,4 +21,6 @@ var (
 	ErrUnauthorized            = sdkerrors.Register(ModuleName, 6910, "not authorized to launch a service chainlet")
 	ErrInvalidPacketTimeout    = sdkerrors.Register(ModuleName, 6911, "invalid packet timeout")
 	ErrInvalidVersion          = sdkerrors.Register(ModuleName, 6912, "invalid version")
+	ErrInvalidFees             = sdkerrors.Register(ModuleName, 6913, "invalid fees")
+	ErrDuplicateDenom          = sdkerrors.Register(ModuleName, 6914, "duplicate denom in fees")
 )

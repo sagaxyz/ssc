@@ -5,14 +5,13 @@ import (
 	"time"
 
 	cosmossdkerrors "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sagaxyz/ssc/x/billing/types"
 	chainlettypes "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlettypes.Chainlet, epochIdentifier, memo string) error {
+func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlettypes.Chainlet, memo string) error {
 	err := k.escrowkeeper.BillAccount(ctx, amount, chainlet.ChainId, "billing")
 	if err != nil {
 		ctx.Logger().Info(fmt.Sprintf("failed to bill account %s for %s at epoch %s", chainlet.ChainId, amount.String(), memo))
@@ -34,6 +33,7 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlett
 		Debit:   true,
 	})
 	// Save billing history
+	epochIdentifier := k.GetParams(ctx).BillingEpoch
 	epochInfo := k.epochskeeper.GetEpochInfo(ctx, epochIdentifier)
 	epochEventStartTime := epochInfo.CurrentEpochStartTime.Format(time.RFC3339)
 
@@ -191,43 +191,28 @@ func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
 		return err
 	}
 
-	epochfee, err := sdk.ParseCoinNormalized(stack.Fees.EpochFee)
-	if err != nil {
-		return err
+	billed := false
+	for _, feeOption := range stack.Fees {
+		epochfee, err := sdk.ParseCoinNormalized(feeOption.EpochFee)
+		if err != nil {
+			return err
+		}
+
+		chainlet, err := k.chainletkeeper.GetChainletInfo(ctx, chainId)
+		if err != nil {
+			return err
+		}
+
+		// Check if there is enough funds to restart the chainlet
+		err = k.BillAccount(ctx, epochfee, *chainlet, "restarting chainlet")
+		if err == nil {
+			billed = true
+			break
+		}
 	}
 
-	dep := k.chainletkeeper.GetParams(ctx).NEpochDeposit
-	multiplier, ok := math.NewIntFromString(dep)
-	if !ok {
-		return cosmossdkerrors.Wrapf(types.ErrInternalFailure, "cannot parse multiplier value: %s", dep)
-	}
-
-	minBalance := sdk.Coin{
-		Amount: epochfee.Amount.Mul(multiplier),
-		Denom:  epochfee.Denom,
-	}
-
-	acc, err := k.escrowkeeper.GetKprChainletAccount(ctx, chainId)
-	if err != nil {
-		return err
-	}
-	amount := acc.GetBalance()
-
-	_, err = amount.SafeSub(minBalance)
-	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("not enough funds to restart the chainlet %s: got %s but needed at least %s", chainId, amount.String(), minBalance.String()))
-		return nil
-	}
-
-	chainlet, err := k.chainletkeeper.GetChainletInfo(ctx, chainId)
-	if err != nil {
-		return err
-	}
-
-	// Check if there is enough funds to restart the chainlet
-	err = k.BillAccount(ctx, epochfee, *chainlet, "billing", "restarting chainlet")
-	if err != nil {
-		return cosmossdkerrors.Wrapf(types.ErrInternalBillingFailure, "could not bill account for chainlet %s. Error: %v", chainId, err)
+	if !billed {
+		return cosmossdkerrors.Wrapf(types.ErrInternalBillingFailure, "could not bill account for chainlet %s", chainId)
 	}
 
 	err = k.chainletkeeper.StartExistingChainlet(ctx, chainId)

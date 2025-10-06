@@ -1,53 +1,137 @@
 syntax = "proto3";
 package ssc.escrow;
 
+option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
+
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+
 import "ssc/escrow/params.proto";
-import "ssc/escrow/chainlet_account.proto";
+import "ssc/escrow/escrow.proto";
+
 // this line is used by starport scaffolding # 1
 
-option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
-
-// Query defines the gRPC querier service.
+// ---------------------------------------
+// Query service
+// ---------------------------------------
 service Query {
-  // Parameters queries the parameters of the module.
+  // Module params.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/sagaxyz/ssc/escrow/params";
-  }
-  // Queries a list of Balance items.
-  rpc Balance(QueryBalanceRequest) returns (QueryBalanceResponse) {
-    option (google.api.http).get = "/sagaxyz/ssc/escrow/balance/{address}";
+    option (google.api.http).get = "/ssc/escrow/params";
   }
 
-  // Queries a list of GetChainletAccount items.
+  // Fetch the lightweight head record for a chainlet.
   rpc GetChainletAccount(QueryGetChainletAccountRequest)
       returns (QueryGetChainletAccountResponse) {
+    option (google.api.http).get = "/ssc/escrow/chainlets/{chainId}";
+  }
+
+  // List all denom pools for a chainlet (paginated).
+  rpc GetPools(QueryPoolsRequest) returns (QueryPoolsResponse) {
+    option (google.api.http).get = "/ssc/escrow/chainlets/{chainId}/pools";
+  }
+
+  // List funders for a specific {chainId, denom} pool (paginated).
+  rpc GetFunders(QueryFundersRequest) returns (QueryFundersResponse) {
     option (google.api.http).get =
-        "/sagaxyz/ssc/escrow/get_chainlet_account/{chainId}";
+        "/ssc/escrow/chainlets/{chainId}/pools/{denom}/funders";
+  }
+
+  // Fetch a single funder row for {chainId, denom, address}.
+  rpc GetFunder(QueryFunderSharesRequest) returns (QueryFunderSharesResponse) {
+    option (google.api.http).get = "/ssc/escrow/chainlets/{chainId}/"
+                                   "pools/{denom}/funders/{address}";
+  }
+
+  // Optional convenience: all positions for a wallet across chainlets/denoms
+  // (paginated).
+  rpc GetFunderBalance(QueryFunderPositionsRequest)
+      returns (QueryFunderPositionsResponse) {
+    option (google.api.http).get = "/ssc/escrow/funders/{address}/positions";
   }
 
   // this line is used by starport scaffolding # 2
 }
 
-// QueryParamsRequest is request type for the Query/Params RPC method.
+// ---------------------------------------
+// Params
+// ---------------------------------------
 message QueryParamsRequest {}
 
-// QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  // params holds all the parameters of this module.
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryBalanceRequest { string address = 1; }
-
-message QueryBalanceResponse { string balance = 1; }
-
+// ---------------------------------------
+// Chainlet head
+// ---------------------------------------
 message QueryGetChainletAccountRequest { string chainId = 1; }
 
 message QueryGetChainletAccountResponse {
   ChainletAccount account = 1 [ (gogoproto.nullable) = false ];
+}
+
+// ---------------------------------------
+// Pools (per chainlet)
+// ---------------------------------------
+message QueryPoolsRequest {
+  string chainId = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 98;
+}
+
+message QueryPoolsResponse {
+  repeated DenomPool pools = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 98;
+}
+
+// ---------------------------------------
+// Funders (per {chainlet, denom})
+// ---------------------------------------
+message QueryFundersRequest {
+  string chainId = 1;
+  string denom = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 98;
+}
+
+message FunderEntry {
+  string address = 1;
+  Funder funder = 2 [ (gogoproto.nullable) = false ];
+}
+
+message QueryFundersResponse {
+  repeated FunderEntry funders = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 98;
+}
+
+// ---------------------------------------
+// Single funder
+// ---------------------------------------
+message QueryFunderSharesRequest {
+  string chainId = 1;
+  string denom = 2;
+  string address = 3;
+}
+
+message QueryFunderSharesResponse { Funder shares = 1; }
+
+// ---------------------------------------
+// Positions (reverse index)
+// ---------------------------------------
+message QueryFunderPositionsRequest {
+  string address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 98;
+}
+
+message Position {
+  string chainId = 1;
+  string denom = 2;
+  Funder shares = 3 [ (gogoproto.nullable) = false ];
+}
+
+message QueryFunderPositionsResponse {
+  repeated Position positions = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 98;
 }
 
 // this line is used by starport scaffolding # 3

@@ -23,8 +23,8 @@ func TestMsgCreateChainletStack_ValidateBasic(t *testing.T) {
 				Image:       "123",
 				Checksum:    "1234",
 				Fees: ChainletStackFees{
+					"utsaga",
 					"1000utsaga",
-					"day",
 					"1000utsaga",
 				},
 			},
@@ -38,13 +38,13 @@ func TestMsgCreateChainletStack_ValidateBasic(t *testing.T) {
 				Image:       "123",
 				Checksum:    "1234",
 				Fees: ChainletStackFees{
+					"utsaga",
 					"1000utsaga",
-					"day",
 					"1000utsaga",
 				},
 			},
 		}, {
-			name: "invalid epoch",
+			name: "invalid denom",
 			msg: MsgCreateChainletStack{
 				Creator:     sample.AccAddress(),
 				DisplayName: "validname",
@@ -52,12 +52,12 @@ func TestMsgCreateChainletStack_ValidateBasic(t *testing.T) {
 				Image:       "123",
 				Checksum:    "1234",
 				Fees: ChainletStackFees{
+					"utsa123",
 					"1000utsaga",
-					"2",
 					"1000utsaga",
 				},
 			},
-			err: ErrInvalidEpoch,
+			err: ErrInvalidDenom,
 		}, {
 			name: "invalid setup fee",
 			msg: MsgCreateChainletStack{
@@ -67,8 +67,8 @@ func TestMsgCreateChainletStack_ValidateBasic(t *testing.T) {
 				Image:       "123",
 				Checksum:    "1234",
 				Fees: ChainletStackFees{
+					"utsaga",
 					"1000utsaga",
-					"day",
 					"-100utsaga",
 				},
 			},
@@ -82,8 +82,8 @@ func TestMsgCreateChainletStack_ValidateBasic(t *testing.T) {
 				Image:       "123",
 				Checksum:    "1234",
 				Fees: ChainletStackFees{
+					"utsaga",
 					"-1000utsaga",
-					"day",
 					"1000utsaga",
 				},
 			},
@@ -94,7 +94,7 @@ func TestMsgCreateChainletStack_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				require.ErrorIs(t, err, tt.err, tt.msg)
 				return
 			}
 			require.NoError(t, err)

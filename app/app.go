@@ -516,9 +516,7 @@ func New(
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
-	)
+	// Hooks will be registered after LiquidKeeper is initialized
 
 	// ... other modules keepers
 
@@ -743,6 +741,13 @@ func New(
 		app.DistrKeeper, // Use the actual distribution keeper
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(), // Use governance module as authority
 	)
+
+	// register the liquid hooks with staking keeper
+	// NOTE: this must be done after LiquidKeeper is initialized
+	app.StakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks(), app.LiquidKeeper.Hooks()),
+	)
+
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
 
 	liquidModule := liquidmodule.NewAppModule(appCodec, &app.LiquidKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper)

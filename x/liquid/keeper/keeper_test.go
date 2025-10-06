@@ -21,10 +21,11 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/golang/mock/gomock"
 
 	lsmkeeper "github.com/sagaxyz/ssc/x/liquid/keeper"
+	liquidtestutil "github.com/sagaxyz/ssc/x/liquid/testutil"
 	lsmtypes "github.com/sagaxyz/ssc/x/liquid/types"
-	"github.com/sagaxyz/ssc/x/liquid/types/mocks"
 )
 
 var PKs = simtestutil.CreateTestPubKeys(500)
@@ -34,9 +35,9 @@ type KeeperTestSuite struct {
 
 	ctx           sdk.Context
 	lsmKeeper     *lsmkeeper.Keeper
-	stakingKeeper *mocks.StakingKeeper
-	bankKeeper    *mocks.BankKeeper
-	accountKeeper *mocks.AccountKeeper
+	stakingKeeper *liquidtestutil.MockStakingKeeper
+	bankKeeper    *liquidtestutil.MockBankKeeper
+	accountKeeper *liquidtestutil.MockAccountKeeper
 	queryClient   lsmtypes.QueryClient
 	msgServer     lsmtypes.MsgServer
 }
@@ -49,14 +50,15 @@ func (s *KeeperTestSuite) SetupTest() {
 	ctx := testCtx.Ctx.WithBlockHeader(cmtproto.Header{Time: cmttime.Now()})
 	encCfg := moduletestutil.MakeTestEncodingConfig()
 
-	accountKeeper := mocks.NewAccountKeeper(s.T())
-	accountKeeper.EXPECT().AddressCodec().Return(address.NewBech32Codec("cosmos"))
+	ctrl := gomock.NewController(s.T())
+	accountKeeper := liquidtestutil.NewMockAccountKeeper(ctrl)
+	accountKeeper.EXPECT().AddressCodec().Return(address.NewBech32Codec("cosmos")).AnyTimes()
 
-	bankKeeper := mocks.NewBankKeeper(s.T())
-	stakingKeeper := mocks.NewStakingKeeper(s.T())
-	distributionKeeper := mocks.NewDistributionKeeper(s.T())
+	bankKeeper := liquidtestutil.NewMockBankKeeper(ctrl)
+	stakingKeeper := liquidtestutil.NewMockStakingKeeper(ctrl)
+	distributionKeeper := liquidtestutil.NewMockDistributionKeeper(ctrl)
 
-	stakingKeeper.EXPECT().ValidatorAddressCodec().Return(address.NewBech32Codec("cosmosvaloper")).Maybe()
+	stakingKeeper.EXPECT().ValidatorAddressCodec().Return(address.NewBech32Codec("cosmosvaloper")).AnyTimes()
 
 	lsmKeeper := lsmkeeper.NewKeeper(
 		encCfg.Codec,

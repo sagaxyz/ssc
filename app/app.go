@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -164,29 +163,6 @@ import (
 	ante "github.com/sagaxyz/ssc/app/ante"
 	"github.com/sagaxyz/ssc/docs"
 )
-
-// MockDistributionKeeper is a mock implementation of the DistributionKeeper interface
-type MockDistributionKeeper struct{}
-
-func (m *MockDistributionKeeper) FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error {
-	// Mock implementation - do nothing
-	return nil
-}
-
-func (m *MockDistributionKeeper) WithdrawDelegationRewards(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
-	// Mock implementation - return empty coins
-	return sdk.NewCoins(), nil
-}
-
-func (m *MockDistributionKeeper) IncrementValidatorPeriod(ctx context.Context, val stakingtypes.ValidatorI) (uint64, error) {
-	// Mock implementation - return 0
-	return 0, nil
-}
-
-func (m *MockDistributionKeeper) CalculateDelegationRewards(ctx context.Context, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins, err error) {
-	// Mock implementation - return empty dec coins
-	return sdk.NewDecCoins(), nil
-}
 
 const (
 	AccountAddressPrefix = "saga"
@@ -756,16 +732,13 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 	)
 
-	// Create a mock DistributionKeeper since the liquid module expects one
-	mockDistrKeeper := &MockDistributionKeeper{}
-
 	app.LiquidKeeper = *liquidmodulekeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[liquidmoduletypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.StakingKeeper,
-		mockDistrKeeper,
+		app.DistrKeeper, // Use the actual distribution keeper
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(), // Use governance module as authority
 	)
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)

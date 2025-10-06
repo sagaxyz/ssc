@@ -3,9 +3,8 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/stretchr/testify/mock"
-
 	"cosmossdk.io/math"
+	"github.com/golang/mock/gomock"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -239,7 +238,7 @@ func (s *KeeperTestSuite) TestCheckExceedsValidatorLiquidStakingCap() {
 			params.ValidatorLiquidStakingCap = tc.validatorLiquidCap
 			require.NoError(keeper.SetParams(ctx, params))
 
-			call := s.stakingKeeper.EXPECT().GetValidator(ctx, mock.Anything).Return(
+			s.stakingKeeper.EXPECT().GetValidator(ctx, gomock.Any()).Return(
 				stakingtypes.Validator{DelegatorShares: tc.validatorTotalShares},
 				nil,
 			)
@@ -257,7 +256,6 @@ func (s *KeeperTestSuite) TestCheckExceedsValidatorLiquidStakingCap() {
 			actualExceeds, err := keeper.CheckExceedsValidatorLiquidStakingCap(ctx, validator, tc.newLiquidShares, tc.tokenizingShares)
 			require.NoError(err)
 			require.Equal(tc.expectedExceeds, actualExceeds, tc.name)
-			call.Unset()
 		})
 	}
 }
@@ -301,8 +299,7 @@ func (s *KeeperTestSuite) TestSafelyIncreaseValidatorLiquidShares() {
 		OperatorAddress: valAddress.String(),
 		DelegatorShares: validatorTotalShares,
 	}
-	call := s.stakingKeeper.EXPECT().GetValidator(ctx, valAddress).Return(stVal, nil)
-	defer call.Unset()
+	s.stakingKeeper.EXPECT().GetValidator(ctx, valAddress).Return(stVal, nil).AnyTimes()
 	// Create a validator with designated self-bond shares
 	initialValidator := types.LiquidValidator{
 		OperatorAddress: valAddress.String(),
@@ -539,7 +536,7 @@ func (s *KeeperTestSuite) TestTokenizeShareAuthorizationQueue() {
 
 	// Set the unbonding time to 1 day
 	unbondingPeriod := time.Hour * 24
-	s.stakingKeeper.EXPECT().GetParams(mock.Anything).Return(stakingtypes.Params{UnbondingTime: unbondingPeriod}, nil)
+	s.stakingKeeper.EXPECT().GetParams(gomock.Any()).Return(stakingtypes.Params{UnbondingTime: unbondingPeriod}, nil).AnyTimes()
 
 	for timeIndex := 0; timeIndex <= 4; timeIndex++ {
 		for _, address := range addressesByTime[timeIndex] {

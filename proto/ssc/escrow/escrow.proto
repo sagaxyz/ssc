@@ -6,19 +6,29 @@ import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
-message ChainletAccount {
-  string chainId = 1;
-  cosmos.base.v1beta1.Coin balance = 2 [ (gogoproto.nullable) = false ];
-  string shares = 3 [
+// KV: escrow/chainlet/{chainId}
+
+message ChainletAccount { string chainId = 1; }
+
+// One row per {chainId, denom, funderAddr}.
+// KV: escrow/funder/{chainId}/{denom}/{addr}
+message Funder {
+  string shares = 1 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
-  map<string, Funder> funders = 4 [ (gogoproto.nullable) = false ];
 }
 
-message Funder {
-  string shares = 1 [
+// One pool per {chainId, denom}. Tracks totals
+// KV: escrow/pool/{chainId}/{denom}
+message DenomPool {
+  string chainId = 1;
+  string denom = 2;
+
+  cosmos.base.v1beta1.Coin balance = 3 [ (gogoproto.nullable) = false ];
+
+  string shares = 4 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false

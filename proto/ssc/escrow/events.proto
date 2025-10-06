@@ -9,13 +9,14 @@ option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
 message EventDeposit {
   string user = 1;
   string chainlet = 2;
-  string amount = 3;
-  string newTotal = 4;
+  string denom = 3;
+  string amount = 4;
+  string newTotal = 5;
 }
 
 message EventWithdraw {
   string user = 1;
   string chainlet = 2;
-  string amount = 3;
+  string denom = 3;
   string remaining = 4;
 }

@@ -26,7 +26,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return &types.MsgDepositResponse{}, err
 	}
 
-	err = k.deposit(ctx, addr, coin, msg.ChainId)
+	err = k.deposit(ctx, addr, msg.ChainId, coin)
 	if err != nil {
 		return &types.MsgDepositResponse{}, err
 	}

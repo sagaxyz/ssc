@@ -155,9 +155,9 @@ func (m *MockProviderKeeper) EXPECT() *MockProviderKeeperMockRecorder {
 }
 
 // AppendPendingVSCPackets mocks base method.
-func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID string, newPackets ...types5.ValidatorSetChangePacketData) {
+func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, consumerID string, newPackets ...types5.ValidatorSetChangePacketData) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, chainID}
+	varargs := []interface{}{ctx, consumerID}
 	for _, a := range newPackets {
 		varargs = append(varargs, a)
 	}
@@ -165,25 +165,10 @@ func (m *MockProviderKeeper) AppendPendingVSCPackets(ctx types.Context, chainID 
 }
 
 // AppendPendingVSCPackets indicates an expected call of AppendPendingVSCPackets.
-func (mr *MockProviderKeeperMockRecorder) AppendPendingVSCPackets(ctx, chainID interface{}, newPackets ...interface{}) *gomock.Call {
+func (mr *MockProviderKeeperMockRecorder) AppendPendingVSCPackets(ctx, consumerID interface{}, newPackets ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, chainID}, newPackets...)
+	varargs := append([]interface{}{ctx, consumerID}, newPackets...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendPendingVSCPackets", reflect.TypeOf((*MockProviderKeeper)(nil).AppendPendingVSCPackets), varargs...)
-}
-
-// GetConsumerClientId mocks base method.
-func (m *MockProviderKeeper) GetConsumerClientId(ctx types.Context, chainID string) (string, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetConsumerClientId", ctx, chainID)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetConsumerClientId indicates an expected call of GetConsumerClientId.
-func (mr *MockProviderKeeperMockRecorder) GetConsumerClientId(ctx, chainID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsumerClientId", reflect.TypeOf((*MockProviderKeeper)(nil).GetConsumerClientId), ctx, chainID)
 }
 
 // GetConsumerIdToChannelId mocks base method.
@@ -199,6 +184,20 @@ func (m *MockProviderKeeper) GetConsumerIdToChannelId(ctx types.Context, consume
 func (mr *MockProviderKeeperMockRecorder) GetConsumerIdToChannelId(ctx, consumerId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsumerIdToChannelId", reflect.TypeOf((*MockProviderKeeper)(nil).GetConsumerIdToChannelId), ctx, consumerId)
+}
+
+// GetConsumerPhase mocks base method.
+func (m *MockProviderKeeper) GetConsumerPhase(ctx types.Context, consumerID string) types4.ConsumerPhase {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConsumerPhase", ctx, consumerID)
+	ret0, _ := ret[0].(types4.ConsumerPhase)
+	return ret0
+}
+
+// GetConsumerPhase indicates an expected call of GetConsumerPhase.
+func (mr *MockProviderKeeperMockRecorder) GetConsumerPhase(ctx, consumerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsumerPhase", reflect.TypeOf((*MockProviderKeeper)(nil).GetConsumerPhase), ctx, consumerID)
 }
 
 // GetValidatorSetUpdateId mocks base method.
@@ -228,17 +227,17 @@ func (mr *MockProviderKeeperMockRecorder) IncrementValidatorSetUpdateId(ctx inte
 }
 
 // SendVSCPacketsToChain mocks base method.
-func (m *MockProviderKeeper) SendVSCPacketsToChain(ctx types.Context, chainID, channelID string) error {
+func (m *MockProviderKeeper) SendVSCPacketsToChain(ctx types.Context, consumerID, channelID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendVSCPacketsToChain", ctx, chainID, channelID)
+	ret := m.ctrl.Call(m, "SendVSCPacketsToChain", ctx, consumerID, channelID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendVSCPacketsToChain indicates an expected call of SendVSCPacketsToChain.
-func (mr *MockProviderKeeperMockRecorder) SendVSCPacketsToChain(ctx, chainID, channelID interface{}) *gomock.Call {
+func (mr *MockProviderKeeperMockRecorder) SendVSCPacketsToChain(ctx, consumerID, channelID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVSCPacketsToChain", reflect.TypeOf((*MockProviderKeeper)(nil).SendVSCPacketsToChain), ctx, chainID, channelID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVSCPacketsToChain", reflect.TypeOf((*MockProviderKeeper)(nil).SendVSCPacketsToChain), ctx, consumerID, channelID)
 }
 
 // MockProviderMsgServer is a mock of ProviderMsgServer interface.
@@ -416,17 +415,17 @@ func (m *MockBillingKeeper) EXPECT() *MockBillingKeeperMockRecorder {
 }
 
 // BillAccount mocks base method.
-func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types6.Chainlet, epochIdentifier, memo string) error {
+func (m *MockBillingKeeper) BillAccount(ctx types.Context, amount types.Coin, chainlet types6.Chainlet, memo string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, epochIdentifier, memo)
+	ret := m.ctrl.Call(m, "BillAccount", ctx, amount, chainlet, memo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BillAccount indicates an expected call of BillAccount.
-func (mr *MockBillingKeeperMockRecorder) BillAccount(ctx, amount, chainlet, epochIdentifier, memo interface{}) *gomock.Call {
+func (mr *MockBillingKeeperMockRecorder) BillAccount(ctx, amount, chainlet, memo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAccount", reflect.TypeOf((*MockBillingKeeper)(nil).BillAccount), ctx, amount, chainlet, epochIdentifier, memo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAccount", reflect.TypeOf((*MockBillingKeeper)(nil).BillAccount), ctx, amount, chainlet, memo)
 }
 
 // PayEpochFeeToValidator mocks base method.

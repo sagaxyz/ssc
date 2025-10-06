@@ -27,12 +27,12 @@ type StakingKeeper interface {
 }
 
 type ProviderKeeper interface {
-	AppendPendingVSCPackets(ctx sdk.Context, chainID string, newPackets ...ccvtypes.ValidatorSetChangePacketData)
+	AppendPendingVSCPackets(ctx sdk.Context, consumerID string, newPackets ...ccvtypes.ValidatorSetChangePacketData)
 	GetValidatorSetUpdateId(ctx sdk.Context) (validatorSetUpdateId uint64)
 	IncrementValidatorSetUpdateId(ctx sdk.Context)
 	GetConsumerIdToChannelId(ctx sdk.Context, consumerId string) (string, bool)
-	SendVSCPacketsToChain(ctx sdk.Context, chainID string, channelID string) error
-	GetConsumerClientId(ctx sdk.Context, chainID string) (string, bool)
+	SendVSCPacketsToChain(ctx sdk.Context, consumerID string, channelID string) error
+	GetConsumerPhase(ctx sdk.Context, consumerID string) ccvprovidertypes.ConsumerPhase
 }
 
 type ProviderMsgServer interface {
@@ -50,7 +50,7 @@ type ConnectionKeeper interface {
 }
 
 type BillingKeeper interface {
-	BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet Chainlet, epochIdentifier, memo string) error
+	BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet Chainlet, memo string) error
 	PayEpochFeeToValidator(ctx sdk.Context, epochFee sdk.Coins, fromModuleName string, valAddr sdk.AccAddress, memo string) (err error)
 }
 

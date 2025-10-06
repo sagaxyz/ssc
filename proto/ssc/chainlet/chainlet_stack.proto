@@ -11,11 +11,11 @@ message ChainletStack {
   string displayName = 2;
   string description = 3;
   repeated ChainletStackParams versions = 4 [ (gogoproto.nullable) = false ];
-  ChainletStackFees fees = 5 [ (gogoproto.nullable) = false ];
+  repeated ChainletStackFees fees = 5 [ (gogoproto.nullable) = false ];
 }
 
 message ChainletStackFees {
-  string epochFee = 1;
-  string epochLength = 2;
+  string denom = 1;
+  string epochFee = 2;
   string setupFee = 3;
 }

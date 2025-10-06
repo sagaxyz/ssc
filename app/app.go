@@ -664,6 +664,7 @@ func New(
 		app.GetSubspace(escrowmoduletypes.ModuleName),
 		app.BankKeeper,
 		nil,
+		nil,
 	)
 
 	app.BillingKeeper = *billingmodulekeeper.NewKeeper(
@@ -716,6 +717,7 @@ func New(
 	billingModule := billingmodule.NewAppModule(appCodec, app.BillingKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.EscrowKeeper.UpdateKeeper(app.BillingKeeper)
+	app.EscrowKeeper.UpdateKeeper(app.ChainletKeeper)
 	escrowModule := escrowmodule.NewAppModule(appCodec, app.EscrowKeeper, app.AccountKeeper, app.BankKeeper, app.ChainletKeeper)
 
 	app.EpochsKeeper.SetHooks(

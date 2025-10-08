@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -10,37 +8,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdUpgradeChainlet() *cobra.Command {
+func CmdCancelChainletUpgrade() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "upgrade-chainlet <chain-id> <stack-version> [height-delta] [channel-id]",
+		Use:   "cancel-chainlet-upgrade <chain-id> <stack-version> <channel-id>",
 		Short: "Broadcast message upgradeChainlet",
-		Args:  cobra.RangeArgs(2, 4),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argChainId := args[0]
 			argStackVersion := args[1]
-			var heightDelta uint64
-			if len(args) > 2 {
-				argHeightDelta := args[2]
-				heightDelta, err = strconv.ParseUint(argHeightDelta, 10, 64)
-				if err != nil {
-					return err
-				}
-			}
-			var argChannelID string
-			if len(args) > 3 {
-				argChannelID = args[3]
-			}
+			argChannelID := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgUpgradeChainlet(
+			msg := types.NewMsgCancelChainletUpgrade(
 				clientCtx.GetFromAddress().String(),
 				argChainId,
 				argStackVersion,
-				heightDelta,
 				argChannelID,
 			)
 			if err := msg.ValidateBasic(); err != nil {

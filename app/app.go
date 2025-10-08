@@ -185,41 +185,41 @@ var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
-       // ModuleBasics defines the module BasicManager is in charge of setting up basic,
-       // non-dependant module elements, such as codec registration
-       // and genesis verification.
-       ModuleBasics = module.NewBasicManager(
-               auth.AppModuleBasic{},
-               authzmodule.AppModuleBasic{},
-               genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-               bank.AppModuleBasic{},
-               no_valupdates_staking.AppModuleBasic{},
-               mint.AppModuleBasic{},
-               distr.AppModuleBasic{},
-               gov.NewAppModuleBasic(getGovProposalHandlers()),
-               params.AppModuleBasic{},
-               slashing.AppModuleBasic{},
-               feegrantmodule.AppModuleBasic{},
-               groupmodule.AppModuleBasic{},
-               ibc.AppModuleBasic{},
-               packetforward.AppModuleBasic{},
-               ibctm.AppModuleBasic{},
-               upgrade.AppModuleBasic{},
-               evidence.AppModuleBasic{},
-               transfer.AppModuleBasic{},
-               ica.AppModuleBasic{},
-               vesting.AppModuleBasic{},
-               chainletmodule.AppModuleBasic{},
-               epochsmodule.AppModuleBasic{},
-               escrowmodule.AppModuleBasic{},
-               billingmodule.AppModuleBasic{},
-               acl.AppModuleBasic{},
-               peers.AppModuleBasic{},
-               consensus.AppModuleBasic{},
-               ccvprovider.AppModuleBasic{},
-               gmpmodule.AppModuleBasic{},
-               // this line is used by starport scaffolding # stargate/app/moduleBasic
-       )
+	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
+	// non-dependant module elements, such as codec registration
+	// and genesis verification.
+	ModuleBasics = module.NewBasicManager(
+		auth.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
+		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+		bank.AppModuleBasic{},
+		no_valupdates_staking.AppModuleBasic{},
+		mint.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		gov.NewAppModuleBasic(getGovProposalHandlers()),
+		params.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+		feegrantmodule.AppModuleBasic{},
+		groupmodule.AppModuleBasic{},
+		ibc.AppModuleBasic{},
+		packetforward.AppModuleBasic{},
+		ibctm.AppModuleBasic{},
+		upgrade.AppModuleBasic{},
+		evidence.AppModuleBasic{},
+		transfer.AppModuleBasic{},
+		ica.AppModuleBasic{},
+		vesting.AppModuleBasic{},
+		chainletmodule.AppModuleBasic{},
+		epochsmodule.AppModuleBasic{},
+		escrowmodule.AppModuleBasic{},
+		billingmodule.AppModuleBasic{},
+		acl.AppModuleBasic{},
+		peers.AppModuleBasic{},
+		consensus.AppModuleBasic{},
+		ccvprovider.AppModuleBasic{},
+		gmpmodule.AppModuleBasic{},
+		// this line is used by starport scaffolding # stargate/app/moduleBasic
+	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
@@ -281,7 +281,7 @@ type App struct {
 	GovKeeper             *govkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	ParamsKeeper          paramskeeper.Keeper //nolint:staticcheck
-	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	IBCKeeper             *ibckeeper.Keeper   // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
@@ -698,6 +698,7 @@ func New(
 		app.DacKeeper,
 	)
 	chainletModule := chainletmodule.NewAppModule(appCodec, app.ChainletKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(chainletmoduletypes.ModuleName))
+	chainletIBCModule := chainletmodule.NewIBCModule(app.ChainletKeeper)
 
 	app.PeersKeeper = peerskeeper.New(
 		appCodec,
@@ -748,7 +749,8 @@ func New(
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
-		AddRoute(ccvprovidertypes.ModuleName, providerModule)
+		AddRoute(ccvprovidertypes.ModuleName, providerModule).
+		AddRoute(chainletmoduletypes.ModuleName, chainletIBCModule)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -783,7 +785,7 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
-		params.NewAppModule(app.ParamsKeeper),//nolint:staticcheck
+		params.NewAppModule(app.ParamsKeeper), //nolint:staticcheck
 		transfer.NewAppModule(app.TransferKeeper),
 		providerModule,
 		icaModule,
@@ -1268,4 +1270,3 @@ func (app *App) AutoCliOpts() autocli.AppOptions {
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	}
 }
-

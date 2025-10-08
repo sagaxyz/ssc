@@ -10,7 +10,6 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -48,7 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        test: [test-e2e-basic-ibc-transfer, test-e2e-pfm-ibc-transfer]
+        test:
+          [
+            test-e2e-basic-ibc-transfer,
+            test-e2e-pfm-ibc-transfer,
+            test-e2e-chainlet-launch,
+          ]
       fail-fast: false
     steps:
       - name: Checkout

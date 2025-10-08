@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -14,11 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type txResp struct {
-	TxHash string `json:"txhash"`
-	Code   uint32 `json:"code"`
-}
-
 func TestChainletLaunch(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
@@ -27,17 +21,15 @@ func TestChainletLaunch(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Spin up a single SSC chain
 	icn, err := e2eutils.CreateAndStartFullyConnectedNetwork(t, ctx, e2eutils.WithNChains(1))
 	require.NoError(t, err)
 	chain, err := icn.GetChain(0)
 	require.NoError(t, err)
 
-	// Assert type so address formatting, etc., matches Cosmos expectations
 	_, ok := chain.(*cosmos.CosmosChain)
 	require.True(t, ok)
 
-	// Two programmatic users on SAME chain
+	// two wallets on same chain
 	fundAmt := math.NewInt(10_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmt, chain, chain)
 	require.Len(t, users, 2)
@@ -46,8 +38,6 @@ func TestChainletLaunch(t *testing.T) {
 
 	denom := chain.Config().Denom
 	fees := "5000" + denom
-	gasLimit := "500000"
-	chainletDenom := "asaga"
 
 	expect := func(want string, got uint32) bool {
 		if want == "nonzero" {
@@ -55,104 +45,119 @@ func TestChainletLaunch(t *testing.T) {
 		}
 		return want == "0" && got == 0
 	}
-
 	assertTxCode := func(label, want string, got uint32, txhash string) {
 		if expect(want, got) {
 			t.Logf("✅ %s (code=%d, tx=%s)", label, got, txhash)
 			return
 		}
-		// Fetch the full tx JSON for rich debug
-		ch, ok := chain.(*cosmos.CosmosChain)
-		if !ok {
-			t.Fatalf("❌ %s (got code=%d, want %s)\n  txhash: %s\n  cannot fetch full tx details, chain is not cosmos", label, got, want, txhash)
-		}
-
+		ch := chain.(*cosmos.CosmosChain)
 		qout, qerr := mustQueryJSON(ctx, ch, "tx", txhash, "-o", "json")
-		t.Fatalf("❌ %s (got code=%d, want %s)\n  txhash: %s\n  q tx: %s\n  query_err: %v",
+		t.Fatalf("❌ %s (got code=%d, want %s)\n  txhash: %s\n  q tx: %s\n  err: %v",
 			label, got, want, txhash, string(qout), qerr)
 	}
 
-	// === create stack ===
+	// --- create ---
 	{
-		txh, code, _, err := e2eutils.ExecTxJSON(ctx, chain, bob, fees,
-			"chainlet", "create-chainlet-stack",
-			"sagaevm", "Your personal EVM",
-			"sagaxyz/sagaevm:0.7.0", "0.7.0", "abc123",
-			"1000"+denom, "1000"+denom, "false",
-		)
-		require.NoError(t, err, "create sagaevm stack exec error")
+		txh, code, _, err := e2eutils.ChainletCreateStack(ctx, chain, bob, fees, e2eutils.CreateStackParams{
+			Name:        "sagaevm",
+			Description: "Your personal EVM",
+			Image:       "sagaxyz/sagaevm:0.7.0",
+			Version:     "0.7.0",
+			Hash:        "abc123",
+			MinDeposit:  "1000" + denom,
+			MinTopup:    "1000" + denom,
+			CcvConsumer: false,
+		})
+		require.NoError(t, err)
 		assertTxCode("create sagaevm stack", "0", code, txh)
 	}
 
-	// === update stack ===
+	// --- update ---
 	{
-		txh, code, _, err := e2eutils.ExecTxJSON(ctx, chain, bob, fees,
-			"chainlet", "update-chainlet-stack",
-			"sagaevm",
-			"sagaxyz/sagaevm:0.8.0", "0.8.0", "abc234", "false",
-		)
+		txh, code, _, err := e2eutils.ChainletUpdateStack(ctx, chain, bob, fees, e2eutils.UpdateStackParams{
+			Name:        "sagaevm",
+			Image:       "sagaxyz/sagaevm:0.8.0",
+			Version:     "0.8.0",
+			Hash:        "abc234",
+			CcvConsumer: false,
+		})
 		require.NoError(t, err)
-		assertTxCode("update existing stack to 0.8.0", "0", code, txh)
+		assertTxCode("update sagaevm to 0.8.0", "0", code, txh)
 	}
 
-	// === launch chainlet ===
+	// --- launch variants ---
 	{
-		txh, code, _, err := e2eutils.ExecTxJSON(ctx, chain, bob, fees,
-			"chainlet", "launch-chainlet",
-			bob.FormattedAddress(), "sagaevm", "0.7.0", "mychain", chainletDenom, "{}",
-			"--evm-chain-id", "100001", "--network-version", "1", "--gas", gasLimit,
-		)
+		// valid 100001
+		txh, code, _, err := e2eutils.ChainletLaunch(ctx, chain, bob, fees, e2eutils.LaunchChainletParams{
+			OwnerAddr:      bob.FormattedAddress(),
+			StackName:      "sagaevm",
+			StackVersion:   "0.7.0",
+			ChainletID:     "mychain",
+			ChainletDenom:  "asaga",
+			CustomJSON:     "{}",
+			EVMChainID:     "100001",
+			NetworkVersion: "1",
+			Gas:            "500000",
+		})
 		require.NoError(t, err)
-		assertTxCode("valid launch (0.7.0, 100001)", "0", code, txh)
+		assertTxCode("launch 0.7.0 (100001)", "0", code, txh)
 
-		txh, code, _, err = e2eutils.ExecTxJSON(ctx, chain, bob, fees,
-			"chainlet", "launch-chainlet",
-			bob.FormattedAddress(), "sagaevm", "0.7.0", "mychain", chainletDenom, "{}",
-			"--evm-chain-id", "13371337", "--network-version", "1", "--gas", gasLimit,
-		)
+		// valid 13371337
+		txh, code, _, err = e2eutils.ChainletLaunch(ctx, chain, bob, fees, e2eutils.LaunchChainletParams{
+			OwnerAddr:      bob.FormattedAddress(),
+			StackName:      "sagaevm",
+			StackVersion:   "0.7.0",
+			ChainletID:     "mychain",
+			ChainletDenom:  "asaga",
+			CustomJSON:     "{}",
+			EVMChainID:     "13371337",
+			NetworkVersion: "1",
+			Gas:            "500000",
+		})
 		require.NoError(t, err)
-		assertTxCode("valid launch (0.7.0, 13371337)", "0", code, txh)
+		assertTxCode("launch 0.7.0 (13371337)", "0", code, txh)
 
+		// custom params on 0.8.0
 		custom := fmt.Sprintf(`{"gasLimit":10000000,"genAcctBalances":"%s=1000,%s=100000"}`, alice.FormattedAddress(), bob.FormattedAddress())
-		txh, code, _, err = e2eutils.ExecTxJSON(ctx, chain, bob, fees,
-			"chainlet", "launch-chainlet",
-			bob.FormattedAddress(), "sagaevm", "0.8.0", "kukkoo", chainletDenom, custom,
-			"--gas", gasLimit,
-		)
+		txh, code, _, err = e2eutils.ChainletLaunch(ctx, chain, bob, fees, e2eutils.LaunchChainletParams{
+			OwnerAddr:      bob.FormattedAddress(),
+			StackName:      "sagaevm",
+			StackVersion:   "0.8.0",
+			ChainletID:     "kukkoo",
+			ChainletDenom:  "asaga",
+			CustomJSON:     custom,
+			EVMChainID:     "",
+			NetworkVersion: "",
+			Gas:            "500000",
+		})
 		require.NoError(t, err)
-		assertTxCode("custom params launch (0.8.0)", "0", code, txh)
+		assertTxCode("launch 0.8.0 (custom)", "0", code, txh)
 	}
 
-	// === queries & billing ===
+	// --- queries & billing ---
 	{
 		_, _, err := e2eutils.QueryJSON(ctx, chain, "epochs", "epoch-infos")
-		require.NoError(t, err, "epochs query failed")
-
-		raw, _, err := e2eutils.QueryJSON(ctx, chain, "chainlet", "list-chainlet-stack", "-o", "json")
 		require.NoError(t, err)
+
 		var stacks struct {
 			Stacks []any `json:"ChainletStacks"`
 		}
-		require.NoError(t, json.Unmarshal(raw, &stacks), "parse list-chainlet-stack")
-		require.Len(t, stacks.Stacks, 1, "expected exactly 1 stack")
+		require.NoError(t, e2eutils.QueryInto(ctx, chain, &stacks, "chainlet", "list-chainlet-stack", "-o", "json"))
+		require.Len(t, stacks.Stacks, 1)
 
-		raw, _, err = e2eutils.QueryJSON(ctx, chain, "chainlet", "get-chainlet-stack", "sagaevm", "-o", "json")
-		require.NoError(t, err)
 		var get struct {
 			Stack struct {
 				Versions []any `json:"versions"`
 			} `json:"ChainletStack"`
 		}
-		require.NoError(t, json.Unmarshal(raw, &get), "parse get-chainlet-stack")
-		require.Len(t, get.Stack.Versions, 2, "expected 2 versions in sagaevm stack")
+		require.NoError(t, e2eutils.QueryInto(ctx, chain, &get, "chainlet", "get-chainlet-stack", "sagaevm", "-o", "json"))
+		require.Len(t, get.Stack.Versions, 2)
 
-		raw, _, err = e2eutils.QueryJSON(ctx, chain, "chainlet", "list-chainlets", "-o", "json")
-		require.NoError(t, err)
 		var cl struct {
 			Chainlets []any `json:"Chainlets"`
 		}
-		require.NoError(t, json.Unmarshal(raw, &cl), "parse list-chainlets")
-		require.GreaterOrEqual(t, len(cl.Chainlets), 3, "expected at least 3 chainlets")
+		require.NoError(t, e2eutils.QueryInto(ctx, chain, &cl, "chainlet", "list-chainlets", "-o", "json"))
+		require.GreaterOrEqual(t, len(cl.Chainlets), 3)
 	}
 
 	target := "mychain_100001-1"
@@ -167,7 +172,7 @@ func TestChainletLaunch(t *testing.T) {
 	}))
 }
 
-/* ---------------- local helpers for this test ---------------- */
+/* ---------------- local helper ---------------- */
 
 func mustQueryJSON(ctx context.Context, chain *cosmos.CosmosChain, args ...string) ([]byte, error) {
 	stdout, stderr, err := e2eutils.QueryJSON(ctx, chain, args...)

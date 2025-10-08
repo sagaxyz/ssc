@@ -147,12 +147,12 @@ import (
 	peerskeeper "github.com/sagaxyz/ssc/x/peers/keeper"
 	peerstypes "github.com/sagaxyz/ssc/x/peers/types"
 
+	liquidmodule "github.com/cosmos/gaia/v25/x/liquid"
+	liquidmodulekeeper "github.com/cosmos/gaia/v25/x/liquid/keeper"
+	liquidmoduletypes "github.com/cosmos/gaia/v25/x/liquid/types"
 	gmpmodule "github.com/sagaxyz/ssc/x/gmp"
 	gmpmodulekeeper "github.com/sagaxyz/ssc/x/gmp/keeper"
 	gmpmoduletypes "github.com/sagaxyz/ssc/x/gmp/types"
-	liquidmodule "github.com/sagaxyz/ssc/x/liquid"
-	liquidmodulekeeper "github.com/sagaxyz/ssc/x/liquid/keeper"
-	liquidmoduletypes "github.com/sagaxyz/ssc/x/liquid/types"
 
 	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"

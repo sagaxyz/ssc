@@ -3,11 +3,14 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
+	sdkchainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
@@ -66,8 +69,163 @@ func upgradePlanName(from, to string) (plan string, err error) {
 
 	return
 }
-func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVersion string, heightDelta uint64) (height uint64, err error) {
-	err = errors.New("not implemented")
+func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVersion string, heightDelta uint64, channelID string) (height uint64, err error) {
+	// Get consumer client id
+	clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ConsumerId)
+	if !consumerRegistered {
+		err = errors.New("consumer not registered yet")
+		return
+	}
+
+	// Verify channel corresponds to the correct client
+	channel, found := k.channelKeeper.GetChannel(ctx, sdkchainlettypes.PortID, channelID)
+	if !found {
+		err = fmt.Errorf("channel %s not found (port: %s)", channelID, sdkchainlettypes.PortID)
+		return
+	}
+	if len(channel.ConnectionHops) == 0 {
+		err = fmt.Errorf("no connection hops for channel %s", channelID)
+		return
+	}
+	connectionID := channel.ConnectionHops[0]
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
+		err = fmt.Errorf("connection not found: %s", connectionID)
+		return
+	}
+	if connection.ClientId != clientID {
+		err = fmt.Errorf("client ID of the provided channel does not match consumer client id (%s != %s)", connection.ClientId, clientID)
+		return
+	}
+
+	clientRevisionHeight := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionHeight()
+	clientRevisionNumber := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionNumber()
+
+	// Create the IBC packet
+	upgradeHeight := clientRevisionHeight + heightDelta
+	planName, err := upgradePlanName(chainlet.ChainletStackVersion, newVersion)
+	if err != nil {
+		return
+	}
+	packetData := sdkchainlettypes.CreateUpgradePacketData{
+		ChainId: chainlet.ChainId,
+		Name:    planName,
+		Height:  upgradeHeight,
+		Info:    "Upgrade created by the provider chain",
+	}
+	err = packetData.ValidateBasic()
+	if err != nil {
+		return
+	}
+
+	// Timeout
+	//p := k.GetParams(ctx)
+	TimeoutHeight := uint64(300) //TODO p
+	TimeoutTime := 2 * time.Hour //TODO p
+	timeoutHeight := clienttypes.Height{
+		RevisionNumber: clientRevisionNumber,
+		RevisionHeight: clientRevisionHeight + TimeoutHeight,
+	}
+	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
+
+	//TODO remove
+	timeoutHeight = clienttypes.Height{
+		RevisionNumber: 1,
+		RevisionHeight: 10000000000,
+	}
+
+	k.Logger(ctx).Debug(fmt.Sprintf("sending packet to chainlet %s to create an upgrade to version %s\n", chainlet.ChainId, chainlet.ChainletStackVersion))
+	_, err = k.TransmitCreateUpgradePacket(ctx, packetData, sdkchainlettypes.PortID, channelID, timeoutHeight, timeoutTimestamp)
+	if err != nil {
+		return
+	}
+
+	// Mark the chainlet as being upgraded
+	err = k.setUpgrading(ctx, chainlet, newVersion, upgradeHeight)
+	if err != nil {
+		err = fmt.Errorf("error while updating chainlet: %w", err)
+		return
+	}
+
+	height = upgradeHeight
+	return
+}
+
+// Verifies channel matches the client ID of a consumer
+func (k Keeper) verifyChannel(ctx sdk.Context, clientID string, channelID string) error {
+	channel, found := k.channelKeeper.GetChannel(ctx, sdkchainlettypes.PortID, channelID)
+	if !found {
+		return fmt.Errorf("channel %s not found (port: %s)", channelID, sdkchainlettypes.PortID)
+	}
+	if len(channel.ConnectionHops) == 0 {
+		return fmt.Errorf("no connection hops for channel %s", channelID)
+	}
+	connectionID := channel.ConnectionHops[0]
+	connection, found := k.connectionKeeper.GetConnection(ctx, connectionID)
+	if !found {
+		return fmt.Errorf("connection not found: %s", connectionID)
+	}
+	if connection.ClientId != clientID {
+		return fmt.Errorf("client ID of the provided channel does not match consumer client id (%s != %s)", connection.ClientId, clientID)
+	}
+
+	return nil
+}
+
+func (k Keeper) sendCancelUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, channelID string) (err error) {
+	if chainlet.Upgrade == nil {
+		panic("no upgrade")
+	}
+	// Get consumer client id
+	clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ConsumerId)
+	if !consumerRegistered {
+		err = errors.New("consumer not registered yet")
+		return
+	}
+	err = k.verifyChannel(ctx, clientID, channelID)
+	if err != nil {
+		return
+	}
+
+	clientRevisionHeight := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionHeight()
+	clientRevisionNumber := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionNumber()
+
+	// Create the IBC packet
+	planName, err := upgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
+	if err != nil {
+		return
+	}
+	packetData := sdkchainlettypes.CancelUpgradePacketData{
+		ChainId: chainlet.ChainId,
+		Plan:    planName,
+	}
+	err = packetData.ValidateBasic()
+	if err != nil {
+		return
+	}
+
+	// Timeout
+	//p := k.GetParams(ctx)
+	TimeoutHeight := uint64(300) //TODO p
+	TimeoutTime := 2 * time.Hour //TODO p
+	timeoutHeight := clienttypes.Height{
+		RevisionNumber: clientRevisionNumber,
+		RevisionHeight: clientRevisionHeight + TimeoutHeight,
+	}
+	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
+
+	//TODO remove
+	timeoutHeight = clienttypes.Height{
+		RevisionNumber: 1,
+		RevisionHeight: 10000000000,
+	}
+
+	k.Logger(ctx).Debug(fmt.Sprintf("sending packet to chainlet %s to cancel upgrade to version %s\n", chainlet.ChainId, chainlet.ChainletStackVersion))
+	_, err = k.TransmitCancelUpgradePacket(ctx, packetData, sdkchainlettypes.PortID, channelID, timeoutHeight, timeoutTimestamp)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

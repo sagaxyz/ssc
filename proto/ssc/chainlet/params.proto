@@ -19,5 +19,7 @@ message Params {
   // Allow launching chainlets as CCV consumers
   bool enableCCV = 7;
   // Minimum height difference when performing a breaking upgrade.
-  uint64 minimumUpgradeHeightDelta = 8;
+  uint64 upgradeMinimumHeightDelta = 8;
+  uint64 upgradeTimeoutHeight = 9;
+  uint64 upgradeTimeoutTime = 10;
 }

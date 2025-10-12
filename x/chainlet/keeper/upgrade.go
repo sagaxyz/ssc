@@ -205,20 +205,14 @@ func (k Keeper) sendCancelUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet,
 	}
 
 	// Timeout
-	//p := k.GetParams(ctx)
-	TimeoutHeight := uint64(300) //TODO p
-	TimeoutTime := 2 * time.Hour //TODO p
+	p := k.GetParams(ctx)
+	TimeoutHeight := p.TimeoutHeight 
+	TimeoutTime := p.TimeoutTime 
 	timeoutHeight := clienttypes.Height{
 		RevisionNumber: clientRevisionNumber,
 		RevisionHeight: clientRevisionHeight + TimeoutHeight,
 	}
 	timeoutTimestamp := uint64(ctx.BlockTime().Add(TimeoutTime).UnixNano())
-
-	//TODO remove
-	timeoutHeight = clienttypes.Height{
-		RevisionNumber: 1,
-		RevisionHeight: 10000000000,
-	}
 
 	k.Logger(ctx).Debug(fmt.Sprintf("sending packet to chainlet %s to cancel upgrade to version %s\n", chainlet.ChainId, chainlet.ChainletStackVersion))
 	_, err = k.TransmitCancelUpgradePacket(ctx, packetData, sdkchainlettypes.PortID, channelID, timeoutHeight, timeoutTimestamp)

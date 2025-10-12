@@ -27,6 +27,8 @@ func NewParams() Params {
 		MaxChainlets:                     500,
 		EnableCCV:                        true,
 		MinimumUpgradeHeightDelta:        100,
+		UpgradeTimeoutHeight:             500,
+		UpgradeTimeoutTime:               12 * time.Hour,
 	}
 }
 
@@ -46,6 +48,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte("LaunchDelay"), &p.LaunchDelay, validateDuration),
 		paramtypes.NewParamSetPair([]byte("EnableCCV"), &p.EnableCCV, validateBool),
 		paramtypes.NewParamSetPair([]byte("MinimumUpgradeHeightDelta"), &p.MinimumUpgradeHeightDelta, validateUint64),
+		paramtypes.NewParamSetPair([]byte("UpgradeTimeoutHeight"), &p.UpgradeTimeoutHeight, validateUint64),
+		paramtypes.NewParamSetPair([]byte("UpgradeTimeoutTime"), &p.UpgradeTimeoutTime, validateUint64),
 	}
 
 	return psp

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,13 +12,14 @@ const TypeMsgUpgradeChainlet = "upgrade_chainlet"
 
 var _ sdk.Msg = &MsgUpgradeChainlet{}
 
-func NewMsgUpgradeChainlet(creator string, chainId string, stackVersion string, heightDelta uint64, channelID string) *MsgUpgradeChainlet {
+func NewMsgUpgradeChainlet(creator string, chainId string, stackVersion string, heightDelta uint64, channelID string, unbondingPeriod *time.Duration) *MsgUpgradeChainlet {
 	return &MsgUpgradeChainlet{
-		Creator:      creator,
-		ChainId:      chainId,
-		StackVersion: stackVersion,
-		HeightDelta:  heightDelta,
-		ChannelId:    channelID,
+		Creator:         creator,
+		ChainId:         chainId,
+		StackVersion:    stackVersion,
+		HeightDelta:     heightDelta,
+		ChannelId:       channelID,
+		UnbondingPeriod: unbondingPeriod,
 	}
 }
 

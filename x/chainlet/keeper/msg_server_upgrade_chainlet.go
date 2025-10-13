@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	"golang.org/x/exp/slices"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
@@ -54,7 +56,14 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 			}
 			if newStack.CcvConsumer {
 				p := k.GetParams(ctx)
-				err := k.EnableConsumer(ctx, ogChainlet.ChainId, ctx.BlockTime().Add(p.LaunchDelay))
+
+				var unbondingPeriod time.Duration
+				if msg.UnbondingPeriod != nil {
+					unbondingPeriod = *msg.UnbondingPeriod
+				} else {
+					unbondingPeriod = ccvtypes.DefaultConsumerUnbondingPeriod
+				}
+				err := k.EnableConsumer(ctx, ogChainlet.ChainId, ctx.BlockTime().Add(p.LaunchDelay), unbondingPeriod)
 				if err != nil {
 					return nil, err
 				}

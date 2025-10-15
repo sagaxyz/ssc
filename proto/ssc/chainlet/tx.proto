@@ -23,9 +23,10 @@ service Msg {
       returns (MsgDisableChainletStackVersionResponse);
   rpc UpdateChainletStackFees(MsgUpdateChainletStackFees)
       returns (MsgUpdateChainletStackFeesResponse);
+  rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
+  rpc CancelChainletUpgrade(MsgCancelChainletUpgrade) returns (MsgCancelChainletUpgradeResponse);
 
   // this line is used by starport scaffolding # proto/tx/rpc
-  rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
 }
 message MsgCreateChainletStack {
   option (cosmos.msg.v1.signer) = "creator";
@@ -77,6 +78,7 @@ message MsgDisableChainletStackVersion {
   string displayName = 2;
   string version = 3;
 }
+
 message MsgDisableChainletStackVersionResponse {}
 
 message MsgUpgradeChainlet {
@@ -85,9 +87,20 @@ message MsgUpgradeChainlet {
   string chainId = 2;
   string stackVersion = 3;
   uint64 heightDelta = 4;
+  string channelId = 5;
 }
 
 message MsgUpgradeChainletResponse { uint64 height = 1; }
+
+message MsgCancelChainletUpgrade {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  string chainId = 2;
+  string version = 3;
+  string channelId = 4;
+}
+
+message MsgCancelChainletUpgradeResponse {}
 
 message MsgUpdateChainletStackFees {
   option (cosmos.msg.v1.signer) = "creator";
@@ -97,4 +110,5 @@ message MsgUpdateChainletStackFees {
 }
 
 message MsgUpdateChainletStackFeesResponse {}
+
 // this line is used by starport scaffolding # proto/tx/message

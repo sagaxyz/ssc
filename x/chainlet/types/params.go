@@ -26,7 +26,9 @@ func NewParams() Params {
 		LaunchDelay:                      3 * time.Minute,
 		MaxChainlets:                     500,
 		EnableCCV:                        true,
-		MinimumUpgradeHeightDelta:        100,
+		UpgradeMinimumHeightDelta:        100,
+		UpgradeTimeoutHeight:             500,
+		UpgradeTimeoutTime:               12 * time.Hour,
 	}
 }
 
@@ -45,7 +47,9 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte("AutomaticChainletUpgradeInterval"), &p.AutomaticChainletUpgradeInterval, validateInt64),
 		paramtypes.NewParamSetPair([]byte("LaunchDelay"), &p.LaunchDelay, validateDuration),
 		paramtypes.NewParamSetPair([]byte("EnableCCV"), &p.EnableCCV, validateBool),
-		paramtypes.NewParamSetPair([]byte("MinimumUpgradeHeightDelta"), &p.MinimumUpgradeHeightDelta, validateUint64),
+		paramtypes.NewParamSetPair([]byte("UpgradeMinimumHeightDelta"), &p.UpgradeMinimumHeightDelta, validateUint64),
+		paramtypes.NewParamSetPair([]byte("UpgradeTimeoutHeight"), &p.UpgradeTimeoutHeight, validateUint64),
+		paramtypes.NewParamSetPair([]byte("UpgradeTimeoutTime"), &p.UpgradeTimeoutTime, validateDuration),
 	}
 
 	return psp
@@ -68,11 +72,14 @@ func (p Params) Validate() error {
 	if err := validateBool(p.EnableCCV); err != nil {
 		return fmt.Errorf("param EnableCCV validation failed: %v", err)
 	}
-	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
-		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)
+	if err := validateUint64(p.UpgradeMinimumHeightDelta); err != nil {
+		return fmt.Errorf("param UpgradeMinimumHeightDelta validation failed: %v", err)
 	}
-	if err := validateUint64(p.MinimumUpgradeHeightDelta); err != nil {
-		return fmt.Errorf("param MinimumUpgradeHeightDelta validation failed: %v", err)
+	if err := validateUint64(p.UpgradeTimeoutHeight); err != nil {
+		return fmt.Errorf("param UpgradeTimeoutHeight validation failed: %v", err)
+	}
+	if err := validateDuration(p.UpgradeTimeoutTime); err != nil {
+		return fmt.Errorf("param UpgradeTimeoutTime validation failed: %v", err)
 	}
 	return nil
 }

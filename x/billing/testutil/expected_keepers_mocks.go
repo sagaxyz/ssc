@@ -14,6 +14,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	types2 "github.com/sagaxyz/ssc/x/chainlet/types"
 	types3 "github.com/sagaxyz/ssc/x/epochs/types"
+	types4 "github.com/sagaxyz/ssc/x/escrow/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -289,6 +290,22 @@ func (m *MockEscrowKeeper) BillAccount(ctx types.Context, amount types.Coin, cha
 func (mr *MockEscrowKeeperMockRecorder) BillAccount(ctx, amount, chainId, toModule interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).BillAccount), ctx, amount, chainId, toModule)
+}
+
+// GetChainletWithPools mocks base method.
+func (m *MockEscrowKeeper) GetChainletWithPools(ctx types.Context, chainId string) (types4.ChainletAccount, []*types4.DenomPool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChainletWithPools", ctx, chainId)
+	ret0, _ := ret[0].(types4.ChainletAccount)
+	ret1, _ := ret[1].([]*types4.DenomPool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetChainletWithPools indicates an expected call of GetChainletWithPools.
+func (mr *MockEscrowKeeperMockRecorder) GetChainletWithPools(ctx, chainId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainletWithPools", reflect.TypeOf((*MockEscrowKeeper)(nil).GetChainletWithPools), ctx, chainId)
 }
 
 // MockStakingKeeper is a mock of StakingKeeper interface.

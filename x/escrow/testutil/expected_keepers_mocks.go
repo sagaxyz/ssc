@@ -10,6 +10,7 @@ import (
 
 	types "github.com/cosmos/cosmos-sdk/types"
 	gomock "github.com/golang/mock/gomock"
+	types0 "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -163,4 +164,42 @@ func (m *MockBillingKeeper) BillAndRestartChainlet(ctx types.Context, chainId st
 func (mr *MockBillingKeeperMockRecorder) BillAndRestartChainlet(ctx, chainId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BillAndRestartChainlet", reflect.TypeOf((*MockBillingKeeper)(nil).BillAndRestartChainlet), ctx, chainId)
+}
+
+// MockChainletKeeper is a mock of ChainletKeeper interface.
+type MockChainletKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockChainletKeeperMockRecorder
+}
+
+// MockChainletKeeperMockRecorder is the mock recorder for MockChainletKeeper.
+type MockChainletKeeperMockRecorder struct {
+	mock *MockChainletKeeper
+}
+
+// NewMockChainletKeeper creates a new mock instance.
+func NewMockChainletKeeper(ctrl *gomock.Controller) *MockChainletKeeper {
+	mock := &MockChainletKeeper{ctrl: ctrl}
+	mock.recorder = &MockChainletKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockChainletKeeper) EXPECT() *MockChainletKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetChainletStackInfo mocks base method.
+func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, chainId string) (*types0.ChainletStack, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChainletStackInfo", ctx, chainId)
+	ret0, _ := ret[0].(*types0.ChainletStack)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetChainletStackInfo indicates an expected call of GetChainletStackInfo.
+func (mr *MockChainletKeeperMockRecorder) GetChainletStackInfo(ctx, chainId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainletStackInfo", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainletStackInfo), ctx, chainId)
 }

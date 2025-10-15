@@ -12,3 +12,7 @@ message Data {
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
   repeated string addresses = 2;
 }
+
+message Counter {
+  uint32 number = 1;
+}

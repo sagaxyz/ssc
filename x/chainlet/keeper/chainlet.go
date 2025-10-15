@@ -53,7 +53,7 @@ func (k *Keeper) NewChainlet(ctx sdk.Context, chainlet types.Chainlet) error {
 	return nil
 }
 
-func (k *Keeper) EnableConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+func (k *Keeper) EnableConsumer(ctx sdk.Context, chainId string, spawnTime time.Time, unbondingPeriod time.Duration) error {
 	chainlet, err := k.Chainlet(ctx, chainId)
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (k *Keeper) EnableConsumer(ctx sdk.Context, chainId string, spawnTime time.
 	chainlet.IsCCVConsumer = true
 	chainlet.SpawnTime = spawnTime
 
-	consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+	consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime, unbondingPeriod)
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,7 @@ func (k *Keeper) setPendingInit(ctx sdk.Context, consumerID string) {
 	store.Set([]byte(consumerID), k.cdc.MustMarshal(&types.PendingInit{}))
 }
 
-func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) (string, error) {
+func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time, unbondingPeriod time.Duration) (string, error) {
 	revision := ibcclienttypes.ParseChainID(chainId)
 	msg := &ccvprovidertypes.MsgCreateConsumer{
 		Submitter: authtypes.NewModuleAddress(types.ModuleName).String(),
@@ -28,7 +28,7 @@ func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Tim
 		InitializationParameters: &ccvprovidertypes.ConsumerInitializationParameters{
 			InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
 			SpawnTime:                         spawnTime,
-			UnbondingPeriod:                   ccvtypes.DefaultConsumerUnbondingPeriod, //TODO
+			UnbondingPeriod:                   unbondingPeriod,
 			CcvTimeoutPeriod:                  ccvtypes.DefaultCCVTimeoutPeriod,
 			TransferTimeoutPeriod:             ccvtypes.DefaultTransferTimeoutPeriod,
 			ConsumerRedistributionFraction:    "0.0",

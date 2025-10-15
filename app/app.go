@@ -517,6 +517,13 @@ func New(
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	// Hooks will be registered after LiquidKeeper is initialized
+	app.StakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(
+			app.DistrKeeper.Hooks(),
+			app.SlashingKeeper.Hooks(),
+			app.PeersKeeper.Hooks(),
+		),
+	)
 
 	// ... other modules keepers
 

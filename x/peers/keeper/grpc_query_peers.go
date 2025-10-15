@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sagaxyz/ssc/x/peers/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/sagaxyz/ssc/x/peers/types"
 )
 
 func (k Keeper) Peers(goCtx context.Context, req *types.QueryPeersRequest) (resp *types.QueryPeersResponse, err error) {
@@ -25,10 +25,8 @@ func (k Keeper) Peers(goCtx context.Context, req *types.QueryPeersRequest) (resp
 		return
 	}
 
-	peers := k.peers(ctx, req.ChainId)
-
 	resp = &types.QueryPeersResponse{
-		Peers: peers,
+		Peers: k.GetPeers(ctx, req.ChainId),
 	}
 	return
 }

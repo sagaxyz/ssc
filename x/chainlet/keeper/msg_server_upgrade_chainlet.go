@@ -37,8 +37,8 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 		}
 		if currentStack.CcvConsumer {
 			p := k.GetParams(ctx)
-			upgradeDelta := p.MinimumUpgradeHeightDelta + msg.HeightDelta
-			height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta)
+			upgradeDelta := p.UpgradeMinimumHeightDelta + msg.HeightDelta
+			height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta, msg.ChannelId)
 			if err != nil {
 				return nil, fmt.Errorf("error sending upgrade: %s", err)
 			}

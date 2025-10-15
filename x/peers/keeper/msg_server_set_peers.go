@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/sagaxyz/ssc/x/peers/types"
 )
@@ -22,14 +24,18 @@ func (k msgServer) SetPeers(goCtx context.Context, msg *types.MsgSetPeers) (resp
 		return
 	}
 
+	accAddr, err := sdk.AccAddressFromBech32(msg.Validator)
+	if err != nil {
+		err = cosmossdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+		return
+	}
+	valAddr := sdk.ValAddress(accAddr)
+
 	data := types.Data{
 		Updated:   ctx.BlockTime(),
 		Addresses: msg.Peers,
 	}
-	err = k.storeData(ctx, msg.ChainId, msg.Validator, data)
-	if err != nil {
-		panic(err) //TODO
-	}
+	k.StoreData(ctx, msg.ChainId, valAddr.String(), data)
 
 	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdatedChainlet{
 		ChainId: msg.ChainId,
@@ -38,5 +44,6 @@ func (k msgServer) SetPeers(goCtx context.Context, msg *types.MsgSetPeers) (resp
 		return
 	}
 
+	resp = &types.MsgSetPeersResponse{}
 	return
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	ccvconsumerante "github.com/cosmos/interchain-security/v7/app/consumer/ante"
+	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
 	sagaante "github.com/sagaxyz/saga-sdk/ante"
 )
 
@@ -45,6 +47,12 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		sagaante.NewMsgFilterDecorator(sagaante.BondedValidator(options.StakingKeeper), "/ssc.peers"),
+		ccvconsumerante.NewDisabledModulesDecorator(
+			sdk.MsgTypeURL(&ccvprovidertypes.MsgCreateConsumer{}),
+			sdk.MsgTypeURL(&ccvprovidertypes.MsgUpdateConsumer{}),
+			sdk.MsgTypeURL(&ccvprovidertypes.MsgRemoveConsumer{}),
+			sdk.MsgTypeURL(&ccvprovidertypes.MsgSetConsumerCommissionRate{}),
+		),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
 		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators

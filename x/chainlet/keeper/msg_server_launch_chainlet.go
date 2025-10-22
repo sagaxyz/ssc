@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
@@ -166,7 +167,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	// Add as a CCV consumer if enabled
 	if chainlet.IsCCVConsumer {
 		chainlet.SpawnTime = ctx.BlockTime().Add(p.LaunchDelay)
-		consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime)
+		consumerId, err := k.addConsumer(ctx, chainlet.ChainId, chainlet.SpawnTime, ccvtypes.DefaultConsumerUnbondingPeriod)
 		if err != nil {
 			return nil, err
 		}

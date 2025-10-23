@@ -33,6 +33,7 @@ type ProviderKeeper interface {
 	GetConsumerIdToChannelId(ctx sdk.Context, consumerId string) (string, bool)
 	SendVSCPacketsToChain(ctx sdk.Context, consumerID string, channelID string) error
 	GetConsumerPhase(ctx sdk.Context, consumerID string) ccvprovidertypes.ConsumerPhase
+	GetConsumerClientId(ctx sdk.Context, chainID string) (string, bool)
 }
 
 type ProviderMsgServer interface {

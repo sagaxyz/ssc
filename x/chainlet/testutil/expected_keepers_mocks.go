@@ -171,6 +171,21 @@ func (mr *MockProviderKeeperMockRecorder) AppendPendingVSCPackets(ctx, consumerI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendPendingVSCPackets", reflect.TypeOf((*MockProviderKeeper)(nil).AppendPendingVSCPackets), varargs...)
 }
 
+// GetConsumerClientId mocks base method.
+func (m *MockProviderKeeper) GetConsumerClientId(ctx types.Context, chainID string) (string, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConsumerClientId", ctx, chainID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetConsumerClientId indicates an expected call of GetConsumerClientId.
+func (mr *MockProviderKeeperMockRecorder) GetConsumerClientId(ctx, chainID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConsumerClientId", reflect.TypeOf((*MockProviderKeeper)(nil).GetConsumerClientId), ctx, chainID)
+}
+
 // GetConsumerIdToChannelId mocks base method.
 func (m *MockProviderKeeper) GetConsumerIdToChannelId(ctx types.Context, consumerId string) (string, bool) {
 	m.ctrl.T.Helper()

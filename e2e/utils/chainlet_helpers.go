@@ -40,8 +40,6 @@ type LaunchChainletParams struct {
 	Service        bool   // optional flag --service-chainlet
 }
 
-/* ========== High-level exec helpers ========== */
-
 func ChainletCreateStack(ctx context.Context, chain ibc.Chain, signer ibc.Wallet, fees string, p CreateStackParams) (txhash string, code uint32, raw string, err error) {
 	args := []string{
 		"chainlet", "create-chainlet-stack",

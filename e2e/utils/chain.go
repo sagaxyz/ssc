@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -17,7 +15,7 @@ import (
 
 const (
 	// Genesis params (aligned with prepare-env.sh, with staking/bond denom = utsaga)
-	VotingPeriod     = "600s"
+	VotingPeriod     = "10s"
 	MaxDepositPeriod = "600s"
 	ExpeditedVoting  = "60s"
 
@@ -44,7 +42,7 @@ func GetDockerImage() (repo, version string) {
 
 func (icn *InterchainNetwork) createAndAddChains(t *testing.T) ([]ibc.Chain, error) {
 	chainSpecs := make([]*interchaintest.ChainSpec, icn.config.nChains)
-	for i := uint8(0); i < icn.config.nChains; i++ {
+	for i := range icn.config.nChains {
 		chainSpecs[i] = createChainSpec(
 			icn.config,
 			fmt.Sprintf("chain%d", i+1),
@@ -143,35 +141,6 @@ func createChainSpec(config networkConfig, name, chainID, denom, stakeDenom stri
 func createIbcChains(t *testing.T, chainSpecs []*interchaintest.ChainSpec) ([]ibc.Chain, error) {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t, zaptest.Level(zap.ErrorLevel)), chainSpecs)
 	return cf.Chains(t.Name())
-}
-
-// QueryChain enables sending queries via the node CLI.
-func (icn *InterchainNetwork) QueryChain(ctx context.Context, chain ibc.Chain, args ...string) (string, error) {
-	if len(args) == 0 {
-		return "", fmt.Errorf("no arguments provided")
-	}
-
-	node, err := getNode(chain)
-	if err != nil {
-		return "", fmt.Errorf("failed to get node: %w", err)
-	}
-
-	stdOut, stdErr, err := node.ExecQuery(ctx, args...)
-	if err != nil {
-		return "", fmt.Errorf("failed to query chain: %w; stdErr: %s", err, stdErr)
-	}
-
-	return strings.TrimSpace(string(stdOut)), nil
-}
-
-// getHostName returns the host name of the first validator node of the given cosmos.CosmosChain.
-func getHostName(chain ibc.Chain) (string, error) {
-	node, err := getNode(chain)
-	if err != nil {
-		return "", err
-	}
-
-	return node.HostName(), nil
 }
 
 // getNode casts the given ibc.Chain to a Cosmos chain and returns

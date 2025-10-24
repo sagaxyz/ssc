@@ -11,6 +11,7 @@ import (
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/tidwall/gjson"
 )
 
 const (
@@ -112,7 +113,7 @@ func parseTxHash(stdout string) string {
 		}
 	}
 	// try naive extract from JSON-ish text
-	return ExtractField(stdout, "txhash")
+	return gjson.Get(stdout, "txhash").String()
 }
 
 func queryTxCodeWithRetry(ctx context.Context, chain ibc.Chain, txhash string, attempts int, sleep time.Duration) (uint32, error) {
@@ -140,19 +141,4 @@ func queryTxCodeWithRetry(ctx context.Context, chain ibc.Chain, txhash string, a
 		}
 	}
 	return 0, lastErr
-}
-
-// ExtractField fetches a naive `"key":"value"` from a small JSON string.
-func ExtractField(s, key string) string {
-	key = `"` + key + `":"`
-	i := strings.Index(s, key)
-	if i < 0 {
-		return ""
-	}
-	i += len(key)
-	j := strings.Index(s[i:], `"`)
-	if j < 0 {
-		return ""
-	}
-	return s[i : i+j]
 }

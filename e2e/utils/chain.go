@@ -16,7 +16,7 @@ import (
 const (
 	// Genesis params (aligned with prepare-env.sh, with staking/bond denom = utsaga)
 	VotingPeriod     = "10s"
-	MaxDepositPeriod = "600s"
+	MaxDepositPeriod = "10s"
 	ExpeditedVoting  = "5s"
 
 	MinDeposit          = "250000000"

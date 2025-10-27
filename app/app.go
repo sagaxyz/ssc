@@ -147,6 +147,9 @@ import (
 	peerskeeper "github.com/sagaxyz/ssc/x/peers/keeper"
 	peerstypes "github.com/sagaxyz/ssc/x/peers/types"
 
+	liquidmodule "github.com/cosmos/gaia/v25/x/liquid"
+	liquidmodulekeeper "github.com/cosmos/gaia/v25/x/liquid/keeper"
+	liquidmoduletypes "github.com/cosmos/gaia/v25/x/liquid/types"
 	gmpmodule "github.com/sagaxyz/ssc/x/gmp"
 	gmpmodulekeeper "github.com/sagaxyz/ssc/x/gmp/keeper"
 	gmpmoduletypes "github.com/sagaxyz/ssc/x/gmp/types"
@@ -237,6 +240,7 @@ var (
 		peerstypes.ModuleName:                nil,
 		ccvprovidertypes.ConsumerRewardsPool: nil,
 		"developer-credits":                  {authtypes.Minter, authtypes.Burner}, // temporary module account for upgrade 0.5
+		liquidmoduletypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -298,6 +302,7 @@ type App struct {
 	DacKeeper      aclkeeper.Keeper
 	PeersKeeper    peerskeeper.Keeper
 	GmpKeeper      gmpmodulekeeper.Keeper
+	LiquidKeeper   liquidmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -376,6 +381,7 @@ func New(
 		consensusparamtypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		gmpmoduletypes.StoreKey,
+		liquidmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -510,9 +516,7 @@ func New(
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
-	)
+	// Hooks will be registered after LiquidKeeper is initialized
 
 	// ... other modules keepers
 
@@ -728,7 +732,26 @@ func New(
 		app.GetSubspace(gmpmoduletypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper,
 	)
+
+	app.LiquidKeeper = *liquidmodulekeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[liquidmoduletypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper, // Use the actual distribution keeper
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(), // Use governance module as authority
+	)
+
+	// register the liquid hooks with staking keeper
+	// NOTE: this must be done after LiquidKeeper is initialized
+	app.StakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks(), app.LiquidKeeper.Hooks()),
+	)
+
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
+
+	liquidModule := liquidmodule.NewAppModule(appCodec, &app.LiquidKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -796,6 +819,7 @@ func New(
 		aclModule,
 		peersModule,
 		gmpModule,
+		liquidModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -852,6 +876,7 @@ func New(
 		peerstypes.StoreKey,
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
+		liquidmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -887,6 +912,7 @@ func New(
 		peerstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
+		liquidmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -924,6 +950,7 @@ func New(
 		peerstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
+		liquidmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
@@ -1180,6 +1207,7 @@ func GetMaccPerms() map[string][]string {
 }
 
 // initParamsKeeper init params keeper and its subspaces
+//
 //nolint:staticcheck
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
@@ -1205,6 +1233,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
 	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 	paramsKeeper.Subspace(gmpmoduletypes.ModuleName)
+	paramsKeeper.Subspace(liquidmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

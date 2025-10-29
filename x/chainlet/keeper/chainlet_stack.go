@@ -30,7 +30,7 @@ func (k *Keeper) NewChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 			return fmt.Errorf("version string '%s' invalid", version.Version)
 		}
 		if version.Enabled {
-			err := k.AddVersion(ctx, cs.DisplayName, version.Version)
+			err := k.AddVersion(ctx, cs.DisplayName, version)
 			if err != nil {
 				return err
 			}
@@ -65,7 +65,7 @@ func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stackName string, vers
 
 	// Store in the version tree for automatic updates
 	if version.Enabled {
-		err = k.AddVersion(ctx, stack.DisplayName, version.Version)
+		err = k.AddVersion(ctx, stack.DisplayName, version)
 		if err != nil {
 			return err
 		}
@@ -114,23 +114,33 @@ func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.Cha
 	return
 }
 
-func (k *Keeper) getChainletStackVersion(ctx sdk.Context, name, version string) (params types.ChainletStackParams, err error) {
-	stack, err := k.getChainletStack(ctx, name)
-	if err != nil {
-		err = fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
-		return
-	}
-
-	//TODO avoid loop
-	for _, v := range stack.Versions {
-		if v.Version == version {
-			params = v
-			return
+func (k *Keeper) getChainletStackVersion(ctx sdk.Context, name, version string) (types.ChainletStackParams, error) {
+	// Ensure caches are loaded
+	if k.stackVersionParams == nil || k.stackVersions == nil {
+		if err := k.loadVersions(ctx); err != nil {
+			return types.ChainletStackParams{}, fmt.Errorf("cannot load versions: %w", err)
 		}
 	}
 
-	err = fmt.Errorf("stack version %s is not found", version)
-	return
+	// Optional: still check that the stack exists on-chain
+	if _, err := k.getChainletStack(ctx, name); err != nil {
+		return types.ChainletStackParams{}, fmt.Errorf("cannot get chainlet stack %q: %w", name, err)
+	}
+
+	// O(1) presence check + params fetch
+	verKey := normalizeVer(version)
+	if _, ok := k.stackVersions[name]; !ok {
+		return types.ChainletStackParams{}, fmt.Errorf("stack %q not found", name)
+	}
+	pmap := k.stackVersionParams[name]
+	if pmap == nil {
+		return types.ChainletStackParams{}, fmt.Errorf("no versions indexed for stack %q", name)
+	}
+	p, ok := pmap[verKey]
+	if !ok {
+		return types.ChainletStackParams{}, fmt.Errorf("stack version %q is not found", version)
+	}
+	return p, nil
 }
 
 // UpdateChainletStackFees updates the per-stack fees in the exact order submitted.

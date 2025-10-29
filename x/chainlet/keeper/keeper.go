@@ -30,7 +30,8 @@ type Keeper struct {
 
 	ibcKeeperFn func() *ibckeeper.Keeper
 
-	stackVersions map[string]*versions.Versions // display name => version tree
+	stackVersions      map[string]*versions.Versions // display name => version tree
+	stackVersionParams map[string]map[string]types.ChainletStackParams
 }
 
 func NewKeeper(

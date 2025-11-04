@@ -514,17 +514,6 @@ func New(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	// Hooks will be registered after LiquidKeeper is initialized
-	app.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(
-			app.DistrKeeper.Hooks(),
-			app.SlashingKeeper.Hooks(),
-			app.PeersKeeper.Hooks(),
-		),
-	)
-
 	// ... other modules keepers
 
 	// Create IBC Keeper
@@ -753,7 +742,12 @@ func New(
 	// register the liquid hooks with staking keeper
 	// NOTE: this must be done after LiquidKeeper is initialized
 	app.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks(), app.LiquidKeeper.Hooks()),
+		stakingtypes.NewMultiStakingHooks(
+			app.DistrKeeper.Hooks(),
+			app.SlashingKeeper.Hooks(),
+			app.PeersKeeper.Hooks(),
+			app.LiquidKeeper.Hooks(),
+		),
 	)
 
 	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)

@@ -94,6 +94,10 @@ func (s *TestSuite) SetupTest() {
 		Return([]stakingtypes.Validator{}, nil).
 		AnyTimes()
 
+	s.escrowKeeper.EXPECT().
+		GetSupportedDenoms(gomock.Any()).
+		Return([]string{"utsaga", "utagas"}).
+		AnyTimes()
 	//nolint:staticcheck
 	paramsKeeper := paramskeeper.NewKeeper(encCfg.Codec, encCfg.Amino, paramsKey, paramsTKey)
 	paramsKeeper.Subspace(paramstypes.ModuleName)

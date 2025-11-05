@@ -58,3 +58,8 @@ func (k *Keeper) UpdateKeeper(newKeeper interface{}) {
 		k.chainletKeeper = v
 	}
 }
+
+func (k Keeper) GetSupportedDenoms(ctx sdk.Context) []string {
+	params := k.GetParams(ctx)
+	return params.SupportedDenoms
+}

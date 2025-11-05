@@ -494,6 +494,20 @@ func (mr *MockEscrowKeeperMockRecorder) NewChainletAccount(ctx, address, chainId
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChainletAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).NewChainletAccount), ctx, address, chainId, depositAmount)
 }
 
+// GetSupportedDenoms mocks base method.
+func (m *MockEscrowKeeper) GetSupportedDenoms(ctx types.Context) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSupportedDenoms", ctx)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// GetSupportedDenoms indicates an expected call of GetSupportedDenoms.
+func (mr *MockEscrowKeeperMockRecorder) GetSupportedDenoms(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupportedDenoms", reflect.TypeOf((*MockEscrowKeeper)(nil).GetSupportedDenoms), ctx)
+}
+
 // MockAclKeeper is a mock of AclKeeper interface.
 type MockAclKeeper struct {
 	ctrl     *gomock.Controller

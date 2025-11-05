@@ -35,6 +35,20 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 		CcvConsumer: msg.CcvConsumer,
 	}
 	metaDataUpsert := []types.ChainletStackParams{metaData}
+
+	ok := false
+	denoms := k.escrowKeeper.GetSupportedDenoms(ctx)
+	for _, denom := range denoms {
+		if denom == msg.Fees.Denom {
+			ok = true
+			break
+		}
+	}
+
+	if !ok {
+		return nil, fmt.Errorf("denom %s not supported for escrow deposits, supported %v", msg.Fees.Denom, denoms)
+	}
+
 	chainletStack := types.ChainletStack{
 		Creator:     msg.Creator,
 		DisplayName: msg.DisplayName,

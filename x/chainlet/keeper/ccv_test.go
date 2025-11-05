@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/golang/mock/gomock"
 	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
+	"github.com/golang/mock/gomock"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )

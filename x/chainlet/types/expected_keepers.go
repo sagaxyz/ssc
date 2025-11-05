@@ -57,6 +57,7 @@ type BillingKeeper interface {
 
 type EscrowKeeper interface {
 	NewChainletAccount(ctx sdk.Context, address sdk.AccAddress, chainId string, depositAmount sdk.Coin) error
+	GetSupportedDenoms(ctx sdk.Context) []string
 }
 
 type AclKeeper interface {

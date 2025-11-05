@@ -14,4 +14,6 @@ var (
 	ErrInvalidDenom            = cosmossdkerrors.Register(ModuleName, 5702, "Invalid denom.")
 	ErrInsufficientBalance     = cosmossdkerrors.Register(ModuleName, 5703, "Insufficient balance.")
 	ErrChainletAccountNotFound = cosmossdkerrors.Register(ModuleName, 5704, "Chainlet account not found.")
+	ErrUnauthorized            = cosmossdkerrors.Register(ModuleName, 5705, "Unauthorized action.")
+	ErrInvalidParams           = cosmossdkerrors.Register(ModuleName, 5706, "Invalid parameters.")
 )

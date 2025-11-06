@@ -20,13 +20,8 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return &types.MsgUpdateParamsResponse{}, err
-	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
 
 	addr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
@@ -38,9 +33,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	}
 
 	k.SetParams(ctx, *msg.Params)
-	if err != nil {
-		return &types.MsgUpdateParamsResponse{}, err
-	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
 }

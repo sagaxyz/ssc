@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	cosmossdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
@@ -46,7 +47,11 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 	}
 
 	if !ok {
-		return nil, fmt.Errorf("denom %s not supported for escrow deposits, supported %v", msg.Fees.Denom, denoms)
+		return nil, cosmossdkerrors.Wrapf(
+			types.ErrInvalidDenom,
+			"denom %s not supported for escrow deposits",
+			msg.Fees.Denom,
+		)
 	}
 
 	chainletStack := types.ChainletStack{

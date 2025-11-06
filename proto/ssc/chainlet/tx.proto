@@ -3,6 +3,7 @@ syntax = "proto3";
 package ssc.chainlet;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ssc/chainlet/chainlet_params.proto";
 import "ssc/chainlet/chainlet_stack.proto";
@@ -24,7 +25,8 @@ service Msg {
   rpc UpdateChainletStackFees(MsgUpdateChainletStackFees)
       returns (MsgUpdateChainletStackFeesResponse);
   rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
-  rpc CancelChainletUpgrade(MsgCancelChainletUpgrade) returns (MsgCancelChainletUpgradeResponse);
+  rpc CancelChainletUpgrade(MsgCancelChainletUpgrade)
+      returns (MsgCancelChainletUpgradeResponse);
 
   // this line is used by starport scaffolding # proto/tx/rpc
 }
@@ -88,6 +90,8 @@ message MsgUpgradeChainlet {
   string stackVersion = 3;
   uint64 heightDelta = 4;
   string channelId = 5;
+  google.protobuf.Duration unbondingPeriod = 6
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = true ];
 }
 
 message MsgUpgradeChainletResponse { uint64 height = 1; }

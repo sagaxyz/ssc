@@ -76,7 +76,7 @@ func (s *TestSuite) TestDisabledVersionsUpgrade() {
 
 	// Try and fail to upgrade the chainlet to a disabled stack version
 	_, err = s.msgServer.UpgradeChainlet(s.ctx, types.NewMsgUpgradeChainlet(
-		creator.String(), "test_12346-1", ver2, 0, "",
+		creator.String(), "test_12346-1", ver2, 0, "", nil,
 	))
 	s.Require().Error(err)
 }

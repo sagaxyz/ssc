@@ -122,10 +122,7 @@ func (k *Keeper) getChainletStackVersion(ctx sdk.Context, name, version string) 
 		}
 	}
 
-	// Optional: still check that the stack exists on-chain
-	if _, err := k.getChainletStack(ctx, name); err != nil {
-		return types.ChainletStackParams{}, fmt.Errorf("cannot get chainlet stack %q: %w", name, err)
-	}
+	// The stack existence is checked via the caches below.
 
 	// O(1) presence check + params fetch
 	verKey := normalizeVer(version)

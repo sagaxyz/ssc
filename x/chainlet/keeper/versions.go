@@ -26,7 +26,7 @@ func (k *Keeper) loadVersions(ctx sdk.Context) error {
 			k.stackVersions[stack.DisplayName] = versions.New()
 		}
 		if k.stackVersionParams[stack.DisplayName] == nil {
-			k.stackVersionParams[stack.DisplayName] = make(map[string]types.ChainletStackParams, len(stack.Versions))
+			k.stackVersionParams[stack.DisplayName] = make(map[string]types.ChainletStackParams)
 		}
 
 		// single pass to fill both indexes

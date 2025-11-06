@@ -11,66 +11,86 @@ import (
 func (k *Keeper) loadVersions(ctx sdk.Context) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
 
-	iterator := store.Iterator(nil, nil)
-	defer iterator.Close()
+	it := store.Iterator(nil, nil)
+	defer it.Close()
 
 	k.stackVersions = make(map[string]*versions.Versions)
-	for ; iterator.Valid(); iterator.Next() {
-		var stack types.ChainletStack
-		k.cdc.MustUnmarshal(iterator.Value(), &stack)
+	k.stackVersionParams = make(map[string]map[string]types.ChainletStackParams)
 
+	for ; it.Valid(); it.Next() {
+		var stack types.ChainletStack
+		k.cdc.MustUnmarshal(it.Value(), &stack)
+
+		// init caches for this stack
 		if k.stackVersions[stack.DisplayName] == nil {
 			k.stackVersions[stack.DisplayName] = versions.New()
 		}
-		for _, version := range stack.Versions {
-			if !version.Enabled {
+		if k.stackVersionParams[stack.DisplayName] == nil {
+			k.stackVersionParams[stack.DisplayName] = make(map[string]types.ChainletStackParams)
+		}
+
+		// single pass to fill both indexes
+		for _, sv := range stack.Versions {
+			if !sv.Enabled {
 				continue
 			}
-			err := k.stackVersions[stack.DisplayName].Add(version.Version)
-			if err != nil {
+			// presence cache
+			if err := k.stackVersions[stack.DisplayName].Add(sv.Version); err != nil {
 				return err
 			}
+			// params cache
+			k.stackVersionParams[stack.DisplayName][normalizeVer(sv.Version)] = sv
 		}
 	}
-
 	return nil
 }
 
-func (k *Keeper) AddVersion(ctx sdk.Context, stackName string, version string) error {
-	if k.stackVersions == nil {
-		err := k.loadVersions(ctx)
-		if err != nil {
+func normalizeVer(v string) string {
+	if len(v) > 0 && (v[0] == 'v' || v[0] == 'V') {
+		return v[1:]
+	}
+	return v
+}
+
+func (k *Keeper) AddVersion(ctx sdk.Context, stackName string, params types.ChainletStackParams) error {
+	version := params.Version
+	if k.stackVersions == nil || k.stackVersionParams == nil {
+		if err := k.loadVersions(ctx); err != nil {
 			return err
 		}
 	}
-
 	if k.stackVersions[stackName] == nil {
 		k.stackVersions[stackName] = versions.New()
 	}
-	err := k.stackVersions[stackName].Add(version)
-	if err != nil {
+	if k.stackVersionParams[stackName] == nil {
+		k.stackVersionParams[stackName] = make(map[string]types.ChainletStackParams)
+	}
+	if err := k.stackVersions[stackName].Add(version); err != nil {
 		return err
 	}
-
+	k.stackVersionParams[stackName][normalizeVer(version)] = params
 	return nil
 }
 
-func (k *Keeper) RemoveVersion(ctx sdk.Context, stackName string, version string) error {
-	if k.stackVersions == nil {
+func (k *Keeper) RemoveVersion(ctx sdk.Context, stackName, version string) error {
+	if k.stackVersions == nil || k.stackVersionParams == nil {
 		return nil
 	}
-	if k.stackVersions[stackName] == nil {
-		return nil
+	verKey := normalizeVer(version)
+	if s := k.stackVersions[stackName]; s != nil {
+		if err := s.Remove(version); err != nil {
+			return err
+		}
+		if s.Empty() {
+			delete(k.stackVersions, stackName)
+		}
 	}
-
-	err := k.stackVersions[stackName].Remove(version)
-	if err != nil {
-		return err
+	if m := k.stackVersionParams[stackName]; m != nil {
+		delete(m, verKey)
+		if len(m) == 0 {
+			delete(k.stackVersionParams, stackName)
+		}
 	}
-	if k.stackVersions[stackName].Empty() {
-		delete(k.stackVersions, stackName)
-	}
-
 	return nil
 }
 

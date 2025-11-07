@@ -125,6 +125,19 @@ _print_pool_from_json() {
   '
 }
 
+# Return the integer balance for a given pool (0 if missing)
+get_pool_balance() {
+  local cid="$1" d="$2"
+  sscd q escrow pools "$cid" -o json | jq -r --arg d "$d" '
+    try (
+      .pools
+      | map(select(.denom == $d))
+      | .[0].balance.amount
+      | tonumber
+    ) catch 0
+  '
+}
+
 # Print a funder position if it exists
 _print_funder_if_any() {
   local cid="$1" d="$2" addr="$3"
@@ -427,6 +440,105 @@ run_test "sscd tx escrow withdraw ${cid_a_2} \
   --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
   0 "acct1 withdrew from ${cid_a_2}" "acct1 withdraw failed"
 show_escrow_state "${cid_a_2}"
+
+# ==============================
+# Test 5 — Insufficient non-zero in A, sufficient in B → bill from B (no failure)
+# ==============================
+echo "=== Test 5: A has dust/insufficient, B sufficient → B gets billed, A skipped ==="
+
+cid_mix_1="mychainmix_6161-1"
+
+# Launch a new chainlet (fees are already prioritized A,B from earlier)
+run_test "sscd tx chainlet launch-chainlet \"\$(sscd keys show -a ${key} --keyring-backend ${keyring_backend})\" \
+  ${stack_name} ${stack_ver_v1} mychainmix ${chainlet_denom} '{}' \
+  --evm-chain-id 6161 --network-version 1 --gas ${gas_limit} \
+  --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
+  0 "launched ${cid_mix_1} (for A-insufficient/B-sufficient test)" "failed to launch ${cid_mix_1}"
+
+ensure_status "${cid_mix_1}" "STATUS_ONLINE"
+
+# Ensure escrow is empty right after launch, so A definitely starts at 0
+echo "🧽 Ensuring empty escrow on ${cid_mix_1} (best-effort withdraw)"
+sscd tx escrow withdraw "${cid_mix_1}" \
+  --from "${key}" --keyring-backend "${keyring_backend}" --fees "${fees}" -o json -y >/dev/null 2>&1 || true
+
+# small settle
+sleep 1
+
+# Verify A pool is 0 before we begin
+a_zero_pre="$(get_pool_balance "${cid_mix_1}" "${denom}")"
+if [[ ! "$a_zero_pre" =~ ^[0-9]+$ ]]; then
+  echo "❌ non-numeric A balance pre-check: ${a_zero_pre}"
+  cleanup_sscd; exit 1
+fi
+if (( a_zero_pre != 0 )); then
+  echo "❌ expected A=0 after withdraw, got ${a_zero_pre}"
+  show_escrow_state "${cid_mix_1}"
+  cleanup_sscd; exit 1
+fi
+echo "✅ A is zero after withdraw"
+
+# Make A insufficient but non-zero; make B clearly sufficient for at least one epoch
+insuff_a_amt="500${denom}"     # < epoch_fee_a (1000${denom})
+suff_b_amt="5000${denom_b}"    # >= epoch_fee_b (1000${denom_b})
+
+run_test "sscd tx escrow deposit ${insuff_a_amt} ${cid_mix_1} \
+  --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
+  0 "deposited insufficient-but-nonzero A into ${cid_mix_1}" "failed to deposit A (insufficient)"
+
+run_test "sscd tx escrow deposit ${suff_b_amt} ${cid_mix_1} \
+  --from ${key} --keyring-backend ${keyring_backend} --fees ${fees} -o json -y" \
+  0 "deposited sufficient B into ${cid_mix_1}" "failed to deposit B (sufficient)"
+
+echo "🔎 Pre-billing pool balances on ${cid_mix_1}"
+show_escrow_state "${cid_mix_1}"
+
+a_pre="$(get_pool_balance "${cid_mix_1}" "${denom}")"
+b_pre="$(get_pool_balance "${cid_mix_1}" "${denom_b}")"
+
+# Guard numeric
+[[ "$a_pre" =~ ^[0-9]+$ && "$b_pre" =~ ^[0-9]+$ ]] \
+  || { echo "❌ non-numeric pre-billing balances: A=${a_pre}, B=${b_pre}"; cleanup_sscd; exit 1; }
+
+# Wait a billing interval; expect one epoch charge.
+sleep_billing 70
+
+# Billing APIs should respond (means no failure)
+sscd q billing get-billing-history "${cid_mix_1}" > /dev/null 2>&1 && echo "✅ billing history fetched" || { echo "❌ billing history missing"; cleanup_sscd; exit 1; }
+sscd q billing get-validator-payout-history "${cid_mix_1}" > /dev/null 2>&1 && echo "✅ validator payout fetched" || { echo "❌ validator payout missing"; cleanup_sscd; exit 1; }
+
+echo "🔎 Post-billing pool balances on ${cid_mix_1}"
+show_escrow_state "${cid_mix_1}"
+
+a_post="$(get_pool_balance "${cid_mix_1}" "${denom}")"
+b_post="$(get_pool_balance "${cid_mix_1}" "${denom_b}")"
+
+# Guard numeric
+[[ "$a_post" =~ ^[0-9]+$ && "$b_post" =~ ^[0-9]+$ ]] \
+  || { echo "❌ non-numeric post-billing balances: A=${a_post}, B=${b_post}"; cleanup_sscd; exit 1; }
+
+# Compute deltas and assert behavior:
+# - A should be unchanged (insufficient → skipped, not failed)
+# - B should decrease by at least one epoch fee (>= epoch_fee_b)
+delta_a=$(( a_pre - a_post ))
+delta_b=$(( b_pre - b_post ))
+
+echo "A delta: ${delta_a} (${denom}); B delta: ${delta_b} (${denom_b})"
+
+# epoch_fee_b is "1000${denom_b}" → parse 1000 as integer
+req_b_epoch_fee=1000
+
+if (( delta_a == 0 )) && (( delta_b >= req_b_epoch_fee )); then
+  echo "✅ Billing skipped A (insufficient) and successfully billed B (>= ${req_b_epoch_fee}${denom_b})"
+else
+  echo "❌ Unexpected billing behavior:"
+  echo "   A: pre=${a_pre}, post=${a_post} (delta=${delta_a}; expected 0)"
+  echo "   B: pre=${b_pre}, post=${b_post} (delta=${delta_b}; expected >= ${req_b_epoch_fee})"
+  cleanup_sscd
+  exit 1
+fi
+
+ensure_status "${cid_mix_1}" "STATUS_ONLINE"
 
 # ==============================
 # Done

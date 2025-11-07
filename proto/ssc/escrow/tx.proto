@@ -2,6 +2,7 @@ syntax = "proto3";
 package ssc.escrow;
 
 import "cosmos/msg/v1/msg.proto";
+import "ssc/escrow/params.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -12,6 +13,7 @@ service Msg {
   option (cosmos.msg.v1.service) = true;
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -33,3 +35,11 @@ message MsgWithdraw {
 message MsgWithdrawResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
+
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  string authority = 1;
+  Params params = 2;
+}
+
+message MsgUpdateParamsResponse {}

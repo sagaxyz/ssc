@@ -25,7 +25,8 @@ service Msg {
   rpc UpdateChainletStackFees(MsgUpdateChainletStackFees)
       returns (MsgUpdateChainletStackFeesResponse);
   rpc UpgradeChainlet(MsgUpgradeChainlet) returns (MsgUpgradeChainletResponse);
-  rpc CancelChainletUpgrade(MsgCancelChainletUpgrade) returns (MsgCancelChainletUpgradeResponse);
+  rpc CancelChainletUpgrade(MsgCancelChainletUpgrade)
+      returns (MsgCancelChainletUpgradeResponse);
 
   // this line is used by starport scaffolding # proto/tx/rpc
 }

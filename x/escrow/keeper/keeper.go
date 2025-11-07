@@ -19,6 +19,7 @@ type (
 		bankKeeper     types.BankKeeper
 		billingKeeper  types.BillingKeeper
 		chainletKeeper types.ChainletKeeper
+		aclKeeper      types.AclKeeper
 	}
 )
 
@@ -29,7 +30,7 @@ func NewKeeper(
 	bk types.BankKeeper,
 	billingKeeper types.BillingKeeper,
 	chainletKeeper types.ChainletKeeper,
-
+	aclKeeper types.AclKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -43,6 +44,7 @@ func NewKeeper(
 		bankKeeper:     bk,
 		billingKeeper:  billingKeeper,
 		chainletKeeper: chainletKeeper,
+		aclKeeper:      aclKeeper,
 	}
 }
 
@@ -56,5 +58,7 @@ func (k *Keeper) UpdateKeeper(newKeeper interface{}) {
 		k.billingKeeper = v
 	case types.ChainletKeeper:
 		k.chainletKeeper = v
+	case types.AclKeeper:
+		k.aclKeeper = v
 	}
 }

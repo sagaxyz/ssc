@@ -3,6 +3,7 @@ package types
 import (
 	fmt "fmt"
 
+	cosmossdkerrors "cosmossdk.io/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -36,6 +37,9 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	if err := validateDenoms(p.SupportedDenoms); err != nil {
+		return cosmossdkerrors.Wrapf(ErrInvalidParams, err.Error())
+	}
 	return nil
 }
 

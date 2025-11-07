@@ -659,6 +659,7 @@ func New(
 		app.BankKeeper,
 		nil,
 		nil,
+		app.DacKeeper,
 	)
 
 	app.BillingKeeper = *billingmodulekeeper.NewKeeper(

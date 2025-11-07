@@ -7,6 +7,11 @@ import (
 	chainlettypes "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+type AclKeeper interface {
+	Allowed(ctx sdk.Context, addr sdk.AccAddress) bool
+	IsAdmin(ctx sdk.Context, addr sdk.AccAddress) bool
+}
+
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI

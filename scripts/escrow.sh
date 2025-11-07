@@ -128,34 +128,14 @@ _print_pool_from_json() {
 # Return the integer balance for a given pool (0 if missing)
 get_pool_balance() {
   local cid="$1" d="$2"
-  sscd q escrow pools "$cid" -o json \
-    | jq -r --arg d "$d" '
-        # pick the pool for denom $d (handles proto/JSON casing)
-        (.pools // .Pools // [])
-        | map(select((.denom // .Denom) == $d))
-        | if length == 0 then
-            0
-          else
-            .[0] as $p
-            | ($p.balance // $p.Balance) as $bal
-            | if $bal|type == "number" then
-                ($bal | floor)                    # numeric already
-              elif $bal|type == "string" then
-                ( if ($bal | test("^[0-9]+$")) then
-                    ($bal | tonumber)            # "28500"
-                  elif ($bal | test("^[0-9]+[a-zA-Z/]+$")) then
-                    ($bal | capture("^(?<n>[0-9]+)") | .n | tonumber)  # "28500utsaga"
-                  else
-                    0
-                  end )
-              elif $bal|type == "object" then
-                # coin object {"denom":"...","amount":"..."} (or proto-cased)
-                (($bal.amount // $bal.Amount // "0") | tonumber)
-              else
-                0
-              end
-          end
-      '
+  sscd q escrow pools "$cid" -o json | jq -r --arg d "$d" '
+    try (
+      .pools
+      | map(select(.denom == $d))
+      | .[0].balance.amount
+      | tonumber
+    ) catch 0
+  '
 }
 
 # Print a funder position if it exists

@@ -143,6 +143,22 @@ func (k *Keeper) getChainletStackVersion(ctx sdk.Context, name, version string) 
 // UpdateChainletStackFees updates the per-stack fees in the exact order submitted.
 func (k *Keeper) updateChainletStackFees(ctx sdk.Context, creator sdk.AccAddress, stackName string, fees []types.ChainletStackFees) error {
 	// Load stack
+
+	supported := make(map[string]struct{})
+	for _, denom := range k.escrowKeeper.GetSupportedDenoms(ctx) {
+		supported[denom] = struct{}{}
+	}
+
+	for _, fee := range fees {
+		if _, ok := supported[fee.Denom]; !ok {
+			return cosmossdkerrors.Wrapf(
+				types.ErrInvalidDenom,
+				"denom %s not supported for escrow deposits",
+				fee.Denom,
+			)
+		}
+	}
+
 	stack, err := k.getChainletStack(ctx, stackName)
 	if err != nil {
 		return fmt.Errorf("cannot get chainlet stack %s: %w", stackName, err)

@@ -166,7 +166,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		err = k.SaveValidatorPayoutHistory(ctx, types.ValidatorPayoutHistory{
 			ValidatorAddress: sdk.AccAddress(valAddr).String(),
 			EpochIdentifier:  epochIdentifier,
-			EpochNumber:      int32(epochNumber),
+			EpochNumber:      epochNumber,
 			EpochStartTime:   epochEventStartTime,
 			RewardAmount:     validatorDepositAmount.String(),
 		})

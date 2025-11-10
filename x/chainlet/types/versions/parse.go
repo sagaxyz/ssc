@@ -44,16 +44,11 @@ func CheckUpgrade(old, new string) (major bool, err error) {
 }
 
 func convertUint16(str string) (num uint16, err error) {
-	i, err := strconv.Atoi(str)
+	val, err := strconv.ParseUint(str, 10, 16) // Base 10, 16 bits
 	if err != nil {
 		return
 	}
-	if i > int(MaxUint16) {
-		err = errors.New("uint16 overflow")
-		return
-	}
-
-	num = uint16(i)
+	num = uint16(val) // Safe conversion - ParseUint ensures it fits in 16 bits
 	return
 }
 

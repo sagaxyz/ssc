@@ -236,6 +236,11 @@ func (k Keeper) incrementChainletCount(ctx sdk.Context) {
 
 func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 	iter := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey).Iterator(nil, nil)
+	defer func() {
+		if err := iter.Close(); err != nil {
+			ctx.Logger().Error(fmt.Sprintf("failed to close iterator: %v", err))
+		}
+	}()
 	for ; iter.Valid(); iter.Next() {
 		var chainlet types.Chainlet
 		k.cdc.MustUnmarshal(iter.Value(), &chainlet)
@@ -247,17 +252,14 @@ func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 
 		latestVersion, err := k.LatestVersion(ctx, chainlet.ChainletStackName, chainlet.ChainletStackVersion)
 		if err != nil {
-			iter.Close()
 			return err
 		}
 		if latestVersion == chainlet.ChainletStackVersion {
-			iter.Close()
 			return nil
 		}
 
 		available, err := k.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, latestVersion)
 		if err != nil || !available {
-			iter.Close()
 			//TODO change to panic in the future, should never happen if the loaded versions are consistent with the state
 			return fmt.Errorf("chainlet stack %s has unavailable version %s loaded", chainlet.ChainletStackName, latestVersion)
 		}
@@ -271,7 +273,6 @@ func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 		chainlet.ChainletStackVersion = latestVersion
 		defer k.setChainletInfo(ctx, &chainlet)
 	}
-	iter.Close()
 
 	return nil
 }

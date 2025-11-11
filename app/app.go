@@ -1276,6 +1276,12 @@ func (app *App) RegisterUpgradeHandlers() {
 				packetforwardtypes.StoreKey,
 			},
 		}
+	case upgrade10.Name:
+		storeUpgrades = &storetypes.StoreUpgrades{
+			Added: []string{
+				acltypes.StoreKey,
+			},
+		}
 	default:
 	}
 	if storeUpgrades != nil {

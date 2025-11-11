@@ -1280,6 +1280,9 @@ func (app *App) RegisterUpgradeHandlers() {
 		storeUpgrades = &storetypes.StoreUpgrades{
 			Added: []string{
 				acltypes.StoreKey,
+				billingmoduletypes.StoreKey,
+				peerstypes.StoreKey,
+				liquidmoduletypes.StoreKey,
 			},
 		}
 	default:

@@ -1281,8 +1281,12 @@ func (app *App) RegisterUpgradeHandlers() {
 			Added: []string{
 				acltypes.StoreKey,
 				billingmoduletypes.StoreKey,
-				peerstypes.StoreKey,
+				chainletmoduletypes.StoreKey,
+				ccvprovidertypes.StoreKey,
+				epochstypes.StoreKey,
+				escrowmoduletypes.StoreKey,
 				liquidmoduletypes.StoreKey,
+				peerstypes.StoreKey,
 			},
 		}
 	default:

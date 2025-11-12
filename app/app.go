@@ -919,21 +919,22 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
-	// NOTE: The genutils module must occur after staking so that pools are
-	// properly initialized with tokens from genesis accounts.
-	// NOTE: The provider module must come after genutils and staking, since it relies on the
+	// NOTE: The staking module must occur before genutil so that staking pools are properly
+	// initialized with tokens from genesis accounts before genutil processes genesis transactions.
+	// NOTE: The provider module must come after genutil and staking, since it relies on the
 	// information about the validators these modules provide to compute validator updates.
+	// With no_valupdates_genutil and no_valupdates_staking, only the provider module sets validator updates.
 	genesisModuleOrder := []string{
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
+		genutiltypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
-		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ccvprovidertypes.ModuleName,
 		icatypes.ModuleName,
@@ -1282,7 +1283,6 @@ func (app *App) RegisterUpgradeHandlers() {
 				acltypes.StoreKey,
 				billingmoduletypes.StoreKey,
 				chainletmoduletypes.StoreKey,
-				ccvprovidertypes.StoreKey,
 				epochstypes.StoreKey,
 				escrowmoduletypes.StoreKey,
 				liquidmoduletypes.StoreKey,

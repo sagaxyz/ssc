@@ -876,7 +876,7 @@ func New(
 		escrowmoduletypes.ModuleName,
 		billingmoduletypes.ModuleName,
 		acltypes.ModuleName,
-		peerstypes.StoreKey,
+		peerstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
 		liquidmoduletypes.ModuleName,
@@ -936,7 +936,6 @@ func New(
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		ccvprovidertypes.ModuleName,
 		icatypes.ModuleName,
 		ibcmock.ModuleName,
 		evidencetypes.ModuleName,
@@ -955,6 +954,8 @@ func New(
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
 		liquidmoduletypes.ModuleName,
+		// Provider module must be last to set validator updates after all other modules initialize
+		ccvprovidertypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
@@ -1283,6 +1284,7 @@ func (app *App) RegisterUpgradeHandlers() {
 				acltypes.StoreKey,
 				billingmoduletypes.StoreKey,
 				chainletmoduletypes.StoreKey,
+				ccvprovidertypes.StoreKey,
 				epochstypes.StoreKey,
 				escrowmoduletypes.StoreKey,
 				liquidmoduletypes.StoreKey,

@@ -156,8 +156,7 @@ import (
 
 	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
-	upgrade05 "github.com/sagaxyz/ssc/app/upgrades/0.5"
-	upgrade10 "github.com/sagaxyz/ssc/app/upgrades/1.0"
+	upgrade1 "github.com/sagaxyz/ssc/app/upgrades/1.0"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -1258,8 +1257,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade05.Name, upgrade05.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade10.Name, upgrade10.UpgradeHandler(app.mm, app.configurator))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
@@ -1278,7 +1276,7 @@ func (app *App) RegisterUpgradeHandlers() {
 				packetforwardtypes.StoreKey,
 			},
 		}
-	case upgrade10.Name:
+	case upgrade1.Name:
 		storeUpgrades = &storetypes.StoreUpgrades{
 			Added: []string{
 				acltypes.StoreKey,

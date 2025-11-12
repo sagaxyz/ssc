@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	Name            = "1.0"
+	Name            = "0.5-to-1.0"
 	tempMinterName  = "developer-credits"
 	baseDenom       = "credit"
 	recipientBech32 = "saga1a8duyed73q8gmewuakdfgyge52rkdgklysgfam"

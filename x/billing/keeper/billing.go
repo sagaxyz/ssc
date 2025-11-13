@@ -15,7 +15,8 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlett
 	err := k.escrowkeeper.BillAccount(ctx, amount, chainlet.ChainId, "billing")
 	if err != nil {
 		ctx.Logger().Info(fmt.Sprintf("failed to bill account %s for %s at epoch %s", chainlet.ChainId, amount.String(), memo))
-		ctx.EventManager().EmitTypedEvent(&types.BillingEvent{ //nolint: errcheck
+		//nolint:errcheck // Event emission errors are non-critical
+		ctx.EventManager().EmitTypedEvent(&types.BillingEvent{
 			ChainId: chainlet.ChainId,
 			Amount:  amount.String(),
 			Memo:    memo,
@@ -25,7 +26,8 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlett
 		return err
 	}
 	ctx.Logger().Info(fmt.Sprintf("successfully billed account %s for %s at epoch %s", chainlet.ChainId, amount.String(), memo))
-	ctx.EventManager().EmitTypedEvent(&types.BillingEvent{ //nolint: errcheck
+	//nolint:errcheck // Event emission errors are non-critical
+	ctx.EventManager().EmitTypedEvent(&types.BillingEvent{
 		ChainId: chainlet.ChainId,
 		Amount:  amount.String(),
 		Memo:    memo,
@@ -43,7 +45,7 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainlet chainlett
 		ChainletName:      chainlet.ChainletName,
 		ChainletStackName: chainlet.ChainletStackName,
 		EpochIdentifier:   epochIdentifier,
-		EpochNumber:       int32(epochInfo.CurrentEpoch),
+		EpochNumber:       epochInfo.CurrentEpoch,
 		EpochStartTime:    epochEventStartTime,
 		BilledAmount:      amount.String(),
 	})
@@ -121,7 +123,7 @@ func (k Keeper) GetChainletBillingHistory(ctx sdk.Context, chainId string) ([]*t
 		k.cdc.MustUnmarshal(val, &sbhr)
 		// get epoch info
 		epochInfo := k.epochskeeper.GetEpochInfo(ctx, sbhr.EpochIdentifier)
-		epochSince := (epochInfo.CurrentEpoch - int64(sbhr.EpochNumber))
+		epochSince := (epochInfo.CurrentEpoch - sbhr.EpochNumber)
 		epochEventStartTime := epochInfo.CurrentEpochStartTime.Add(-time.Duration(epochSince * int64(epochInfo.Duration)))
 		bhr := types.BillingHistory{
 			ChainletId:        sbhr.ChainletId,

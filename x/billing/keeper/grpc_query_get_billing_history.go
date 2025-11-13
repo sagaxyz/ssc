@@ -36,7 +36,7 @@ func (k Keeper) GetBillingHistory(goCtx context.Context, req *types.QueryGetBill
 		k.cdc.MustUnmarshal(value, &sbhr)
 		// get epoch info
 		epochInfo := k.epochskeeper.GetEpochInfo(ctx, sbhr.EpochIdentifier)
-		epochSince := (epochInfo.CurrentEpoch - int64(sbhr.EpochNumber))
+		epochSince := (epochInfo.CurrentEpoch - sbhr.EpochNumber)
 		epochEventStartTime := epochInfo.CurrentEpochStartTime.Add(-time.Duration(epochSince * int64(epochInfo.Duration)))
 		bhr := types.BillingHistory{
 			ChainletId:        sbhr.ChainletId,

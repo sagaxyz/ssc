@@ -10,7 +10,7 @@ message BillingHistory {
   string chainletId = 3;
   string chainletStackName = 4;
   string epochIdentifier = 5;
-  int32 epochNumber = 6;
+  int64 epochNumber = 6;
   string epochStartTime = 7;
   string billedAmount = 8;
 }

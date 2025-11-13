@@ -95,8 +95,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
-	no_valupdates_genutil "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_genutil"
-	no_valupdates_staking "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_staking"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 	"github.com/spf13/cast"
 
@@ -122,6 +120,8 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	no_valupdates_genutil "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_genutil"
+	no_valupdates_staking "github.com/cosmos/interchain-security/v7/x/ccv/no_valupdates_staking"
 	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
 	ccvproviderkeeper "github.com/cosmos/interchain-security/v7/x/ccv/provider/keeper"
 	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
@@ -156,7 +156,7 @@ import (
 
 	upgrade02 "github.com/sagaxyz/ssc/app/upgrades/0.2"
 	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
-	upgrade05 "github.com/sagaxyz/ssc/app/upgrades/0.5"
+	upgrade1 "github.com/sagaxyz/ssc/app/upgrades/1.0"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -875,7 +875,7 @@ func New(
 		escrowmoduletypes.ModuleName,
 		billingmoduletypes.ModuleName,
 		acltypes.ModuleName,
-		peerstypes.StoreKey,
+		peerstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
 		liquidmoduletypes.ModuleName,
@@ -918,23 +918,23 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
-	// NOTE: The genutils module must occur after staking so that pools are
-	// properly initialized with tokens from genesis accounts.
-	// NOTE: The provider module must come after genutils and staking, since it relies on the
+	// NOTE: The staking module must occur before genutil so that staking pools are properly
+	// initialized with tokens from genesis accounts before genutil processes genesis transactions.
+	// NOTE: The provider module must come after genutil and staking, since it relies on the
 	// information about the validators these modules provide to compute validator updates.
+	// With no_valupdates_genutil and no_valupdates_staking, only the provider module sets validator updates.
 	genesisModuleOrder := []string{
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
+		genutiltypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
-		genutiltypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		ccvprovidertypes.ModuleName,
 		icatypes.ModuleName,
 		ibcmock.ModuleName,
 		evidencetypes.ModuleName,
@@ -953,6 +953,8 @@ func New(
 		consensusparamtypes.ModuleName,
 		gmpmoduletypes.ModuleName,
 		liquidmoduletypes.ModuleName,
+		// Provider module must be last to set validator updates after all other modules initialize
+		ccvprovidertypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
@@ -1255,7 +1257,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade05.Name, upgrade05.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
@@ -1272,6 +1274,19 @@ func (app *App) RegisterUpgradeHandlers() {
 			Added: []string{
 				gmpmoduletypes.StoreKey,
 				packetforwardtypes.StoreKey,
+			},
+		}
+	case upgrade1.Name:
+		storeUpgrades = &storetypes.StoreUpgrades{
+			Added: []string{
+				acltypes.StoreKey,
+				billingmoduletypes.StoreKey,
+				chainletmoduletypes.StoreKey,
+				ccvprovidertypes.StoreKey,
+				epochstypes.StoreKey,
+				escrowmoduletypes.StoreKey,
+				liquidmoduletypes.StoreKey,
+				peerstypes.StoreKey,
 			},
 		}
 	default:

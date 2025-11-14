@@ -659,7 +659,7 @@ func New(
 		app.BankKeeper,
 		nil,
 		nil,
-		app.DacKeeper,
+		nil,
 	)
 
 	app.BillingKeeper = *billingmodulekeeper.NewKeeper(
@@ -714,6 +714,7 @@ func New(
 
 	app.EscrowKeeper.UpdateKeeper(app.BillingKeeper)
 	app.EscrowKeeper.UpdateKeeper(app.ChainletKeeper)
+	app.EscrowKeeper.UpdateKeeper(app.DacKeeper)
 	escrowModule := escrowmodule.NewAppModule(appCodec, app.EscrowKeeper, app.AccountKeeper, app.BankKeeper, app.ChainletKeeper)
 
 	app.EpochsKeeper.SetHooks(
@@ -1230,7 +1231,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(escrowmoduletypes.ModuleName)
 	paramsKeeper.Subspace(billingmoduletypes.ModuleName)
-	paramsKeeper.Subspace(acltypes.ModuleName)
+	paramsKeeper.Subspace(acltypes.ModuleName).WithKeyTable(acltypes.ParamKeyTable())
 	paramsKeeper.Subspace(peerstypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
 	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
@@ -1257,7 +1258,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper, app.DacKeeper, *app.ChainletKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

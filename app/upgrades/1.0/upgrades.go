@@ -16,6 +16,9 @@ import (
 	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
 	ccvproviderkeeper "github.com/cosmos/interchain-security/v7/x/ccv/provider/keeper"
 	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
+
+	aclkeeper "github.com/sagaxyz/saga-sdk/x/acl/keeper"
+	chainletkeeper "github.com/sagaxyz/ssc/x/chainlet/keeper"
 )
 
 const (
@@ -26,6 +29,7 @@ const (
 )
 
 var (
+	// 1,000,000 CREDIT with 6 decimals
 	mintAmount = sdkmath.NewInt(1_000_000).MulRaw(1_000_000)
 )
 
@@ -51,26 +55,80 @@ func UpgradeHandler(
 	ak authkeeper.AccountKeeper,
 	bk bankkeeper.Keeper,
 	providerKeeper ccvproviderkeeper.Keeper,
+	aclKeeper aclkeeper.Keeper,
+	chainletKeeper chainletkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-		// Prevent RunMigrations from thinking provider is new
+		// ------------------------------------------------------------------
+		// 1. Run module migrations, treating provider as existing
+		// ------------------------------------------------------------------
+
 		if _, exists := vm[ccvprovidertypes.ModuleName]; !exists {
 			vm[ccvprovidertypes.ModuleName] = ccvprovider.AppModule{}.ConsensusVersion()
 		}
 
-		// Run migrations (provider will now be skipped)
 		newVM, err := mm.RunMigrations(ctx, configurator, vm)
 		if err != nil {
 			return nil, err
 		}
 
-		// Manually initialize provider store (no validator updates)
+		// ------------------------------------------------------------------
+		// 2. Initialize provider store WITHOUT validator updates
+		// ------------------------------------------------------------------
+
 		genState := ccvprovidertypes.DefaultGenesisState()
 		providerKeeper.InitGenesis(sdkCtx, genState)
-
 		newVM[ccvprovidertypes.ModuleName] = ccvprovider.AppModule{}.ConsensusVersion()
+
+		// ------------------------------------------------------------------
+		// 3. Fix chainlet params (match SPC behavior)
+		// ------------------------------------------------------------------
+
+		chainletParams := chainletKeeper.GetParams(sdkCtx) // or ctx if your keeper uses context.Context
+		chainletParams.ChainletStackProtections = true
+		chainletParams.EnableCCV = false
+		chainletKeeper.SetParams(sdkCtx, chainletParams)
+
+		// ------------------------------------------------------------------
+		// 4. Patch ACL genesis:
+		//    - enable = true
+		//    - Admins = SPC allowed list
+		//    - Allowed = SPC allowed list
+		// ------------------------------------------------------------------
+
+		aclParams := aclKeeper.GetParams(sdkCtx)
+		aclParams.Enable = true
+		aclKeeper.SetParams(sdkCtx, aclParams)
+
+		aclGen := aclKeeper.ExportGenesis(sdkCtx) // returns acltypes.GenesisState
+
+		addresses := []string{
+			"saga1rdssl22ysxyendrkh2exw9zm7hvj8d2ju346g3",
+			"saga1rcs5sw5yy9r04xsultcqv6tj73408qnawmlxqw",
+			"saga1yuvju0cztlahsf6f37z9j83vwyzgj6pzhx090f",
+			"saga1gme3rzzddpf4hkdngpruz5e4739lqsyyakgu0j",
+			"saga1sz83y27774xwrahwmv5afutv86grc286hcf7w5",
+			"saga16p4cejpaqpuha65hqyj85k5lx4umw7qzku37eg",
+			"saga1u2a8ktctqhpx655ysw7ru27t6hqt9wlq4fn5ca",
+			"saga1uccxg0ud23424ssuddqnkgjlsz2f6rvqlgjf9t",
+			"saga17x049ugfafggn823dsnf32fhj5qlhlxrrzdz22",
+			"saga17gk4chqd0lrkyamrxdmu62czmu0dpnemmxlymn",
+		}
+
+		aclGen.Allowed = append([]string(nil), addresses...)
+		aclGen.Admins = append([]string(nil), addresses...)
+
+		aclKeeper.InitGenesis(sdkCtx, aclGen)
+
+		// After this:
+		//   spcd/sscd q acl list-allowed -> those 10 addresses
+		//   spcd/sscd q acl params       -> enable: true
+
+		// ------------------------------------------------------------------
+		// 5. One-shot dev credit mint + cleanup
+		// ------------------------------------------------------------------
 
 		if err := ensureTempMinter(sdkCtx, ak, tempMinterName, authtypes.Minter); err != nil {
 			return nil, err
@@ -81,6 +139,7 @@ func UpgradeHandler(
 		if err := bk.MintCoins(ctx, tempMinterName, coins); err != nil {
 			return nil, err
 		}
+
 		recipientBz, err := ak.AddressCodec().StringToBytes(recipientBech32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient addr: %w", err)

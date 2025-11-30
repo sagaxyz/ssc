@@ -42,7 +42,10 @@ func (k Keeper) StoreData(ctx sdk.Context, chainID string, addr string, data typ
 	chainStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainsKey)
 	chainKey := []byte(chainID)
 	var counter types.Counter
-	k.cdc.MustUnmarshal(chainStore.Get(chainKey), &counter)
+	if chainStore.Has(chainKey) {
+		k.cdc.MustUnmarshal(chainStore.Get(chainKey), &counter)
+	}
+	// If chainKey doesn't exist, counter defaults to Number: 0
 	counter.Number++
 	chainStore.Set(chainKey, k.cdc.MustMarshal(&counter))
 }

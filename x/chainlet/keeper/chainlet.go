@@ -271,7 +271,7 @@ func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 
 		ctx.Logger().Info(fmt.Sprintf("upgrading chainlet %s: %s to %s\n", chainlet.ChainId, chainlet.ChainletStackVersion, latestVersion))
 		chainlet.ChainletStackVersion = latestVersion
-		defer k.setChainletInfo(ctx, &chainlet)
+		k.setChainletInfo(ctx, &chainlet)
 	}
 
 	return nil

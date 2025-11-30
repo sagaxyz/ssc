@@ -11,6 +11,16 @@ option go_package = "github.com/sagaxyz/ssc/x/billing/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
   // this line is used by starport scaffolding # proto/tx/rpc
+  rpc SetPlatformValidators(MsgSetPlatformValidators)
+      returns (MsgSetPlatformValidatorsResponse);
 }
 
 // this line is used by starport scaffolding # proto/tx/message
+
+message MsgSetPlatformValidators {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  repeated string platform_validators = 2;
+}
+
+message MsgSetPlatformValidatorsResponse {}

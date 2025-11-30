@@ -22,6 +22,7 @@ type (
 		stakingkeeper  types.StakingKeeper
 		chainletkeeper types.ChainletKeeper
 		epochskeeper   types.EpochsKeeper
+		authority      string
 	}
 )
 
@@ -35,6 +36,7 @@ func NewKeeper(
 	stakingkeeper types.StakingKeeper,
 	chainletkeeper types.ChainletKeeper,
 	epochskeeper types.EpochsKeeper,
+	authority string,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -51,6 +53,7 @@ func NewKeeper(
 		stakingkeeper:  stakingkeeper,
 		chainletkeeper: chainletkeeper,
 		epochskeeper:   epochskeeper,
+		authority:      authority,
 	}
 }
 
@@ -66,4 +69,20 @@ func (k *Keeper) UpdateKeeper(newKeeper interface{}) {
 	} else if newk, ok := newKeeper.(types.EpochsKeeper); ok {
 		k.epochskeeper = newk
 	}
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
+func (k Keeper) SetPlatformValidators(ctx sdk.Context, vals []string) error {
+	params := k.GetParams(ctx)
+	params.PlatformValidators = vals
+	k.SetParams(ctx, params)
+	return nil
+}
+
+func (k Keeper) GetPlatformValidators(ctx sdk.Context) []string {
+	params := k.GetParams(ctx)
+	return params.PlatformValidators
 }

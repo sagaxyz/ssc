@@ -124,10 +124,11 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return nil
 	}
 
-	validators, err := k.stakingkeeper.GetValidators(ctx, 100)
-	if err != nil {
-		return err
-	}
+	// validators, err := k.stakingkeeper.GetValidators(ctx, 100)
+	// if err != nil {
+	// 	return err
+	// }
+	validators := k.GetPlatformValidators(ctx)
 	numValidators := len(validators)                                  // number of validators
 	moduleAccount := k.accountkeeper.GetModuleAccount(ctx, "billing") // module account address for the billing module
 	moduleAccountBalance := k.bankkeeper.GetAllBalances(ctx, moduleAccount.GetAddress())
@@ -140,38 +141,46 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	epochEventStartTime := epochInfo.CurrentEpochStartTime.Format(time.RFC3339)
 
 	for _, v := range validators {
-		var valAddr sdk.ValAddress
-		var err error
 
-		ctx.Logger().Debug("Validator being processed is " + v.OperatorAddress)
+		addr, err := sdk.AccAddressFromBech32(v)
 
-		if validatorDepositAmount.IsValid() && validatorDepositAmount.IsAllPositive() {
-			valAddr, err = sdk.ValAddressFromBech32(v.OperatorAddress)
-			if err != nil {
-				ctx.Logger().Error("could not get the validator address from operator address: " + v.OperatorAddress + ". Error: " + err.Error())
-				continue
-			}
+		// Keep for post-ccv
+		// var valAddr sdk.ValAddress
+		// var err error
 
-			ctx.Logger().Debug("Validator hex address is: " + valAddr.String())
-		} else {
-			ctx.Logger().Error("funds in billing module with address " + moduleAccount.GetAddress().String() + " could not be validated, or no funds exist, for distribution to validators: " + v.OperatorAddress)
-			continue
-		}
+		// ctx.Logger().Debug("Validator being processed is " + v.OperatorAddress)
 
-		err = k.PayEpochFeeToValidator(ctx, validatorDepositAmount, "billing", sdk.AccAddress(valAddr), "epoch fee reward")
+		// if validatorDepositAmount.IsValid() && validatorDepositAmount.IsAllPositive() {
+		// 	valAddr, err = sdk.ValAddressFromBech32(v.OperatorAddress)
+		// 	if err != nil {
+		// 		ctx.Logger().Error("could not get the validator address from operator address: " + v.OperatorAddress + ". Error: " + err.Error())
+		// 		continue
+		// 	}
+
+		// 	ctx.Logger().Debug("Validator hex address is: " + valAddr.String())
+		// } else {
+		// 	ctx.Logger().Error("funds in billing module with address " + moduleAccount.GetAddress().String() + " could not be validated, or no funds exist, for distribution to validators: " + v.OperatorAddress)
+		// 	continue
+		// }
+
+		// err = k.PayEpochFeeToValidator(ctx, validatorDepositAmount, "billing", sdk.AccAddress(valAddr), "epoch fee reward")
+		err = k.PayEpochFeeToValidator(ctx, validatorDepositAmount, "billing", addr, "epoch fee reward")
 		if err != nil {
-			ctx.Logger().Error("could not pay epoch fee to validator " + v.OperatorAddress + ". Error: " + err.Error())
+			// ctx.Logger().Error("could not pay epoch fee to validator " + v.OperatorAddress + ". Error: " + err.Error())
+			ctx.Logger().Error("could not pay epoch fee to validator " + v + ". Error: " + err.Error())
 			continue
 		}
 		err = k.SaveValidatorPayoutHistory(ctx, types.ValidatorPayoutHistory{
-			ValidatorAddress: sdk.AccAddress(valAddr).String(),
-			EpochIdentifier:  epochIdentifier,
-			EpochNumber:      epochNumber,
-			EpochStartTime:   epochEventStartTime,
-			RewardAmount:     validatorDepositAmount.String(),
+			ValidatorAddress: v,
+			// ValidatorAddress: sdk.AccAddress(valAddr).String(),
+			EpochIdentifier: epochIdentifier,
+			EpochNumber:     epochNumber,
+			EpochStartTime:  epochEventStartTime,
+			RewardAmount:    validatorDepositAmount.String(),
 		})
 		if err != nil {
-			ctx.Logger().Error("could not save validator payout history for validator " + sdk.AccAddress(valAddr).String() + ". Error: " + err.Error())
+			// ctx.Logger().Error("could not save validator payout history for validator " + sdk.AccAddress(valAddr).String() + ". Error: " + err.Error())
+			ctx.Logger().Error("could not save validator payout history for validator " + v + ". Error: " + err.Error())
 		}
 	}
 

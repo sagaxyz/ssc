@@ -63,3 +63,7 @@ type ChainletKeeper interface {
 	GetChainletInfo(ctx sdk.Context, chainId string) (*chainlettypes.Chainlet, error)
 	GetParams(ctx sdk.Context) chainlettypes.Params
 }
+
+type BillingKeeper interface {
+	GetPlatformValidators(ctx sdk.Context) []string
+}

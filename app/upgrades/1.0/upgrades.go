@@ -12,10 +12,10 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-
 	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
 	ccvproviderkeeper "github.com/cosmos/interchain-security/v7/x/ccv/provider/keeper"
 	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
+	billingkeeper "github.com/sagaxyz/ssc/x/billing/keeper"
 
 	aclkeeper "github.com/sagaxyz/saga-sdk/x/acl/keeper"
 	chainletkeeper "github.com/sagaxyz/ssc/x/chainlet/keeper"
@@ -57,6 +57,7 @@ func UpgradeHandler(
 	providerKeeper ccvproviderkeeper.Keeper,
 	aclKeeper aclkeeper.Keeper,
 	chainletKeeper chainletkeeper.Keeper,
+	billingKeeper billingkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -159,6 +160,13 @@ func UpgradeHandler(
 		if acc := ak.GetAccount(sdkCtx, authtypes.NewModuleAddress(tempMinterName)); acc != nil {
 			ak.RemoveAccount(sdkCtx, acc)
 		}
+
+		// Set platform validators
+		billingparams := billingKeeper.GetParams(sdkCtx)
+		billingparams.PlatformValidators = []string{}
+		billingKeeper.SetParams(sdkCtx, billingparams)
+
+		// Done
 
 		return newVM, nil
 	}

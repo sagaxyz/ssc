@@ -124,12 +124,30 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return nil
 	}
 
-	// validators, err := k.stakingkeeper.GetValidators(ctx, 100)
-	// if err != nil {
-	// 	return err
-	// }
-	validators := k.GetPlatformValidators(ctx)
-	numValidators := len(validators)                                  // number of validators
+	platformValidators := k.GetPlatformValidators(ctx)
+	var validatorAddrs []string
+	if len(platformValidators) > 0 {
+		validatorAddrs = platformValidators
+	} else {
+		// Fall back to staking validator set if no platform validators configured
+		validators, err := k.stakingkeeper.GetValidators(ctx, 100)
+		if err != nil {
+			return err
+		}
+		for _, v := range validators {
+			valAddr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
+			if err != nil {
+				ctx.Logger().Error("could not parse validator address: " + v.OperatorAddress)
+				continue
+			}
+			validatorAddrs = append(validatorAddrs, sdk.AccAddress(valAddr).String())
+		}
+	}
+	numValidators := len(validatorAddrs)
+	if numValidators == 0 {
+		ctx.Logger().Info("no validators available for reward distribution")
+		return nil
+	}
 	moduleAccount := k.accountkeeper.GetModuleAccount(ctx, "billing") // module account address for the billing module
 	moduleAccountBalance := k.bankkeeper.GetAllBalances(ctx, moduleAccount.GetAddress())
 	validatorDepositAmount := moduleAccountBalance.QuoInt(math.NewIntFromUint64(uint64(numValidators)))
@@ -140,7 +158,7 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	epochInfo := k.epochskeeper.GetEpochInfo(ctx, epochIdentifier)
 	epochEventStartTime := epochInfo.CurrentEpochStartTime.Format(time.RFC3339)
 
-	for _, v := range validators {
+	for _, v := range validatorAddrs {
 
 		addr, err := sdk.AccAddressFromBech32(v)
 

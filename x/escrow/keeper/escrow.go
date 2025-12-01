@@ -324,7 +324,7 @@ func (k Keeper) withdrawOne(
 	}
 
 	// Default: tokens = floor(f.Shares / sf) == floor(f.Shares * T / S)
-	tokensDec := f.Shares.Quo(sf)
+	tokensDec := f.Shares.QuoTruncate(sf)
 	amt := tokensDec.TruncateInt()
 
 	// ---- Dust flush for the last withdrawer ----
@@ -412,9 +412,6 @@ func ScalingFactor(pool types.DenomPool) math.LegacyDec {
 	return totalPoolShares.Quo(totalDeposit)
 }
 
-func InverseScalingFactor(pool types.DenomPool) math.LegacyDec {
-	return math.LegacyNewDec(int64(1)).Quo(ScalingFactor(pool))
-}
 
 // GetChainletWithPools returns the ChainletAccount head and all DenomPool rows
 // for the given chainID. If the chainlet doesn't exist, returns NotFound.

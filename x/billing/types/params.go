@@ -21,7 +21,7 @@ func NewParams() Params {
 	return Params{
 		ValidatorPayoutEpoch: SAGA_EPOCH_IDENTIFIER,
 		BillingEpoch:         SAGA_EPOCH_IDENTIFIER,
-		PlatformValidators:   []string{},
+		PlatformValidators:   nil,
 	}
 }
 

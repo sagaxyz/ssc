@@ -3,6 +3,8 @@ package ssc.billing;
 
 import "gogoproto/gogo.proto";
 import "ssc/billing/params.proto";
+import "ssc/billing/save_billing_history.proto";
+import "ssc/billing/validator_payout_history.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/sagaxyz/ssc/x/billing/types";
@@ -10,5 +12,9 @@ option go_package = "github.com/sagaxyz/ssc/x/billing/types";
 // GenesisState defines the billing module's genesis state.
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
+  // Billing history records
+  repeated SaveBillingHistory billing_history = 2 [ (gogoproto.nullable) = false ];
+  // Validator payout history records
+  repeated ValidatorPayoutHistory validator_payout_history = 3 [ (gogoproto.nullable) = false ];
   // this line is used by starport scaffolding # genesis/proto/state
 }

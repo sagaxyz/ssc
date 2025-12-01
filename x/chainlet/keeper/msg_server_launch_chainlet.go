@@ -145,7 +145,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 			Amount: epochfee.Amount.Mul(multiplier),
 			Denom:  epochfee.Denom,
 		}
-		deposit.Add(setupfee)
+		deposit = deposit.Add(setupfee)
 		err = k.escrowKeeper.NewChainletAccount(ctx, owner, msg.ChainId, deposit)
 		if err != nil {
 			return &types.MsgLaunchChainletResponse{}, err

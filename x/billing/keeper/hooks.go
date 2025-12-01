@@ -161,6 +161,10 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	for _, v := range validatorAddrs {
 
 		addr, err := sdk.AccAddressFromBech32(v)
+		if err != nil {
+			ctx.Logger().Error("could not parse validator address: " + v + ". Error: " + err.Error())
+			continue
+		}
 
 		// Keep for post-ccv
 		// var valAddr sdk.ValAddress

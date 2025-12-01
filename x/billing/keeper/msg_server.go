@@ -22,7 +22,7 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) SetPlatformValidators(goCtx context.Context, msg *types.MsgSetPlatformValidators) (*types.MsgSetPlatformValidatorsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.Creator != m.Keeper.GetAuthority() {
+	if msg.Creator != m.GetAuthority() {
 		return nil, types.ErrUnauthorized
 	}
 

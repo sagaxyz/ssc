@@ -36,7 +36,7 @@ func (k Keeper) ExportPeerData(ctx sdk.Context) []types.GenesisPeerData {
 				Data:             data,
 			})
 		}
-		dataIterator.Close()
+		_ = dataIterator.Close()
 	}
 
 	return peerData

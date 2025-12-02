@@ -672,6 +672,7 @@ func New(
 		app.StakingKeeper,
 		nil,
 		app.EpochsKeeper,
+		SagaAddress,
 	)
 	// billingModule := billingmodule.NewAppModule(appCodec, app.BillingKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -1258,7 +1259,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade02.Name, upgrade02.UpgradeHandler(app.mm, app.configurator, app.ParamsKeeper, &app.ConsensusParamsKeeper, baseAppLegacySS))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
-	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper, app.DacKeeper, *app.ChainletKeeper))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper, app.DacKeeper, *app.ChainletKeeper, app.BillingKeeper))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {

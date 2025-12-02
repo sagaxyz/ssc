@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"context"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sagaxyz/ssc/x/billing/types"
 )
 
@@ -15,3 +18,18 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 var _ types.MsgServer = msgServer{}
+
+func (m msgServer) SetPlatformValidators(goCtx context.Context, msg *types.MsgSetPlatformValidators) (*types.MsgSetPlatformValidatorsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.Creator != m.GetAuthority() {
+		return nil, types.ErrUnauthorized
+	}
+
+	err := m.Keeper.SetPlatformValidators(ctx, msg.PlatformValidators)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSetPlatformValidatorsResponse{}, nil
+}

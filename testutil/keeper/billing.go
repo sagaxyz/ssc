@@ -3,18 +3,18 @@ package keeper
 import (
 	"testing"
 
-	tmdb "github.com/cosmos/cosmos-db"
 	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
-	"cosmossdk.io/store/metrics"
-	
+
 	"github.com/sagaxyz/ssc/x/billing/keeper"
 	"github.com/sagaxyz/ssc/x/billing/types"
 )
@@ -48,6 +48,7 @@ func BillingKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		nil,
 		nil,
 		nil,
+		"",
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

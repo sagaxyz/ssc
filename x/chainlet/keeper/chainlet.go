@@ -255,18 +255,14 @@ func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 			return err
 		}
 		if latestVersion == chainlet.ChainletStackVersion {
-			return nil
+			ctx.Logger().Debug(fmt.Sprintf("chainlet %s: %s is at its latest available version\n", chainlet.ChainId, chainlet.ChainletStackVersion))
+			continue
 		}
 
 		available, err := k.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, latestVersion)
 		if err != nil || !available {
 			//TODO change to panic in the future, should never happen if the loaded versions are consistent with the state
 			return fmt.Errorf("chainlet stack %s has unavailable version %s loaded", chainlet.ChainletStackName, latestVersion)
-		}
-
-		if chainlet.ChainletStackVersion == latestVersion {
-			ctx.Logger().Debug(fmt.Sprintf("chainlet %s: %s is at its latest available version\n", chainlet.ChainId, chainlet.ChainletStackVersion))
-			continue
 		}
 
 		ctx.Logger().Info(fmt.Sprintf("upgrading chainlet %s: %s to %s\n", chainlet.ChainId, chainlet.ChainletStackVersion, latestVersion))

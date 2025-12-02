@@ -22,12 +22,13 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				types.Params{
+				Params: types.Params{
 					ChainletStackProtections:         false,
 					NEpochDeposit:                    "30",
 					AutomaticChainletUpgrades:        true,
 					AutomaticChainletUpgradeInterval: 100,
 				},
+				PortId: "chainlet",
 			},
 			valid: true,
 		},

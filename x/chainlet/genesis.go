@@ -13,12 +13,17 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 	// this line is used by starport scaffolding # genesis/module/init
 
 	k.SetParams(ctx, genState.Params)
+
+	// Set the port ID for the chainlet module
+	// In IBC v10, port binding is handled automatically when the module is registered in the router
+	k.SetPort(ctx, genState.PortId)
 }
 
 // ExportGenesis returns the module's exported genesis
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
+	genesis.PortId = k.GetPort(ctx)
 
 	// this line is used by starport scaffolding # genesis/module/export
 

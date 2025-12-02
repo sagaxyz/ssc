@@ -15,6 +15,13 @@ import (
 )
 
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	params := k.GetParams(ctx)
+
+	if epochIdentifier != params.BillingEpoch {
+		ctx.Logger().Info("skipping billing of chainlets as epoch identifier is " + epochIdentifier + " and we only process billing at epoch identifier " + params.BillingEpoch)
+		return nil
+	}
+
 	stacks, err := k.chainletkeeper.ListChainletStack(ctx, &chainlettypes.QueryListChainletStackRequest{})
 
 	if err != nil {

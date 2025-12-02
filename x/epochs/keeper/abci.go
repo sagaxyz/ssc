@@ -14,12 +14,13 @@ import (
 func (k Keeper) BeginBlocker(ctx sdk.Context) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
+	var hookErr error
 	k.IterateEpochInfo(ctx, func(index int64, epochInfo types.EpochInfo) (stop bool) {
 		logger := k.Logger(ctx)
 
 		// If blocktime < initial epoch start time, return
 		if ctx.BlockTime().Before(epochInfo.StartTime) {
-			return
+			return false
 		}
 		// if epoch counting hasn't started, signal we need to start.
 		shouldInitialEpochStart := !epochInfo.EpochCountingStarted
@@ -44,7 +45,11 @@ func (k Keeper) BeginBlocker(ctx sdk.Context) error {
 					sdk.NewAttribute(types.AttributeEpochNumber, fmt.Sprintf("%d", epochInfo.CurrentEpoch)),
 				),
 			)
-			k.AfterEpochEnd(ctx, epochInfo.Identifier, epochInfo.CurrentEpoch)
+			err := k.AfterEpochEnd(ctx, epochInfo.Identifier, epochInfo.CurrentEpoch)
+			if err != nil {
+				hookErr = err
+				return true // Stop iteration on error
+			}
 			epochInfo.CurrentEpoch += 1
 			epochInfo.CurrentEpochStartTime = epochInfo.CurrentEpochStartTime.Add(epochInfo.Duration)
 			logger.Info(fmt.Sprintf("Starting epoch with identifier %s epoch number %d", epochInfo.Identifier, epochInfo.CurrentEpoch))
@@ -59,10 +64,14 @@ func (k Keeper) BeginBlocker(ctx sdk.Context) error {
 			),
 		)
 		k.setEpochInfo(ctx, epochInfo)
-		k.BeforeEpochStart(ctx, epochInfo.Identifier, epochInfo.CurrentEpoch)
+		err := k.BeforeEpochStart(ctx, epochInfo.Identifier, epochInfo.CurrentEpoch)
+		if err != nil {
+			hookErr = err
+			return true // Stop iteration on error
+		}
 
 		return false
 	})
 
-	return nil
+	return hookErr
 }

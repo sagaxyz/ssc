@@ -1,5 +1,7 @@
 package types
 
+import "strconv"
+
 // this line is used by starport scaffolding # genesis/types/import
 
 // DefaultIndex is the default global index
@@ -23,7 +25,7 @@ func (gs GenesisState) Validate() error {
 	// Validate billing history records have unique {chainletId, epochIdentifier, epochNumber} tuples
 	billingKeys := make(map[string]bool)
 	for _, bh := range gs.BillingHistory {
-		key := bh.ChainletId + "/" + bh.EpochIdentifier + "/" + string(rune(bh.EpochNumber))
+		key := bh.ChainletId + "/" + bh.EpochIdentifier + "/" + strconv.FormatInt(bh.EpochNumber, 10)
 		if billingKeys[key] {
 			return ErrDuplicateRecord
 		}
@@ -33,7 +35,7 @@ func (gs GenesisState) Validate() error {
 	// Validate validator payout history records have unique {validatorAddress, epochIdentifier, epochNumber} tuples
 	payoutKeys := make(map[string]bool)
 	for _, vph := range gs.ValidatorPayoutHistory {
-		key := vph.ValidatorAddress + "/" + vph.EpochIdentifier + "/" + string(rune(vph.EpochNumber))
+		key := vph.ValidatorAddress + "/" + vph.EpochIdentifier + "/" + strconv.FormatInt(vph.EpochNumber, 10)
 		if payoutKeys[key] {
 			return ErrDuplicateRecord
 		}

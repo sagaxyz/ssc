@@ -3,6 +3,7 @@ package ssc.peers;
 
 import "gogoproto/gogo.proto";
 import "ssc/peers/params.proto";
+import "ssc/peers/data.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/sagaxyz/ssc/x/peers/types";
@@ -10,5 +11,22 @@ option go_package = "github.com/sagaxyz/ssc/x/peers/types";
 // GenesisState defines the peers module's genesis state.
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
+  // Peer data entries with their composite keys
+  repeated GenesisPeerData peer_data = 2 [ (gogoproto.nullable) = false ];
+  // Chain counters
+  repeated GenesisChainCounter chain_counters = 3 [ (gogoproto.nullable) = false ];
   // this line is used by starport scaffolding # genesis/proto/state
+}
+
+// GenesisPeerData wraps peer Data with its composite key (chainId, validator address)
+message GenesisPeerData {
+  string chain_id = 1;
+  string validator_address = 2;
+  Data data = 3 [ (gogoproto.nullable) = false ];
+}
+
+// GenesisChainCounter stores the validator count for a chain
+message GenesisChainCounter {
+  string chain_id = 1;
+  Counter counter = 2 [ (gogoproto.nullable) = false ];
 }

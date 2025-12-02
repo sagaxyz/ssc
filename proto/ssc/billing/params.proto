@@ -11,4 +11,5 @@ message Params {
 
   string validator_payout_epoch = 1;
   string billing_epoch = 2;
+  repeated string platform_validators = 3;
 }

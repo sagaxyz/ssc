@@ -3,6 +3,7 @@ package ssc.escrow;
 
 import "gogoproto/gogo.proto";
 import "ssc/escrow/params.proto";
+import "ssc/escrow/escrow.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
@@ -10,5 +11,19 @@ option go_package = "github.com/sagaxyz/ssc/x/escrow/types";
 // GenesisState defines the escrow module's genesis state.
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
+  // List of all chainlet accounts (headers)
+  repeated ChainletAccount chainlet_accounts = 2 [ (gogoproto.nullable) = false ];
+  // List of all denomination pools
+  repeated DenomPool pools = 3 [ (gogoproto.nullable) = false ];
+  // List of all funder positions with their identifiers
+  repeated GenesisFunder funders = 4 [ (gogoproto.nullable) = false ];
   // this line is used by starport scaffolding # genesis/proto/state
+}
+
+// GenesisFunder wraps Funder with its composite key for genesis export/import
+message GenesisFunder {
+  string chain_id = 1;
+  string denom = 2;
+  string address = 3;
+  Funder funder = 4 [ (gogoproto.nullable) = false ];
 }

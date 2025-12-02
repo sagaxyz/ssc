@@ -9,7 +9,10 @@ const DefaultIndex uint64 = 1
 func DefaultGenesis() *GenesisState {
 	df := DefaultParams()
 	return &GenesisState{
-		Params: df,
+		Params:         df,
+		Chainlets:      []Chainlet{},
+		ChainletStacks: []ChainletStack{},
+		ChainletCount:  0,
 	}
 }
 
@@ -17,6 +20,24 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// this line is used by starport scaffolding # genesis/types/validate
+
+	// Validate chainlets have unique chain IDs
+	chainletIDs := make(map[string]bool)
+	for _, chainlet := range gs.Chainlets {
+		if chainletIDs[chainlet.ChainId] {
+			return ErrChainletExists
+		}
+		chainletIDs[chainlet.ChainId] = true
+	}
+
+	// Validate chainlet stacks have unique display names
+	stackNames := make(map[string]bool)
+	for _, stack := range gs.ChainletStacks {
+		if stackNames[stack.DisplayName] {
+			return ErrInvalidChainletStack
+		}
+		stackNames[stack.DisplayName] = true
+	}
 
 	return gs.Params.Validate()
 }

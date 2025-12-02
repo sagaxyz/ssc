@@ -124,11 +124,30 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		return nil
 	}
 
-	validators, err := k.stakingkeeper.GetValidators(ctx, 100)
-	if err != nil {
-		return err
+	platformValidators := k.GetPlatformValidators(ctx)
+	var validatorAddrs []string
+	if len(platformValidators) > 0 {
+		validatorAddrs = platformValidators
+	} else {
+		// Fall back to staking validator set if no platform validators configured
+		validators, err := k.stakingkeeper.GetValidators(ctx, 100)
+		if err != nil {
+			return err
+		}
+		for _, v := range validators {
+			valAddr, err := sdk.ValAddressFromBech32(v.OperatorAddress)
+			if err != nil {
+				ctx.Logger().Error("could not parse validator address: " + v.OperatorAddress)
+				continue
+			}
+			validatorAddrs = append(validatorAddrs, sdk.AccAddress(valAddr).String())
+		}
 	}
-	numValidators := len(validators)                                  // number of validators
+	numValidators := len(validatorAddrs)
+	if numValidators == 0 {
+		ctx.Logger().Info("no validators available for reward distribution")
+		return nil
+	}
 	moduleAccount := k.accountkeeper.GetModuleAccount(ctx, "billing") // module account address for the billing module
 	moduleAccountBalance := k.bankkeeper.GetAllBalances(ctx, moduleAccount.GetAddress())
 	validatorDepositAmount := moduleAccountBalance.QuoInt(math.NewIntFromUint64(uint64(numValidators)))
@@ -139,39 +158,51 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	epochInfo := k.epochskeeper.GetEpochInfo(ctx, epochIdentifier)
 	epochEventStartTime := epochInfo.CurrentEpochStartTime.Format(time.RFC3339)
 
-	for _, v := range validators {
-		var valAddr sdk.ValAddress
-		var err error
+	for _, v := range validatorAddrs {
 
-		ctx.Logger().Debug("Validator being processed is " + v.OperatorAddress)
-
-		if validatorDepositAmount.IsValid() && validatorDepositAmount.IsAllPositive() {
-			valAddr, err = sdk.ValAddressFromBech32(v.OperatorAddress)
-			if err != nil {
-				ctx.Logger().Error("could not get the validator address from operator address: " + v.OperatorAddress + ". Error: " + err.Error())
-				continue
-			}
-
-			ctx.Logger().Debug("Validator hex address is: " + valAddr.String())
-		} else {
-			ctx.Logger().Error("funds in billing module with address " + moduleAccount.GetAddress().String() + " could not be validated, or no funds exist, for distribution to validators: " + v.OperatorAddress)
+		addr, err := sdk.AccAddressFromBech32(v)
+		if err != nil {
+			ctx.Logger().Error("could not parse validator address: " + v + ". Error: " + err.Error())
 			continue
 		}
 
-		err = k.PayEpochFeeToValidator(ctx, validatorDepositAmount, "billing", sdk.AccAddress(valAddr), "epoch fee reward")
+		// Keep for post-ccv
+		// var valAddr sdk.ValAddress
+		// var err error
+
+		// ctx.Logger().Debug("Validator being processed is " + v.OperatorAddress)
+
+		// if validatorDepositAmount.IsValid() && validatorDepositAmount.IsAllPositive() {
+		// 	valAddr, err = sdk.ValAddressFromBech32(v.OperatorAddress)
+		// 	if err != nil {
+		// 		ctx.Logger().Error("could not get the validator address from operator address: " + v.OperatorAddress + ". Error: " + err.Error())
+		// 		continue
+		// 	}
+
+		// 	ctx.Logger().Debug("Validator hex address is: " + valAddr.String())
+		// } else {
+		// 	ctx.Logger().Error("funds in billing module with address " + moduleAccount.GetAddress().String() + " could not be validated, or no funds exist, for distribution to validators: " + v.OperatorAddress)
+		// 	continue
+		// }
+
+		// err = k.PayEpochFeeToValidator(ctx, validatorDepositAmount, "billing", sdk.AccAddress(valAddr), "epoch fee reward")
+		err = k.PayEpochFeeToValidator(ctx, validatorDepositAmount, "billing", addr, "epoch fee reward")
 		if err != nil {
-			ctx.Logger().Error("could not pay epoch fee to validator " + v.OperatorAddress + ". Error: " + err.Error())
+			// ctx.Logger().Error("could not pay epoch fee to validator " + v.OperatorAddress + ". Error: " + err.Error())
+			ctx.Logger().Error("could not pay epoch fee to validator " + v + ". Error: " + err.Error())
 			continue
 		}
 		err = k.SaveValidatorPayoutHistory(ctx, types.ValidatorPayoutHistory{
-			ValidatorAddress: sdk.AccAddress(valAddr).String(),
-			EpochIdentifier:  epochIdentifier,
-			EpochNumber:      epochNumber,
-			EpochStartTime:   epochEventStartTime,
-			RewardAmount:     validatorDepositAmount.String(),
+			ValidatorAddress: v,
+			// ValidatorAddress: sdk.AccAddress(valAddr).String(),
+			EpochIdentifier: epochIdentifier,
+			EpochNumber:     epochNumber,
+			EpochStartTime:  epochEventStartTime,
+			RewardAmount:    validatorDepositAmount.String(),
 		})
 		if err != nil {
-			ctx.Logger().Error("could not save validator payout history for validator " + sdk.AccAddress(valAddr).String() + ". Error: " + err.Error())
+			// ctx.Logger().Error("could not save validator payout history for validator " + sdk.AccAddress(valAddr).String() + ". Error: " + err.Error())
+			ctx.Logger().Error("could not save validator payout history for validator " + v + ". Error: " + err.Error())
 		}
 	}
 

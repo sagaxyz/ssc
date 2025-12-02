@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,42 +11,32 @@ import (
 
 // ExportBillingHistory exports all billing history records from the store
 func (k Keeper) ExportBillingHistory(ctx sdk.Context) []types.SaveBillingHistory {
-	store := ctx.KVStore(k.storeKey)
-	var records []types.SaveBillingHistory
-
-	// Iterate over all keys that start with "billinghistory-"
-	iterator := store.Iterator(nil, nil)
+	// Use prefix store to efficiently iterate only over billing history keys
+	billingStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.BillingHistoryKey+"-"))
+	iterator := billingStore.Iterator(nil, nil)
 	defer iterator.Close()
 
-	billingPrefix := types.BillingHistoryKey + "-"
+	var records []types.SaveBillingHistory
 	for ; iterator.Valid(); iterator.Next() {
-		key := string(iterator.Key())
-		if strings.HasPrefix(key, billingPrefix) {
-			var record types.SaveBillingHistory
-			k.cdc.MustUnmarshal(iterator.Value(), &record)
-			records = append(records, record)
-		}
+		var record types.SaveBillingHistory
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
+		records = append(records, record)
 	}
 	return records
 }
 
 // ExportValidatorPayoutHistory exports all validator payout history records from the store
 func (k Keeper) ExportValidatorPayoutHistory(ctx sdk.Context) []types.ValidatorPayoutHistory {
-	store := ctx.KVStore(k.storeKey)
-	var records []types.ValidatorPayoutHistory
-
-	// Iterate over all keys that start with "validatorpayout-"
-	iterator := store.Iterator(nil, nil)
+	// Use prefix store to efficiently iterate only over validator payout history keys
+	payoutStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.ValidatorPayoutHistoryKey+"-"))
+	iterator := payoutStore.Iterator(nil, nil)
 	defer iterator.Close()
 
-	payoutPrefix := types.ValidatorPayoutHistoryKey + "-"
+	var records []types.ValidatorPayoutHistory
 	for ; iterator.Valid(); iterator.Next() {
-		key := string(iterator.Key())
-		if strings.HasPrefix(key, payoutPrefix) {
-			var record types.ValidatorPayoutHistory
-			k.cdc.MustUnmarshal(iterator.Value(), &record)
-			records = append(records, record)
-		}
+		var record types.ValidatorPayoutHistory
+		k.cdc.MustUnmarshal(iterator.Value(), &record)
+		records = append(records, record)
 	}
 	return records
 }

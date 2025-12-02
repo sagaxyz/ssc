@@ -17,6 +17,7 @@ import (
 	ccvprovidertypes "github.com/cosmos/interchain-security/v7/x/ccv/provider/types"
 	billingkeeper "github.com/sagaxyz/ssc/x/billing/keeper"
 
+
 	aclkeeper "github.com/sagaxyz/saga-sdk/x/acl/keeper"
 	chainletkeeper "github.com/sagaxyz/ssc/x/chainlet/keeper"
 )
@@ -167,7 +168,7 @@ func UpgradeHandler(
 		billingKeeper.SetParams(sdkCtx, billingparams)
 
 		// Done
-
+    
 		return newVM, nil
 	}
 }

@@ -688,7 +688,6 @@ func New(
 		keys[chainletmoduletypes.StoreKey],
 		app.GetSubspace(chainletmoduletypes.ModuleName),
 		ccvproviderkeeper.NewMsgServerImpl(&app.ProviderKeeper),
-		func() *ibckeeper.Keeper { return app.IBCKeeper },
 		app.StakingKeeper,
 		app.IBCKeeper.ClientKeeper,
 		app.IBCKeeper.ChannelKeeper,

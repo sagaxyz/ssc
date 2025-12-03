@@ -13,6 +13,57 @@ import (
 	types0 "github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+// MockAclKeeper is a mock of AclKeeper interface.
+type MockAclKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockAclKeeperMockRecorder
+}
+
+// MockAclKeeperMockRecorder is the mock recorder for MockAclKeeper.
+type MockAclKeeperMockRecorder struct {
+	mock *MockAclKeeper
+}
+
+// NewMockAclKeeper creates a new mock instance.
+func NewMockAclKeeper(ctrl *gomock.Controller) *MockAclKeeper {
+	mock := &MockAclKeeper{ctrl: ctrl}
+	mock.recorder = &MockAclKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAclKeeper) EXPECT() *MockAclKeeperMockRecorder {
+	return m.recorder
+}
+
+// Allowed mocks base method.
+func (m *MockAclKeeper) Allowed(ctx types.Context, addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Allowed", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Allowed indicates an expected call of Allowed.
+func (mr *MockAclKeeperMockRecorder) Allowed(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allowed", reflect.TypeOf((*MockAclKeeper)(nil).Allowed), ctx, addr)
+}
+
+// IsAdmin mocks base method.
+func (m *MockAclKeeper) IsAdmin(ctx types.Context, addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsAdmin", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsAdmin indicates an expected call of IsAdmin.
+func (mr *MockAclKeeperMockRecorder) IsAdmin(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAdmin", reflect.TypeOf((*MockAclKeeper)(nil).IsAdmin), ctx, addr)
+}
+
 // MockAccountKeeper is a mock of AccountKeeper interface.
 type MockAccountKeeper struct {
 	ctrl     *gomock.Controller

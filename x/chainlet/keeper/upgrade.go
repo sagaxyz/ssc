@@ -8,44 +8,13 @@ import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	ccvtypes "github.com/cosmos/interchain-security/v7/x/ccv/types"
 	sdkchainlettypes "github.com/sagaxyz/saga-sdk/x/chainlet/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
 
-//nolint:unused
-func (k *Keeper) getConsumerConnectionIDs(ctx sdk.Context, consumerID string) (controllerConnectionID, hostConnectionID string, err error) {
-	// Get controller/local connection ID
-	ccvChannelID, found := k.providerKeeper.GetConsumerIdToChannelId(ctx, consumerID)
-	if !found {
-		err = fmt.Errorf("channel ID for consumer ID %s not found", consumerID)
-		return
-	}
-	ccvChannel, found := k.channelKeeper.GetChannel(ctx, ccvtypes.ProviderPortID, ccvChannelID)
-	if !found {
-		err = fmt.Errorf("channel %s for consumer %s not found", ccvChannelID, consumerID)
-		return
-	}
-	if len(ccvChannel.ConnectionHops) == 0 {
-		err = fmt.Errorf("no connections for channel %s", ccvChannelID)
-		return
-	}
-	controllerConnectionID = ccvChannel.ConnectionHops[0]
-
-	// Get host/counterparty connection ID
-	connection, found := k.connectionKeeper.GetConnection(ctx, controllerConnectionID)
-	if !found {
-		err = fmt.Errorf("connection %s for consumer ID %s not found", controllerConnectionID, consumerID)
-		return
-	}
-	hostConnectionID = connection.Counterparty.ConnectionId
-	return
-}
-
-//nolint:unused
-func upgradePlanName(from, to string) (plan string, err error) {
+func UpgradePlanName(from, to string) (plan string, err error) {
 	major, minor, _, _, err := versions.Parse(from)
 	if err != nil {
 		return
@@ -97,12 +66,13 @@ func (k Keeper) sendUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, newVe
 		return
 	}
 
-	clientRevisionHeight := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionHeight()
-	clientRevisionNumber := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionNumber()
+	lh := k.clientKeeper.GetClientLatestHeight(ctx, clientID)
+	clientRevisionHeight := lh.GetRevisionHeight()
+	clientRevisionNumber := lh.GetRevisionNumber()
 
 	// Create the IBC packet
 	upgradeHeight := clientRevisionHeight + heightDelta
-	planName, err := upgradePlanName(chainlet.ChainletStackVersion, newVersion)
+	planName, err := UpgradePlanName(chainlet.ChainletStackVersion, newVersion)
 	if err != nil {
 		return
 	}
@@ -189,11 +159,8 @@ func (k Keeper) sendCancelUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet,
 		return
 	}
 
-	clientRevisionHeight := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionHeight()
-	clientRevisionNumber := k.clientKeeper.GetClientLatestHeight(ctx, clientID).GetRevisionNumber()
-
 	// Create the IBC packet
-	planName, err := upgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
+	planName, err := UpgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
 	if err != nil {
 		return
 	}
@@ -218,10 +185,11 @@ func (k Keeper) sendCancelUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet,
 		timeoutTimestamp = uint64(un)
 	}
 	var timeoutHeight clienttypes.Height
+	lh := k.clientKeeper.GetClientLatestHeight(ctx, clientID)
 	if p.UpgradeTimeoutHeight > 0 {
 		timeoutHeight = clienttypes.Height{
-			RevisionNumber: clientRevisionNumber,
-			RevisionHeight: clientRevisionHeight + p.UpgradeTimeoutHeight,
+			RevisionNumber: lh.GetRevisionNumber(),
+			RevisionHeight: lh.GetRevisionHeight() + p.UpgradeTimeoutHeight,
 		}
 	}
 
@@ -234,7 +202,6 @@ func (k Keeper) sendCancelUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet,
 	return
 }
 
-//nolint:unused
 func (k *Keeper) setUpgrading(ctx sdk.Context, chainlet *types.Chainlet, version string, height uint64) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 
@@ -264,7 +231,6 @@ func (k *Keeper) setUpgrading(ctx sdk.Context, chainlet *types.Chainlet, version
 	return nil
 }
 
-//nolint:unused
 func (k *Keeper) finishUpgrading(ctx sdk.Context, chainlet *types.Chainlet) error {
 	if chainlet.Upgrade == nil {
 		return fmt.Errorf("chainlet %s is not being upgraded", chainlet.ChainId)
@@ -279,7 +245,6 @@ func (k *Keeper) finishUpgrading(ctx sdk.Context, chainlet *types.Chainlet) erro
 	return nil
 }
 
-//nolint:unused
 func (k *Keeper) cancelUpgrading(ctx sdk.Context, chainlet *types.Chainlet) {
 	chainlet.Upgrade = nil
 

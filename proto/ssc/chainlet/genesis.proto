@@ -4,6 +4,8 @@ package ssc.chainlet;
 
 import "gogoproto/gogo.proto";
 import "ssc/chainlet/params.proto";
+import "ssc/chainlet/chainlet.proto";
+import "ssc/chainlet/chainlet_stack.proto";
 
 // this line is used by starport scaffolding # genesis/proto/import
 
@@ -12,6 +14,12 @@ option go_package = "github.com/sagaxyz/ssc/x/chainlet/types";
 // GenesisState defines the chainlet module's genesis state.
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
-  string port_id = 2;
+  // List of all chainlets
+  repeated Chainlet chainlets = 2 [ (gogoproto.nullable) = false ];
+  // List of all chainlet stacks
+  repeated ChainletStack chainlet_stacks = 3 [ (gogoproto.nullable) = false ];
+  // Chainlet count
+  uint64 chainlet_count = 4;
+  string port_id = 5;
   // this line is used by starport scaffolding # genesis/proto/state
 }

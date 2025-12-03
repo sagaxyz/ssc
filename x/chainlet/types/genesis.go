@@ -14,8 +14,11 @@ const DefaultIndex uint64 = 1
 func DefaultGenesis() *GenesisState {
 	df := DefaultParams()
 	return &GenesisState{
-		Params: df,
-		PortId: chainlettypes.PortID,
+		Params:         df,
+		PortId:         chainlettypes.PortID,
+		Chainlets:      []Chainlet{},
+		ChainletStacks: []ChainletStack{},
+		ChainletCount:  0,
 	}
 }
 
@@ -26,6 +29,24 @@ func (gs GenesisState) Validate() error {
 
 	if err := host.PortIdentifierValidator(gs.PortId); err != nil {
 		return err
+	}
+
+	// Validate chainlets have unique chain IDs
+	chainletIDs := make(map[string]bool)
+	for _, chainlet := range gs.Chainlets {
+		if chainletIDs[chainlet.ChainId] {
+			return ErrChainletExists
+		}
+		chainletIDs[chainlet.ChainId] = true
+	}
+
+	// Validate chainlet stacks have unique display names
+	stackNames := make(map[string]bool)
+	for _, stack := range gs.ChainletStacks {
+		if stackNames[stack.DisplayName] {
+			return ErrInvalidChainletStack
+		}
+		stackNames[stack.DisplayName] = true
 	}
 
 	return gs.Params.Validate()

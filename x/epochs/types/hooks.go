@@ -28,18 +28,30 @@ func NewMultiEpochHooks(hooks ...EpochHooks) MultiEpochHooks {
 
 // AfterEpochEnd is called when epoch is going to be ended, epochNumber is the number of epoch that is ending.
 func (h MultiEpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	var firstErr error
 	for i := range h {
-		panicCatchingEpochHook(ctx, h[i].AfterEpochEnd, epochIdentifier, epochNumber)
+		if err := panicCatchingEpochHook(ctx, h[i].AfterEpochEnd, epochIdentifier, epochNumber); err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			// Continue processing other hooks for panic isolation, but track the first error
+		}
 	}
-	return nil
+	return firstErr
 }
 
 // BeforeEpochStart is called when epoch is going to be started, epochNumber is the number of epoch that is starting.
 func (h MultiEpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	var firstErr error
 	for i := range h {
-		panicCatchingEpochHook(ctx, h[i].BeforeEpochStart, epochIdentifier, epochNumber)
+		if err := panicCatchingEpochHook(ctx, h[i].BeforeEpochStart, epochIdentifier, epochNumber); err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			// Continue processing other hooks for panic isolation, but track the first error
+		}
 	}
-	return nil
+	return firstErr
 }
 
 func panicCatchingEpochHook(
@@ -47,7 +59,7 @@ func panicCatchingEpochHook(
 	hookFn func(ctx sdk.Context, epochIdentifier string, epochNumber int64) error,
 	epochIdentifier string,
 	epochNumber int64,
-) {
+) error {
 	wrappedHookFn := func(ctx sdk.Context) error {
 		return hookFn(ctx, epochIdentifier, epochNumber)
 	}
@@ -55,7 +67,9 @@ func panicCatchingEpochHook(
 	err := applyFuncIfNoError(ctx, wrappedHookFn)
 	if err != nil {
 		ctx.Logger().Error(fmt.Sprintf("error in epoch hook %v", err))
+		return err
 	}
+	return nil
 }
 
 func applyFuncIfNoError(ctx sdk.Context, f func(ctx sdk.Context) error) (err error) {

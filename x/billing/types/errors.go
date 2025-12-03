@@ -10,4 +10,5 @@ var (
 	ErrJSONMarhsal            = cosmossdkerrors.Register(ModuleName, 7702, "failed to marshal json")
 	ErrDuplicateRecord        = cosmossdkerrors.Register(ModuleName, 7703, "duplicate record")
 	ErrInternalBillingFailure = cosmossdkerrors.Register(ModuleName, 7704, "internal failure")
+	ErrUnauthorized           = cosmossdkerrors.Register(ModuleName, 7705, "unauthorized")
 )

@@ -20,5 +20,6 @@ message GenesisState {
   repeated ChainletStack chainlet_stacks = 3 [ (gogoproto.nullable) = false ];
   // Chainlet count
   uint64 chainlet_count = 4;
+  string port_id = 5;
   // this line is used by starport scaffolding # genesis/proto/state
 }

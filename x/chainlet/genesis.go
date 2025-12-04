@@ -12,6 +12,10 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 	// Set params
 	k.SetParams(ctx, genState.Params)
 
+	// Set the port ID for the chainlet module
+	// In IBC v10, port binding is handled automatically when the module is registered in the router
+	k.SetPort(ctx, genState.PortId)
+
 	// Set chainlet count
 	k.SetChainletCount(ctx, genState.ChainletCount)
 
@@ -36,6 +40,7 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
+	genesis.PortId = k.GetPort(ctx)
 	genesis.ChainletCount = k.GetChainletCount(ctx)
 
 	// Export all chainlets

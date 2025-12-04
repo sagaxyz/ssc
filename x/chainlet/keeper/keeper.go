@@ -78,3 +78,19 @@ func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k *Keeper) StackVersions(stackName string) *versions.Versions {
 	return k.stackVersions[stackName]
 }
+
+// GetPort returns the portID for the IBC app module. Used in ExportGenesis
+func (k *Keeper) GetPort(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+	portBytes := store.Get(types.PortKey)
+	if portBytes == nil {
+		return ""
+	}
+	return string(portBytes)
+}
+
+// SetPort sets the portID for the IBC app module. Used in InitGenesis
+func (k *Keeper) SetPort(ctx sdk.Context, portID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.PortKey, []byte(portID))
+}

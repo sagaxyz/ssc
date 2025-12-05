@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
@@ -28,8 +27,6 @@ type Keeper struct {
 	escrowKeeper      types.EscrowKeeper
 	aclKeeper         types.AclKeeper
 
-	ibcKeeperFn func() *ibckeeper.Keeper
-
 	stackVersions      map[string]*versions.Versions // display name => version tree
 	stackVersionParams map[string]map[string]types.ChainletStackParams
 }
@@ -39,7 +36,6 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	providerMsgServer types.ProviderMsgServer,
-	ibcKeeperFn func() *ibckeeper.Keeper,
 	stakingKeeper types.StakingKeeper,
 	clientKeeper types.ClientKeeper,
 	channelKeeper types.ChannelKeeper,
@@ -59,7 +55,6 @@ func NewKeeper(
 		storeKey:          storeKey,
 		paramstore:        ps,
 		providerMsgServer: providerMsgServer,
-		ibcKeeperFn:       ibcKeeperFn,
 		stakingKeeper:     stakingKeeper,
 		clientKeeper:      clientKeeper,
 		channelKeeper:     channelKeeper,

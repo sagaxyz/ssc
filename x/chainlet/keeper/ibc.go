@@ -28,7 +28,7 @@ func (k Keeper) TransmitCreateUpgradePacket(
 		return 0, errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "cannot marshal the packet: %s", err)
 	}
 
-	return k.ibcKeeperFn().ChannelKeeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
+	return k.channelKeeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
 }
 
 // OnAcknowledgementCreateUpgradePacket responds to the success or failure of a packet
@@ -44,7 +44,7 @@ func (k Keeper) OnAcknowledgementCreateUpgradePacket(ctx sdk.Context, packet cha
 			return nil
 		}
 
-		// Verify channel maches chain ID
+		// Verify channel matches chain ID
 		clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ConsumerId)
 		if !consumerRegistered {
 			return errors.New("consumer not registered yet")
@@ -55,7 +55,7 @@ func (k Keeper) OnAcknowledgementCreateUpgradePacket(ctx sdk.Context, packet cha
 		}
 
 		// Cancel if the upgrade plan matches the current upgrade
-		planName, err := upgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
+		planName, err := UpgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func (k Keeper) OnTimeoutCreateUpgradePacket(ctx sdk.Context, packet channeltype
 	}
 
 	// Cancel if the upgrade plan matches the current upgrade
-	planName, err := upgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
+	planName, err := UpgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (k Keeper) TransmitCancelUpgradePacket(
 		return 0, errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "cannot marshal the packet: %s", err)
 	}
 
-	return k.ibcKeeperFn().ChannelKeeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
+	return k.channelKeeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetBytes)
 }
 
 // OnAcknowledgementCancelUpgradePacket responds to the success or failure of a packet
@@ -166,7 +166,7 @@ func (k Keeper) OnAcknowledgementCancelUpgradePacket(ctx sdk.Context, packet cha
 		}
 
 		// Cancel if the upgrade plan matches the current upgrade
-		planName, err := upgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
+		planName, err := UpgradePlanName(chainlet.ChainletStackVersion, chainlet.Upgrade.Version)
 		if err != nil {
 			return err
 		}

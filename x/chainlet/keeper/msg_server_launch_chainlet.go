@@ -180,11 +180,11 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	}
 
 	return &types.MsgLaunchChainletResponse{}, ctx.EventManager().EmitTypedEvent(&types.EventLaunchChainlet{
-		ChainName:    msg.ChainletName,
-		Launcher:     msg.Creator,
-		ChainId:      msg.ChainId,
-		Stack:        msg.ChainletStackName,
-		StackVersion: msg.ChainletStackVersion,
+		ChainName:    chainlet.ChainletName,
+		Launcher:     chainlet.Launcher,
+		ChainId:      chainlet.ChainId,
+		Stack:        chainlet.ChainletStackName,
+		StackVersion: chainlet.ChainletStackVersion,
 	})
 }
 

@@ -45,6 +45,14 @@ type ClientKeeper interface {
 }
 type ChannelKeeper interface {
 	GetChannel(sdk.Context, string, string) (ibcchanneltypes.Channel, bool)
+	SendPacket(
+		ctx sdk.Context,
+		sourcePort string,
+		sourceChannel string,
+		timeoutHeight clienttypes.Height,
+		timeoutTimestamp uint64,
+		data []byte,
+	) (uint64, error)
 }
 type ConnectionKeeper interface {
 	GetConnection(sdk.Context, string) (ibcconnectiontypes.ConnectionEnd, bool)

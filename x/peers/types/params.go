@@ -16,7 +16,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams() Params {
 	return Params{
-		MaxData: 100,
+		MaxData: 1024,
 	}
 }
 

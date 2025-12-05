@@ -18,7 +18,7 @@ func (k *Keeper) Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chain
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 	if !store.Has(byteKey) {
-		err = fmt.Errorf("key %s not found", chainId)
+		err = fmt.Errorf("chainlet '%s' not found", chainId)
 		return
 	}
 

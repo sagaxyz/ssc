@@ -368,6 +368,21 @@ func (mr *MockChannelKeeperMockRecorder) GetChannel(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannel", reflect.TypeOf((*MockChannelKeeper)(nil).GetChannel), arg0, arg1, arg2)
 }
 
+// SendPacket mocks base method.
+func (m *MockChannelKeeper) SendPacket(ctx types.Context, sourcePort, sourceChannel string, timeoutHeight types1.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendPacket", ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SendPacket indicates an expected call of SendPacket.
+func (mr *MockChannelKeeperMockRecorder) SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPacket", reflect.TypeOf((*MockChannelKeeper)(nil).SendPacket), ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+}
+
 // MockConnectionKeeper is a mock of ConnectionKeeper interface.
 type MockConnectionKeeper struct {
 	ctrl     *gomock.Controller
@@ -480,20 +495,6 @@ func (m *MockEscrowKeeper) EXPECT() *MockEscrowKeeperMockRecorder {
 	return m.recorder
 }
 
-// NewChainletAccount mocks base method.
-func (m *MockEscrowKeeper) NewChainletAccount(ctx types.Context, address types.AccAddress, chainId string, depositAmount types.Coin) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewChainletAccount", ctx, address, chainId, depositAmount)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// NewChainletAccount indicates an expected call of NewChainletAccount.
-func (mr *MockEscrowKeeperMockRecorder) NewChainletAccount(ctx, address, chainId, depositAmount interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChainletAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).NewChainletAccount), ctx, address, chainId, depositAmount)
-}
-
 // GetSupportedDenoms mocks base method.
 func (m *MockEscrowKeeper) GetSupportedDenoms(ctx types.Context) []string {
 	m.ctrl.T.Helper()
@@ -506,6 +507,20 @@ func (m *MockEscrowKeeper) GetSupportedDenoms(ctx types.Context) []string {
 func (mr *MockEscrowKeeperMockRecorder) GetSupportedDenoms(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSupportedDenoms", reflect.TypeOf((*MockEscrowKeeper)(nil).GetSupportedDenoms), ctx)
+}
+
+// NewChainletAccount mocks base method.
+func (m *MockEscrowKeeper) NewChainletAccount(ctx types.Context, address types.AccAddress, chainId string, depositAmount types.Coin) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewChainletAccount", ctx, address, chainId, depositAmount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NewChainletAccount indicates an expected call of NewChainletAccount.
+func (mr *MockEscrowKeeperMockRecorder) NewChainletAccount(ctx, address, chainId, depositAmount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChainletAccount", reflect.TypeOf((*MockEscrowKeeper)(nil).NewChainletAccount), ctx, address, chainId, depositAmount)
 }
 
 // MockAclKeeper is a mock of AclKeeper interface.

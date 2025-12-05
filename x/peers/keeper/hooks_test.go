@@ -9,7 +9,7 @@ import (
 	types "github.com/sagaxyz/ssc/x/peers/types"
 )
 
-func (s *KeeperTestSuite) TestAfterValidatorRemoved() {
+func (s *TestSuite) TestAfterValidatorRemoved() {
 	require := s.Require()
 
 	_, _, addr := testdata.KeyTestPubAddr()
@@ -23,13 +23,13 @@ func (s *KeeperTestSuite) TestAfterValidatorRemoved() {
 	_, err := s.msgServer.SetPeers(s.ctx, &types.MsgSetPeers{
 		Validator: accAddr.String(),
 		ChainId:   chainIDs[0],
-		Peers:     []string{"a", "b"},
+		Peers:     addrs[chainIDs[0]],
 	})
 	require.NoError(err)
 	_, err = s.msgServer.SetPeers(s.ctx, &types.MsgSetPeers{
 		Validator: accAddr.String(),
 		ChainId:   chainIDs[1],
-		Peers:     []string{"c", "d"},
+		Peers:     addrs[chainIDs[1]],
 	})
 	require.NoError(err)
 
@@ -37,7 +37,7 @@ func (s *KeeperTestSuite) TestAfterValidatorRemoved() {
 		ChainId: chainIDs[0],
 	})
 	require.NoError(err)
-	require.Equal([]string{"a", "b"}, resp.Peers)
+	require.Equal(addrs[chainIDs[0]], resp.Peers)
 
 	err = s.peersKeeper.Hooks().AfterValidatorRemoved(s.ctx, consAddr, valAddr)
 	require.NoError(err)

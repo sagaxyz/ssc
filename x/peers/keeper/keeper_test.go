@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	storetypes "cosmossdk.io/store/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cmttime "github.com/cometbft/cometbft/types/time"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,16 +15,25 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/sagaxyz/ssc/x/peers/keeper"
 	testutil "github.com/sagaxyz/ssc/x/peers/testutil"
 	"github.com/sagaxyz/ssc/x/peers/types"
-	"github.com/sagaxyz/ssc/x/peers/keeper"
 )
 
 var (
 	chainIDs = []string{"chain_1-1", "chain_2-1", "chain_3-1"}
+	addrs    = map[string][]string{
+		"chain_1-1": {"aa@123.123.123.123:1234", "bb@111.111.111.111:1234"},
+		"chain_2-1": {"cc@100.100.100.100:1234", "dd@example.com:1234"},
+		"chain_3-1": {"ee@google.com:1234"},
+	}
+	accounts = []sdk.AccAddress{
+		sdk.AccAddress("test1"),
+		sdk.AccAddress("test2"),
+	}
 )
 
-type KeeperTestSuite struct {
+type TestSuite struct {
 	suite.Suite
 
 	ctx            sdk.Context
@@ -34,11 +43,21 @@ type KeeperTestSuite struct {
 	msgServer      types.MsgServer
 }
 
-func (s *KeeperTestSuite) SetupTest() {
+func (s *TestSuite) SetupTest() {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	storeTKey := storetypes.NewTransientStoreKey("transient_test")
-	testCtx := sdktestutil.DefaultContextWithDB(s.T(), storeKey, storeTKey)
-	ctx := testCtx.Ctx.WithBlockHeader(cmtproto.Header{Time: cmttime.Now()})
+	paramsKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	paramsTKey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	ctx := sdktestutil.DefaultContextWithKeys(
+		map[string]*storetypes.KVStoreKey{
+			types.StoreKey:       storeKey,
+			paramstypes.StoreKey: paramsKey,
+		},
+		map[string]*storetypes.TransientStoreKey{
+			paramstypes.TStoreKey: paramsTKey,
+		},
+		nil,
+	)
+	s.ctx = ctx.WithBlockHeader(tmproto.Header{Time: tmtime.Now()})
 	encCfg := moduletestutil.MakeTestEncodingConfig()
 
 	// gomock initializations
@@ -46,8 +65,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.chainletKeeper = testutil.NewMockChainletKeeper(ctrl)
 
 	//nolint:staticcheck
-	paramsKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	paramsTKey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
 	paramsKeeper := paramskeeper.NewKeeper(encCfg.Codec, encCfg.Amino, paramsKey, paramsTKey) //nolint:staticcheck
 	paramsKeeper.Subspace(paramstypes.ModuleName)
 	paramsKeeper.Subspace(types.ModuleName)
@@ -69,6 +86,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.msgServer = keeper.NewMsgServerImpl(s.peersKeeper)
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+func TestTestSuite(t *testing.T) {
+	suite.Run(t, new(TestSuite))
 }

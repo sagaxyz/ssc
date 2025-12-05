@@ -7,7 +7,7 @@ import (
 	types "github.com/sagaxyz/ssc/x/peers/types"
 )
 
-func (s *KeeperTestSuite) TestDataStorage() {
+func (s *TestSuite) TestDataStorage() {
 	_, _, addrA := testdata.KeyTestPubAddr()
 	valAddrA := sdk.ValAddress(addrA)
 	_, _, addrB := testdata.KeyTestPubAddr()

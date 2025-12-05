@@ -211,6 +211,7 @@ func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.
 		err = errors.New("consumer not registered yet")
 		return
 	}
+	// Use DestinationChannel when receiving packets (provider is destination)
 	err = k.verifyChannel(ctx, clientID, packet.DestinationChannel)
 	if err != nil {
 		return

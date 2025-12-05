@@ -20,6 +20,7 @@ var (
 	ChainletInit          = []byte{0x03}
 	ChainletCountKey      = []byte{0x04}
 	UpgradingChainletsKey = []byte{0x05}
+	PortKey               = []byte{0x06}
 )
 
 func KeyPrefix(p string) []byte {

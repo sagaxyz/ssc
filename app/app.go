@@ -552,7 +552,7 @@ func New(
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec,
-		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
+		runtime.NewKVStoreService(keys[icahosttypes.StoreKey]),
 		app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
@@ -758,8 +758,12 @@ func New(
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
+	// Build transfer stack with middleware
+	// Order: transfer -> GMP -> packet-forward -> CCV provider
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	// GMP middleware wraps transfer to inspect and process ICS-20 packet memos
+	transferStack = gmpmodule.NewIBCModule(transferStack)
 	transferStack = packetforward.NewIBCMiddleware(
 		transferStack,
 		app.PacketForwardKeeper,

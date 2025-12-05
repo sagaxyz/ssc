@@ -28,6 +28,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					AutomaticChainletUpgrades:        true,
 					AutomaticChainletUpgradeInterval: 100,
 				},
+				PortId:         "chainlet",
 				Chainlets:      []types.Chainlet{},
 				ChainletStacks: []types.ChainletStack{},
 				ChainletCount:  0,
@@ -43,6 +44,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					AutomaticChainletUpgrades:        true,
 					AutomaticChainletUpgradeInterval: 100,
 				},
+				PortId: "chainlet",
 				Chainlets: []types.Chainlet{
 					{ChainId: "chain-1"},
 					{ChainId: "chain-2"},
@@ -63,6 +65,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					AutomaticChainletUpgrades:        true,
 					AutomaticChainletUpgradeInterval: 100,
 				},
+				PortId: "chainlet",
 				Chainlets: []types.Chainlet{
 					{ChainId: "chain-1"},
 					{ChainId: "chain-1"}, // duplicate
@@ -81,6 +84,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					AutomaticChainletUpgrades:        true,
 					AutomaticChainletUpgradeInterval: 100,
 				},
+				PortId:    "chainlet",
 				Chainlets: []types.Chainlet{},
 				ChainletStacks: []types.ChainletStack{
 					{DisplayName: "stack-1"},

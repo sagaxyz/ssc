@@ -25,25 +25,42 @@ func (k *Keeper) NewChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 		return fmt.Errorf("cannot add chainlet stack %v as it already exists", cs.DisplayName)
 	}
 
+	// Validate versions first (before any cache updates)
 	for _, version := range cs.Versions {
 		if !versions.Check(version.Version) {
 			return fmt.Errorf("version string '%s' invalid", version.Version)
 		}
+	}
+
+	// Reload caches to ensure consistency before modification
+	if err := k.loadVersions(ctx); err != nil {
+		return fmt.Errorf("failed to load versions: %w", err)
+	}
+
+	// Write to KV FIRST (before updating caches)
+	value := k.cdc.MustMarshal(&cs)
+	store.Set(byteKey, value)
+
+	// Update caches AFTER successful KV write
+	for _, version := range cs.Versions {
 		if version.Enabled {
-			err := k.AddVersion(ctx, cs.DisplayName, version)
-			if err != nil {
+			if err := k.AddVersion(ctx, cs.DisplayName, version); err != nil {
+				// Reload caches to rollback partial state
+				_ = k.loadVersions(ctx) // Best effort recovery
 				return err
 			}
 		}
 	}
 
-	value := k.cdc.MustMarshal(&cs)
-	store.Set(byteKey, value)
-
 	return nil
 }
 
 func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stackName string, version types.ChainletStackParams) error {
+	// Reload caches to ensure consistency before modification
+	if err := k.loadVersions(ctx); err != nil {
+		return fmt.Errorf("failed to load versions: %w", err)
+	}
+
 	// Get the store
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
 
@@ -58,15 +75,16 @@ func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stackName string, vers
 		return fmt.Errorf("cannot update chainlet stack %s: %w", stackName, err)
 	}
 
-	// Upsert the version
+	// Upsert the version in KV FIRST (before updating caches)
 	stack.Versions = append(stack.Versions, version)
 	updatedValue := k.cdc.MustMarshal(&stack)
 	store.Set([]byte(stackName), updatedValue)
 
-	// Store in the version tree for automatic updates
+	// Update caches AFTER successful KV write
 	if version.Enabled {
-		err = k.AddVersion(ctx, stack.DisplayName, version)
-		if err != nil {
+		if err = k.AddVersion(ctx, stack.DisplayName, version); err != nil {
+			// Reload caches to rollback partial state
+			_ = k.loadVersions(ctx) // Best effort recovery
 			return err
 		}
 	}

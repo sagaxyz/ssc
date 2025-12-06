@@ -23,4 +23,5 @@ var (
 	ErrInvalidVersion          = sdkerrors.Register(ModuleName, 6912, "invalid version")
 	ErrInvalidFees             = sdkerrors.Register(ModuleName, 6913, "invalid fees")
 	ErrDuplicateDenom          = sdkerrors.Register(ModuleName, 6914, "duplicate denom in fees")
+	ErrNoUpgradeInProgress     = sdkerrors.Register(ModuleName, 6915, "no upgrade in progress")
 )

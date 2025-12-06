@@ -89,7 +89,7 @@ func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVers
 		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot upgrade to stack %s version %s: %s", chainlet.ChainletStackName, stackVersion, err)
 	}
 	if !avail {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", chainlet.ChainletStackName, chainlet.ChainletStackVersion)
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", chainlet.ChainletStackName, stackVersion)
 	}
 
 	chainlet.ChainletStackVersion = stackVersion

@@ -7,6 +7,13 @@ import (
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	var p types.Params
+	k.paramstore.GetParamSetIfExists(ctx, &p)
+	// If params were loaded from store, return them; otherwise return defaults
+	// Note: For empty Params struct, Size() will be 0, so we return defaults
+	if p.Size() > 0 {
+		return p
+	}
 	return types.NewParams()
 }
 

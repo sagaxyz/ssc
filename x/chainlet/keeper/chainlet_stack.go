@@ -32,23 +32,23 @@ func (k *Keeper) NewChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 		}
 	}
 
-	// Reload caches to ensure consistency before modification
-	if err := k.loadVersions(ctx); err != nil {
-		return fmt.Errorf("failed to load versions: %w", err)
-	}
-
 	// Write to KV FIRST (before updating caches)
 	value := k.cdc.MustMarshal(&cs)
 	store.Set(byteKey, value)
 
 	// Update caches AFTER successful KV write
+	// Track successfully added versions for rollback on error
+	addedVersions := make([]string, 0, len(cs.Versions))
 	for _, version := range cs.Versions {
 		if version.Enabled {
 			if err := k.AddVersion(ctx, cs.DisplayName, version); err != nil {
-				// Reload caches to rollback partial state
-				_ = k.loadVersions(ctx) // Best effort recovery
+				// Rollback: remove all versions that were successfully added to cache
+				for _, addedVersion := range addedVersions {
+					_ = k.RemoveVersion(ctx, cs.DisplayName, addedVersion)
+				}
 				return err
 			}
+			addedVersions = append(addedVersions, version.Version)
 		}
 	}
 
@@ -56,11 +56,6 @@ func (k *Keeper) NewChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 }
 
 func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stackName string, version types.ChainletStackParams) error {
-	// Reload caches to ensure consistency before modification
-	if err := k.loadVersions(ctx); err != nil {
-		return fmt.Errorf("failed to load versions: %w", err)
-	}
-
 	// Get the store
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
 
@@ -83,8 +78,8 @@ func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stackName string, vers
 	// Update caches AFTER successful KV write
 	if version.Enabled {
 		if err = k.AddVersion(ctx, stack.DisplayName, version); err != nil {
-			// Reload caches to rollback partial state
-			_ = k.loadVersions(ctx) // Best effort recovery
+			// Rollback: remove the version that was added to cache
+			_ = k.RemoveVersion(ctx, stack.DisplayName, version.Version)
 			return err
 		}
 	}

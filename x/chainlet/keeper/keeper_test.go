@@ -107,7 +107,6 @@ func (s *TestSuite) SetupTest() {
 	s.chainletKeeper = keeper.NewKeeper(
 		encCfg.Codec, key, sub,
 		s.providerMsgServer,
-		nil,
 		s.stakingKeeper,
 		s.clientKeeper,
 		s.channelKeeper,

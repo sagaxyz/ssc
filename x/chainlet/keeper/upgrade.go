@@ -146,7 +146,7 @@ func (k Keeper) verifyChannel(ctx sdk.Context, clientID string, channelID string
 
 func (k Keeper) sendCancelUpgradePlan(ctx sdk.Context, chainlet *types.Chainlet, channelID string) (err error) {
 	if chainlet.Upgrade == nil {
-		return cosmossdkerrors.Wrapf(types.ErrNoUpgradeInProgress, "chainlet %s has no upgrade in progress", chainlet.ChainId)
+		panic("no upgrade")
 	}
 	// Get consumer client id
 	clientID, consumerRegistered := k.providerKeeper.GetConsumerClientId(ctx, chainlet.ConsumerId)

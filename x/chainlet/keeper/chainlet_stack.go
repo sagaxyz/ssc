@@ -37,18 +37,23 @@ func (k *Keeper) NewChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 	store.Set(byteKey, value)
 
 	// Update caches AFTER successful KV write
-	// Track successfully added versions for rollback on error
+	// Track only newly added versions for rollback on error
 	addedVersions := make([]string, 0, len(cs.Versions))
 	for _, version := range cs.Versions {
 		if version.Enabled {
+			// Check if version already exists in cache before adding
+			versionExisted := k.VersionExistsInCache(ctx, cs.DisplayName, version.Version)
 			if err := k.AddVersion(ctx, cs.DisplayName, version); err != nil {
-				// Rollback: remove all versions that were successfully added to cache
+				// Rollback: remove only versions that were newly added to cache
 				for _, addedVersion := range addedVersions {
 					_ = k.RemoveVersion(ctx, cs.DisplayName, addedVersion)
 				}
 				return err
 			}
-			addedVersions = append(addedVersions, version.Version)
+			// Only track versions that were actually newly added
+			if !versionExisted {
+				addedVersions = append(addedVersions, version.Version)
+			}
 		}
 	}
 
@@ -77,9 +82,13 @@ func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stackName string, vers
 
 	// Update caches AFTER successful KV write
 	if version.Enabled {
+		// Check if version already exists in cache before adding
+		versionExisted := k.VersionExistsInCache(ctx, stack.DisplayName, version.Version)
 		if err = k.AddVersion(ctx, stack.DisplayName, version); err != nil {
-			// Rollback: remove the version that was added to cache
-			_ = k.RemoveVersion(ctx, stack.DisplayName, version.Version)
+			// Rollback: remove the version only if it was newly added to cache
+			if !versionExisted {
+				_ = k.RemoveVersion(ctx, stack.DisplayName, version.Version)
+			}
 			return err
 		}
 	}

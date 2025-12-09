@@ -52,6 +52,25 @@ func normalizeVer(v string) string {
 	return v
 }
 
+// VersionExistsInCache checks if a version already exists in the cache
+// Ensures caches are loaded before checking to avoid false negatives
+func (k *Keeper) VersionExistsInCache(ctx sdk.Context, stackName, version string) bool {
+	// Ensure caches are loaded (same as AddVersion does)
+	if k.stackVersionParams == nil || k.stackVersions == nil {
+		if err := k.loadVersions(ctx); err != nil {
+			// If loading fails, assume version doesn't exist (safe default)
+			return false
+		}
+	}
+	verKey := normalizeVer(version)
+	pmap := k.stackVersionParams[stackName]
+	if pmap == nil {
+		return false
+	}
+	_, exists := pmap[verKey]
+	return exists
+}
+
 func (k *Keeper) AddVersion(ctx sdk.Context, stackName string, params types.ChainletStackParams) error {
 	version := params.Version
 	if k.stackVersions == nil || k.stackVersionParams == nil {

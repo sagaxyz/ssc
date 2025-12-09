@@ -55,14 +55,16 @@ func TestEpochInfoChangesBeginBlockerAndInitGenesis(t *testing.T) {
 			},
 		},
 		{
-			expCurrentEpochStartHeight: 2,
-			expCurrentEpochStartTime:   now,
-			expCurrentEpoch:            1,
+			// When BlockTime == epochEndTime, the epoch should start (this is the fix)
+			expCurrentEpochStartHeight: 3,
+			expCurrentEpochStartTime:   now.Add(time.Hour * 24 * 31),
+			expCurrentEpoch:            2,
 			expInitialEpochStartTime:   now,
 			fn: func() {
 				ctx = ctx.WithBlockHeight(2).WithBlockTime(now.Add(time.Second))
 				err := epochsKeeper.BeginBlocker(ctx)
 				require.NoError(t, err)
+				// BlockTime == epochEndTime should trigger epoch start
 				ctx = ctx.WithBlockHeight(3).WithBlockTime(now.Add(time.Hour * 24 * 31))
 				err = epochsKeeper.BeginBlocker(ctx)
 				require.NoError(t, err)

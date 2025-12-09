@@ -106,6 +106,8 @@ func (k Keeper) GetChainletBillingHistory(ctx sdk.Context, chainId string) ([]*t
 	// Get the store
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(fmt.Sprintf("%s-%s", types.BillingHistoryKey, chainId)))
 	it := store.Iterator(nil, nil)
+	defer it.Close()
+
 	if !it.Valid() {
 		return nil, cosmossdkerrors.Wrapf(types.ErrNoRecords, "no billing history found for chain %s", chainId)
 	}
@@ -118,7 +120,8 @@ func (k Keeper) GetChainletBillingHistory(ctx sdk.Context, chainId string) ([]*t
 		return nil, cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not retrieve chainlet info for chain %s. Error: %v", chainId, err)
 	}
 
-	for val := it.Value(); it.Valid(); it.Next() {
+	for ; it.Valid(); it.Next() {
+		val := it.Value()
 		var sbhr types.SaveBillingHistory
 		k.cdc.MustUnmarshal(val, &sbhr)
 		// get epoch info
@@ -166,15 +169,17 @@ func (k Keeper) GetKprValidatorPayoutHistory(ctx sdk.Context, validatorAddress s
 	// Get the store
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(fmt.Sprintf("%s-%s", types.ValidatorPayoutHistoryKey, validatorAddress)))
 	it := store.Iterator(nil, nil)
+	defer it.Close()
+
 	if !it.Valid() {
 		return nil, cosmossdkerrors.Wrapf(types.ErrNoRecords, "no validator payout history found for validator %s", validatorAddress)
 	}
 
-	for val := it.Value(); it.Valid(); it.Next() {
+	for ; it.Valid(); it.Next() {
+		val := it.Value()
 		var vphr types.ValidatorPayoutHistory
 		k.cdc.MustUnmarshal(val, &vphr)
 		vph = append(vph, &vphr)
-
 	}
 	return vph, nil
 }

@@ -52,10 +52,12 @@ func normalizeVer(v string) string {
 	return v
 }
 
-// VersionExistsInCache checks if a version already exists in the cache
-// Ensures caches are loaded before checking to avoid false negatives
+// VersionExistsInCache checks if a version already exists in the cache.
+// Loads the cache if it's not initialized to ensure accurate results.
+// Note: This function may be called independently (not just before AddVersion),
+// so it must load the cache if needed for correctness.
 func (k *Keeper) VersionExistsInCache(ctx sdk.Context, stackName, version string) bool {
-	// Ensure caches are loaded (same as AddVersion does)
+	// Ensure caches are loaded for accurate results
 	if k.stackVersionParams == nil || k.stackVersions == nil {
 		if err := k.loadVersions(ctx); err != nil {
 			// If loading fails, assume version doesn't exist (safe default)

@@ -131,26 +131,36 @@ func UpgradeHandler(
 		// 5. One-shot dev credit mint + cleanup
 		// ------------------------------------------------------------------
 
-		if err := ensureTempMinter(sdkCtx, ak, tempMinterName, authtypes.Minter); err != nil {
-			return nil, err
-		}
-
-		coins := sdk.NewCoins(sdk.NewCoin(baseDenom, mintAmount))
-
-		if err := bk.MintCoins(ctx, tempMinterName, coins); err != nil {
-			return nil, err
-		}
-
+		// Parse recipient address first (needed for idempotency check)
 		recipientBz, err := ak.AddressCodec().StringToBytes(recipientBech32)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient addr: %w", err)
 		}
 		recipient := sdk.AccAddress(recipientBz)
 
-		if err := bk.SendCoinsFromModuleToAccount(ctx, tempMinterName, recipient, coins); err != nil {
-			return nil, err
+		// Idempotency check: verify if upgrade has already been executed
+		recipientBalance := bk.GetBalance(ctx, recipient, baseDenom)
+		upgradeAlreadyExecuted := recipientBalance.Amount.GTE(mintAmount)
+
+		if !upgradeAlreadyExecuted {
+			// First-time execution: mint and send coins
+			if err := ensureTempMinter(sdkCtx, ak, tempMinterName, authtypes.Minter); err != nil {
+				return nil, err
+			}
+
+			coins := sdk.NewCoins(sdk.NewCoin(baseDenom, mintAmount))
+
+			if err := bk.MintCoins(ctx, tempMinterName, coins); err != nil {
+				return nil, err
+			}
+
+			if err := bk.SendCoinsFromModuleToAccount(ctx, tempMinterName, recipient, coins); err != nil {
+				return nil, err
+			}
 		}
 
+		// Cleanup: always ensure temp minter account is cleaned up
+		// (handles both first-time execution and re-execution scenarios)
 		if bal := bk.GetAllBalances(ctx, authtypes.NewModuleAddress(tempMinterName)); !bal.IsZero() {
 			if err := bk.BurnCoins(ctx, tempMinterName, bal); err != nil {
 				return nil, err

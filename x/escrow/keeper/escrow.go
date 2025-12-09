@@ -68,6 +68,28 @@ func (k Keeper) deleteFunder(ctx sdk.Context, chainID, denom, addr string) {
 	store.Delete(types.ByFunderKey(addr, chainID, denom))
 }
 
+// clearPoolFunders removes all funder records for a specific (chainID, denom) pool.
+// This is called when the pool balance is fully drained to ensure share accounting
+// is reset properly for future deposits.
+func (k Keeper) clearPoolFunders(ctx sdk.Context, chainID, denom string) {
+	store := ctx.KVStore(k.storeKey)
+	pfx := prefix.NewStore(store, types.FunderPrefix(chainID, denom))
+
+	// Collect all addresses first to avoid iterator invalidation during deletion
+	var addrs []string
+	it := pfx.Iterator(nil, nil)
+	for ; it.Valid(); it.Next() {
+		addrs = append(addrs, string(it.Key()))
+	}
+	it.Close()
+
+	// Delete all funder records and their reverse indexes
+	for _, addr := range addrs {
+		store.Delete(types.FunderKey(chainID, denom, addr))
+		store.Delete(types.ByFunderKey(addr, chainID, denom))
+	}
+}
+
 // ---------- params / validation ----------
 
 func (k Keeper) assertSupportedDenom(ctx sdk.Context, denom string) error {
@@ -176,10 +198,12 @@ func (k Keeper) deposit(ctx sdk.Context, addr sdk.AccAddress, chainID string, am
 	} else {
 		// S_j = S * T_j / T
 		var newShares math.LegacyDec
-		if pool.Balance.IsPositive() {
+		if pool.Balance.IsPositive() && pool.Shares.IsPositive() {
 			newShares = pool.Shares.MulInt(amount.Amount).QuoInt(pool.Balance.Amount)
 		} else {
-			newShares = math.LegacyNewDecFromInt(amount.Amount) // bootstrap 1:1 shares
+			// Bootstrap 1:1 shares when pool is empty or in an invalid state
+			// (e.g., Balance > 0 but Shares = 0 due to migration/genesis issues)
+			newShares = math.LegacyNewDecFromInt(amount.Amount)
 		}
 		pool.Shares = pool.Shares.Add(newShares)
 		pool.Balance = pool.Balance.Add(amount)
@@ -396,6 +420,16 @@ func (k Keeper) BillAccount(ctx sdk.Context, amount sdk.Coin, chainID, toModule 
 	// update pool
 	pool, _ := k.getPool(ctx, chainID, amount.Denom)
 	pool.Balance = nb
+
+	// If pool is fully drained, clear all funders and reset shares.
+	// This prevents the share pricing vulnerability where new depositors
+	// would get 1:1 shares while existing shareholders (with worthless shares
+	// backed by zero balance) could claim a portion of new deposits.
+	if pool.Balance.IsZero() {
+		k.clearPoolFunders(ctx, chainID, amount.Denom)
+		pool.Shares = math.LegacyZeroDec()
+	}
+
 	k.setPool(ctx, pool)
 	return nil
 }

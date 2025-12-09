@@ -25,19 +25,22 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 		return &types.MsgUpgradeChainletResponse{}, err
 	}
 
-	if !slices.Contains(ogChainlet.Maintainers, msg.Creator) {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return &types.MsgUpgradeChainletResponse{}, err
+	}
+	admin := k.aclKeeper.IsAdmin(ctx, creator)
+
+	//NOTE: Non-CCV chainlets have to be manually upgraded by Saga
+	if !slices.Contains(ogChainlet.Maintainers, msg.Creator) && (ogChainlet.IsCCVConsumer || !admin) {
 		return nil, fmt.Errorf("address %s is not a chainlet maintainer", msg.Creator)
 	}
-	majorUpgrade, err := versions.CheckUpgrade(ogChainlet.ChainletStackVersion, msg.StackVersion)
+	breakingUpgrade, err := versions.CheckUpgrade(ogChainlet.ChainletStackVersion, msg.StackVersion)
 	if err != nil {
 		return nil, err
 	}
-	if majorUpgrade {
-		currentStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, ogChainlet.ChainletStackVersion)
-		if err != nil {
-			return nil, err
-		}
-		if currentStack.CcvConsumer {
+	if breakingUpgrade {
+		if ogChainlet.IsCCVConsumer {
 			p := k.GetParams(ctx)
 			upgradeDelta := p.UpgradeMinimumHeightDelta + msg.HeightDelta
 			height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta, msg.ChannelId)
@@ -49,6 +52,11 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 				Height: height,
 			}, nil
 		} else {
+			//NOTE: Non-CCV chainlets have to be manually upgraded by Saga
+			if !admin {
+				return nil, fmt.Errorf("address %s is not allowed to upgrade this chainlet", msg.Creator)
+			}
+
 			// Add as a consumer if upgrade enables CCV
 			newStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, msg.StackVersion)
 			if err != nil {

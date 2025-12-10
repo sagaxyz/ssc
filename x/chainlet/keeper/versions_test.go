@@ -89,3 +89,69 @@ func (s *TestSuite) TestVersionsLoading() {
 		s.Require().Equal(tt.expectedState, versions)
 	}
 }
+
+func (s *TestSuite) TestVersionExistsInCache() {
+	s.SetupTest()
+
+	stackName := "test"
+	version1 := "1.2.3"
+	version2 := "2.0.0"
+	nonExistentVersion := "3.0.0"
+
+	// Create a chainlet stack with version 1.2.3
+	_, err := s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
+		creator.String(), stackName, "test", "test/test:"+version1, version1, "abcd"+version1, fees, true,
+	))
+	s.Require().NoError(err)
+
+	// Add version 2.0.0
+	_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
+		creator.String(), stackName, "test/test:"+version2, version2, "abcd"+version2, true,
+	))
+	s.Require().NoError(err)
+
+	// Test 1: Version exists in cache (1.2.3)
+	exists := s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, version1)
+	s.Require().True(exists, "version 1.2.3 should exist in cache")
+
+	// Test 2: Version exists in cache (2.0.0)
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, version2)
+	s.Require().True(exists, "version 2.0.0 should exist in cache")
+
+	// Test 3: Version doesn't exist
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, nonExistentVersion)
+	s.Require().False(exists, "version 3.0.0 should not exist in cache")
+
+	// Test 4: Stack doesn't exist
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, "nonexistent", version1)
+	s.Require().False(exists, "version should not exist for nonexistent stack")
+
+	// Test 5: Version with 'v' prefix normalization
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, "v"+version1)
+	s.Require().True(exists, "version with 'v' prefix should be normalized and found")
+
+	// Test 6: Version with 'V' prefix normalization
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, "V"+version2)
+	s.Require().True(exists, "version with 'V' prefix should be normalized and found")
+
+	// Test 7: Cache is nil - should load and check
+	s.chainletKeeper.DeleteVersions()
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, version1)
+	s.Require().True(exists, "should load cache and find version after DeleteVersions")
+
+	// Test 8: Disabled version should not exist in cache
+	// First add an enabled version, then disable it
+	enabledVersion := "4.0.0"
+	_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
+		creator.String(), stackName, "test/test:"+enabledVersion, enabledVersion, "abcd"+enabledVersion, true, // enabled
+	))
+	s.Require().NoError(err)
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, enabledVersion)
+	s.Require().True(exists, "enabled version should exist in cache")
+
+	// Now disable it - this removes it from cache
+	_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), stackName, enabledVersion))
+	s.Require().NoError(err)
+	exists = s.chainletKeeper.VersionExistsInCache(s.ctx, stackName, enabledVersion)
+	s.Require().False(exists, "disabled version should not exist in cache after disabling")
+}

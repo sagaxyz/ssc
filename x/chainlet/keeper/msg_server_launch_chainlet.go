@@ -22,8 +22,11 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	admin := k.aclKeeper.IsAdmin(ctx, msg.GetSigners()[0])
 	if !admin {
 		ok, err := types.ValidateNonAdminChainId(msg.ChainId)
-		if !ok {
+		if err != nil {
 			return &types.MsgLaunchChainletResponse{}, err
+		}
+		if !ok {
+			return &types.MsgLaunchChainletResponse{}, types.ErrInvalidChainId
 		}
 	}
 

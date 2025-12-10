@@ -27,6 +27,10 @@ func (s *TestSuite) TestConsumerVSC() {
 		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		AnyTimes()
+	s.aclKeeper.EXPECT().
+		IsAdmin(gomock.Any(), gomock.Any()).
+		Return(false).
+		AnyTimes()
 
 	// Set up expectations in order (only one round)
 	gomock.InOrder(

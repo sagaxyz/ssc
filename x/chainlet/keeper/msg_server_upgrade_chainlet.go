@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -35,12 +36,19 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 	if !slices.Contains(ogChainlet.Maintainers, msg.Creator) && (ogChainlet.IsCCVConsumer || !admin) {
 		return nil, fmt.Errorf("address %s is not a chainlet maintainer", msg.Creator)
 	}
+	newStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, msg.StackVersion)
+	if err != nil {
+		return nil, err
+	}
 	breakingUpgrade, err := versions.CheckUpgrade(ogChainlet.ChainletStackVersion, msg.StackVersion)
 	if err != nil {
 		return nil, err
 	}
 	if breakingUpgrade {
 		if ogChainlet.IsCCVConsumer {
+			if !newStack.CcvConsumer {
+				return &types.MsgUpgradeChainletResponse{}, errors.New("CCV cannot be disabled")
+			}
 			p := k.GetParams(ctx)
 			upgradeDelta := p.UpgradeMinimumHeightDelta + msg.HeightDelta
 			height, err := k.sendUpgradePlan(ctx, &ogChainlet, msg.StackVersion, upgradeDelta, msg.ChannelId)
@@ -58,10 +66,6 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 			}
 
 			// Add as a consumer if upgrade enables CCV
-			newStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, msg.StackVersion)
-			if err != nil {
-				return nil, err
-			}
 			if newStack.CcvConsumer {
 				p := k.GetParams(ctx)
 
@@ -77,11 +81,15 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 				}
 			}
 		}
+	} else {
+		if newStack.CcvConsumer != ogChainlet.IsCCVConsumer {
+			return &types.MsgUpgradeChainletResponse{}, errors.New("changing CCV requires a breaking upgrade")
+		}
 	}
 
 	err = k.UpgradeChainletStackVersion(ctx, msg.ChainId, msg.StackVersion)
 	if err != nil {
-		return nil, fmt.Errorf("error while updating chainlet: %s", err)
+		return &types.MsgUpgradeChainletResponse{}, fmt.Errorf("error while updating chainlet: %s", err)
 	}
 
 	return &types.MsgUpgradeChainletResponse{}, ctx.EventManager().EmitTypedEvent(&types.EventUpdateChainlet{

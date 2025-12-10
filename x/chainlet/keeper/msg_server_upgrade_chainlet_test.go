@@ -158,7 +158,7 @@ func (s *TestSuite) TestUpgradeChainlet() {
 			"fail - disable CCV with non-breaking upgrade",
 			"1.0.2", true,
 			"1.1.0", false,
-			admin,
+			maintainer,
 			nil,
 			"requires a breaking upgrade",
 		},

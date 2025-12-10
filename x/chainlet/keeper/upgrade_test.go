@@ -113,6 +113,10 @@ func (s *TestSuite) TestUpgrade() {
 				GetValidatorSetUpdateId(gomock.Any()).
 				Return(uint64(1)).
 				AnyTimes()
+			s.aclKeeper.EXPECT().
+				IsAdmin(gomock.Any(), gomock.Any()).
+				Return(false).
+				AnyTimes()
 
 			// Create stacks
 			ver := "1.2.3"

@@ -38,10 +38,13 @@ func (s *TestSuite) TestLaunchChainlet_CustomLauncherEvent() {
 		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		AnyTimes()
-
 	s.escrowKeeper.EXPECT().
 		NewChainletAccount(gomock.Any(), gomock.Any(), gomock.Eq(chainID), gomock.Any()).
 		Return(nil).
+		AnyTimes()
+	s.aclKeeper.EXPECT().
+		IsAdmin(gomock.Any(), gomock.Any()).
+		Return(true).
 		AnyTimes()
 
 	// Clear any existing events

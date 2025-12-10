@@ -30,8 +30,11 @@ var (
 	addrs = []sdk.AccAddress{
 		sdk.AccAddress("test1"),
 		sdk.AccAddress("test2"),
+		sdk.AccAddress("test3"),
 	}
-	creator = addrs[0]
+	creator    = addrs[0]
+	maintainer = addrs[1]
+	admin      = addrs[2]
 )
 
 type TestSuite struct {
@@ -82,11 +85,6 @@ func (s *TestSuite) SetupTest() {
 	s.billingKeeper = chainlettestutil.NewMockBillingKeeper(ctrl)
 	s.escrowKeeper = chainlettestutil.NewMockEscrowKeeper(ctrl)
 	s.providerMsgServer = chainlettestutil.NewMockProviderMsgServer(ctrl)
-
-	s.aclKeeper.EXPECT().
-		IsAdmin(gomock.Any(), gomock.Any()).
-		Return(true).
-		AnyTimes()
 
 	// Set up Staking keeper expectations for GetAllValidators since it's used in msg_server_launch_chainlet.go
 	s.stakingKeeper.EXPECT().

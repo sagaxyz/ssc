@@ -30,12 +30,17 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 	if err != nil {
 		return &types.MsgUpgradeChainletResponse{}, err
 	}
-	admin := k.aclKeeper.IsAdmin(ctx, creator)
 
-	//NOTE: Non-CCV chainlets have to be manually upgraded by Saga
-	if !slices.Contains(ogChainlet.Maintainers, msg.Creator) && (ogChainlet.IsCCVConsumer || !admin) {
-		return nil, fmt.Errorf("address %s is not a chainlet maintainer", msg.Creator)
+	isAdmin := k.aclKeeper.IsAdmin(ctx, creator)
+	isMaintainer := slices.Contains(ogChainlet.Maintainers, msg.Creator)
+	canUpgrade := isMaintainer || (!ogChainlet.IsCCVConsumer && isAdmin) // Non-CCV chainlets have to be manually upgraded by Saga
+	if !canUpgrade {
+		if ogChainlet.IsCCVConsumer {
+			return nil, fmt.Errorf("address %s is not a chainlet maintainer", msg.Creator)
+		}
+		return nil, fmt.Errorf("address %s is not allowed to upgrade this chainlet (must be maintainer or admin)", msg.Creator)
 	}
+
 	newStack, err := k.getChainletStackVersion(ctx, ogChainlet.ChainletStackName, msg.StackVersion)
 	if err != nil {
 		return nil, err
@@ -61,7 +66,7 @@ func (k msgServer) UpgradeChainlet(goCtx context.Context, msg *types.MsgUpgradeC
 			}, nil
 		} else {
 			//NOTE: Non-CCV chainlets have to be manually upgraded by Saga
-			if !admin {
+			if !isAdmin {
 				return nil, fmt.Errorf("address %s is not allowed to upgrade this chainlet", msg.Creator)
 			}
 

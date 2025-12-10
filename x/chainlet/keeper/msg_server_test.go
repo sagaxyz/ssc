@@ -34,6 +34,11 @@ func (s *TestSuite) TestLaunchChainlet_CustomLauncherEvent() {
 	customLauncher := sdk.AccAddress("custom_launcher").String()
 	chainID := "test_12345-1" // Valid chain ID format: lowercase_letters_numbers-numbers
 
+	s.aclKeeper.EXPECT().
+		IsAdmin(gomock.Any(), gomock.Any()).
+		Return(true).
+		AnyTimes()
+
 	s.billingKeeper.EXPECT().
 		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).

@@ -28,6 +28,10 @@ func (s *TestSuite) ibcSetup(chainID, consumerID, channelID string) {
 		BillAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		AnyTimes()
+	s.aclKeeper.EXPECT().
+		IsAdmin(gomock.Any(), gomock.Any()).
+		Return(false).
+		AnyTimes()
 	s.providerKeeper.EXPECT().
 		GetValidatorSetUpdateId(gomock.Any()).
 		Return(uint64(1)).

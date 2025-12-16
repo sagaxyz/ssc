@@ -72,13 +72,20 @@ func (k msgServer) SetPeers(goCtx context.Context, msg *types.MsgSetPeers) (resp
 		err = errors.New("no peers provided")
 		return
 	}
+
+	// Check the data size
 	p := k.GetParams(ctx)
 	var dataSize uint32
 	for _, addr := range msg.Peers {
 		if len(addr) > math.MaxUint32 {
-			err = errors.New("data size exceeds uint32")
+			err = errors.New("addr size exceeds uint32")
 			return
 		}
+		if uint64(dataSize) + uint64(len(addr)) > math.MaxUint32 {
+			err = errors.New("total size exceeds uint32")
+			return
+		}
+
 		dataSize += uint32(len(addr))
 		if dataSize > p.MaxData {
 			err = fmt.Errorf("exceeded maximum size (%d) of peers", p.MaxData)

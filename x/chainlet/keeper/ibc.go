@@ -221,6 +221,13 @@ func (k Keeper) OnRecvConfirmUpgradePacket(ctx sdk.Context, packet channeltypes.
 	if err != nil {
 		return
 	}
+	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateChainlet{
+		ChainId:      chainlet.ChainId,
+		StackVersion: chainlet.ChainletStackVersion,
+	})
+	if err != nil {
+		return
+	}
 
 	return packetAck, nil
 }

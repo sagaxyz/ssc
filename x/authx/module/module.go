@@ -23,10 +23,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/authx"
-	"github.com/cosmos/cosmos-sdk/x/authx/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/authx/keeper"
-	"github.com/cosmos/cosmos-sdk/x/authx/simulation"
+	"github.com/sagaxyz/ssc/x/authx"
+	"github.com/sagaxyz/ssc/x/authx/client/cli"
+	"github.com/sagaxyz/ssc/x/authx/keeper"
+	"github.com/sagaxyz/ssc/x/authx/simulation"
 )
 
 var (

@@ -6,8 +6,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/testutil/simsx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authx"
-	"github.com/cosmos/cosmos-sdk/x/authx/keeper"
+	"github.com/sagaxyz/ssc/x/authx"
+	"github.com/sagaxyz/ssc/x/authx/keeper"
 	banktype "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

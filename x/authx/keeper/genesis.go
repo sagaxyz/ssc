@@ -2,11 +2,11 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authx"
+	"github.com/sagaxyz/ssc/x/authx/types"
 )
 
 // InitGenesis initializes new authx genesis
-func (k Keeper) InitGenesis(ctx sdk.Context, data *authx.GenesisState) {
+func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 	now := ctx.BlockTime()
 	for _, entry := range data.Authorization {
 		// ignore expired authorizations
@@ -23,7 +23,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *authx.GenesisState) {
 			panic(err)
 		}
 
-		a, ok := entry.Authorization.GetCachedValue().(authx.Authorization)
+		a, ok := entry.Authorization.GetCachedValue().(types.Authorization)
 		if !ok {
 			panic("expected authorization")
 		}
@@ -36,10 +36,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *authx.GenesisState) {
 }
 
 // ExportGenesis returns a GenesisState for a given context.
-func (k Keeper) ExportGenesis(ctx sdk.Context) *authx.GenesisState {
-	var entries []authx.GrantAuthorization
-	k.IterateGrants(ctx, func(granter, grantee sdk.AccAddress, grant authx.Grant) bool {
-		entries = append(entries, authx.GrantAuthorization{
+func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	var entries []types.GrantAuthorization
+	k.IterateGrants(ctx, func(granter, grantee sdk.AccAddress, grant types.Grant) bool {
+		entries = append(entries, types.GrantAuthorization{
 			Granter:       granter.String(),
 			Grantee:       grantee.String(),
 			Expiration:    grant.Expiration,
@@ -48,5 +48,5 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *authx.GenesisState {
 		return false
 	})
 
-	return authx.NewGenesisState(entries)
+	return types.NewGenesisState(entries)
 }

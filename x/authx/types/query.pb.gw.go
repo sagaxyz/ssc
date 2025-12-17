@@ -6,7 +6,7 @@ Package authx is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package authx
+package types
 
 import (
 	"context"

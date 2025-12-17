@@ -12,9 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/authx"
-	authxmodule "github.com/cosmos/cosmos-sdk/x/authx/module"
-	"github.com/cosmos/cosmos-sdk/x/authx/simulation"
+	"github.com/sagaxyz/ssc/x/authx"
+	authxmodule "github.com/sagaxyz/ssc/x/authx/module"
+	"github.com/sagaxyz/ssc/x/authx/simulation"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

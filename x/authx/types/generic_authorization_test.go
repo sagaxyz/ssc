@@ -1,11 +1,11 @@
-package authx_test
+package types_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/x/authx"
+	"github.com/sagaxyz/ssc/x/authx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

@@ -1,4 +1,4 @@
-package authx
+package types
 
 import "cosmossdk.io/errors"
 

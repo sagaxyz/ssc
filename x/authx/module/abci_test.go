@@ -19,10 +19,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authx"
-	"github.com/cosmos/cosmos-sdk/x/authx/keeper"
-	authxmodule "github.com/cosmos/cosmos-sdk/x/authx/module"
-	authxtestutil "github.com/cosmos/cosmos-sdk/x/authx/testutil"
+	"github.com/sagaxyz/ssc/x/authx"
+	"github.com/sagaxyz/ssc/x/authx/keeper"
+	authxmodule "github.com/sagaxyz/ssc/x/authx/module"
+	authxtestutil "github.com/sagaxyz/ssc/x/authx/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

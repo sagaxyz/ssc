@@ -3,7 +3,7 @@ package ssc.authx.v1;
 
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "ssc/authx/v1/authz.proto";
+import "ssc/authx/v1/authx.proto";
 import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/sagaxyz/ssc/x/authx/types";

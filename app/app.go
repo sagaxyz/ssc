@@ -96,6 +96,9 @@ import (
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
+	authxkeeper "github.com/sagaxyz/ssc/x/authx/keeper"
+	authxmodule "github.com/sagaxyz/ssc/x/authx/module"
+	authxtypes "github.com/sagaxyz/ssc/x/authx/types"
 	"github.com/spf13/cast"
 
 	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
@@ -194,6 +197,7 @@ var (
 	ModuleBasics = module.NewBasicManager(
 		auth.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
+		authxmodule.AppModuleBasic{},
 		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 		bank.AppModuleBasic{},
 		no_valupdates_staking.AppModuleBasic{},
@@ -277,6 +281,7 @@ type App struct {
 	// keepers
 	AccountKeeper         authkeeper.AccountKeeper
 	AuthzKeeper           authzkeeper.Keeper
+	AuthxKeeper           authxkeeper.Keeper
 	BankKeeper            bankkeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
@@ -356,6 +361,7 @@ func New(
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey,
 		authz.ModuleName,
+		authxtypes.ModuleName,
 		banktypes.StoreKey,
 		stakingtypes.StoreKey,
 		minttypes.StoreKey,
@@ -426,6 +432,12 @@ func New(
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[authzkeeper.StoreKey]),
+		appCodec,
+		app.MsgServiceRouter(),
+		app.AccountKeeper,
+	)
+	app.AuthxKeeper = authxkeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[authxtypes.StoreKey]),
 		appCodec,
 		app.MsgServiceRouter(),
 		app.AccountKeeper,
@@ -796,6 +808,7 @@ func New(
 		),
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		authxmodule.NewAppModule(appCodec, app.AuthxKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
@@ -868,6 +881,7 @@ func New(
 		icatypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
+		authxtypes.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
 		paramstypes.ModuleName,
@@ -903,6 +917,7 @@ func New(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
+		authxtypes.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
 		paramstypes.ModuleName,
@@ -940,6 +955,7 @@ func New(
 		ibcmock.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
+		authxtypes.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
 		paramstypes.ModuleName,

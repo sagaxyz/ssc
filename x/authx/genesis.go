@@ -4,10 +4,12 @@ import (
 	fmt "fmt"
 
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	"github.com/sagaxyz/ssc/x/authx/types"
 )
 
 // NewGenesisState creates new GenesisState object
-func NewGenesisState(entries []GrantAuthorization) *GenesisState {
+func NewGenesisState(entries []types.GrantAuthorization) *GenesisState {
 	return &GenesisState{
 		Authorization: entries,
 	}
@@ -43,10 +45,4 @@ func (data GenesisState) UnpackInterfaces(unpacker cdctypes.AnyUnpacker) error {
 		}
 	}
 	return nil
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg GrantAuthorization) UnpackInterfaces(unpacker cdctypes.AnyUnpacker) error {
-	var a Authorization
-	return unpacker.UnpackAny(msg.Authorization, &a)
 }

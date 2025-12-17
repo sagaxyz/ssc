@@ -3,7 +3,7 @@ package ssc.authx.v1;
 
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/cosmos/cosmos-sdk/x/authz";
+option go_package = "github.com/sagaxyz/ssc/x/authx/types";
 
 // EventGrant is emitted on Msg/Grant
 message EventGrant {

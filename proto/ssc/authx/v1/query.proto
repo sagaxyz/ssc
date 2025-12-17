@@ -6,7 +6,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "ssc/authx/v1/authz.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/cosmos/cosmos-sdk/x/authz";
+option go_package = "github.com/sagaxyz/ssc/x/authx/types";
 
 // Query defines the gRPC querier service.
 service Query {
@@ -17,13 +17,11 @@ service Query {
 
   // GranterGrants returns list of `GrantAuthorization`, granted by granter.
   rpc GranterGrants(QueryGranterGrantsRequest) returns (QueryGranterGrantsResponse) {
-    option (cosmos_proto.method_added_in) = "cosmos-sdk 0.46";
     option (google.api.http).get          = "/ssc/authx/v1/grants/granter/{granter}";
   }
 
   // GranteeGrants returns a list of `GrantAuthorization` by grantee.
   rpc GranteeGrants(QueryGranteeGrantsRequest) returns (QueryGranteeGrantsResponse) {
-    option (cosmos_proto.method_added_in) = "cosmos-sdk 0.46";
     option (google.api.http).get          = "/ssc/authx/v1/grants/grantee/{grantee}";
   }
 }

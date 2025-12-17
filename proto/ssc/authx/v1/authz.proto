@@ -7,13 +7,13 @@ import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 
-option go_package                      = "github.com/cosmos/cosmos-sdk/x/authz";
+option go_package                      = "github.com/sagaxyz/ssc/x/authx/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // GenericAuthorization gives the grantee unrestricted permissions to execute
 // the provided method on behalf of the granter's account.
 message GenericAuthorization {
-  option (amino.name)                        = "cosmos-sdk/GenericAuthorization";
+  option (amino.name)                        = "ssc/GenericAuthorization";
   option (cosmos_proto.implements_interface) = "ssc.authx.v1.Authorization";
 
   // Msg, identified by it's type URL, to grant unrestricted permissions to execute

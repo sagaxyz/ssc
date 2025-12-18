@@ -770,7 +770,6 @@ func New(
 		0, // retries on timeout
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 	)
-	transferStack = ccvprovider.NewIBCMiddleware(transferStack, app.ProviderKeeper)
 
 	/**** IBC Routing ****/
 	icaControllerStack := icacontroller.NewIBCMiddleware(icaControllerKeeper)

@@ -1180,6 +1180,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
+	app.bmm.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
 	docs.RegisterOpenAPIService(Name, apiSvr.Router) //
 	// apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Static)))
 	// register app's OpenAPI routes.

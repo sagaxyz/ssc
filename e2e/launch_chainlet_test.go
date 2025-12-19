@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	interchaintest "github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	e2eutils "github.com/sagaxyz/ssc/e2e/utils"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/stretchr/testify/require"
 )
 

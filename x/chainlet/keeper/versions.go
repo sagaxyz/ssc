@@ -4,11 +4,18 @@ import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
 
-func (k *Keeper) loadVersions(ctx sdk.Context) error {
+func (k *Keeper) loadVersions(c sdk.Context) error {
+	// Create a new context with an infinite gas meter, to avoid consuming gas.
+	// This is in order to avoid any difference in gas consumption between nodes
+	// that load the versions cache.
+	ctx, _ := c.CacheContext()
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
 
 	it := store.Iterator(nil, nil)

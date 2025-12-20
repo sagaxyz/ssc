@@ -82,9 +82,11 @@ func (s *TestSuite) TestVersionsLoading() {
 		s.Require().Equal(tt.expectedState, versions)
 
 		s.chainletKeeper.DeleteVersions()
-		// Force re-load
+		// Force re-load, making sure no gas is consumed
+		gas := s.ctx.GasMeter().GasConsumed() // get the gas amount before the function call
 		_, err = s.chainletKeeper.LatestVersion(s.ctx, "test", "1.2.3")
 		s.Require().NoError(err)
+		s.Require().Equal(gas, s.ctx.GasMeter().GasConsumed()) // this function must not consume gas
 		versions = s.chainletKeeper.Versions("test")
 		s.Require().Equal(tt.expectedState, versions)
 	}

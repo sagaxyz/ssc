@@ -34,6 +34,7 @@ func (icn *InterchainNetwork) GetChain(idx uint8) (ibc.Chain, error) {
 
 	return icn.chains[idx], nil
 }
+func (icn *InterchainNetwork) GetDockerClient() *client.Client { return icn.client }
 
 // GetChannelInfo returns the channel information for the first stored channel between the chains with the given indices.
 // This information includes e.g. channel and port ids of the connection and the counterparty information as well.
@@ -128,4 +129,29 @@ func (icn *InterchainNetwork) Build(t *testing.T, ctx context.Context) error {
 		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 		SkipPathCreation:  false,
 	})
+}
+
+// CreateNetworkWithoutStarting creates a network and chains but does not start nodes
+// This allows modifying configuration files (like app.toml) before nodes start
+func CreateNetworkWithoutStarting(t *testing.T, opts ...ConfigOption) (*InterchainNetwork, []ibc.Chain, error) {
+	config := defaultConfig()
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	if err := config.validate(); err != nil {
+		return nil, nil, fmt.Errorf("invalid config: %w", err)
+	}
+
+	icn, err := newNetwork(t, *config)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create network: %w", err)
+	}
+
+	chains, err := icn.createAndAddChains(t)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create chains: %w", err)
+	}
+
+	return icn, chains, nil
 }

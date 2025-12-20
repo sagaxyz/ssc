@@ -418,13 +418,15 @@ benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
 
-.PHONY: test-e2e-basic-ibc-transfer test-e2e-pfm-ibc-transfer test-e2e-chainlet-launch-test
+.PHONY: test-e2e-basic-ibc-transfer test-e2e-pfm-ibc-transfer test-e2e-chainlet-launch test-e2e-api-endpoints
 test-e2e-basic-ibc-transfer: rm-testcache
-	cd e2e && go test -race -run TestBasicIBCTransfer .
+	cd e2e && go test -v -race -run TestBasicIBCTransfer .
 test-e2e-pfm-ibc-transfer: rm-testcache
-	cd e2e && go test -race -run TestPFMTransfer .
+	cd e2e && go test -v -race -run TestPFMTransfer .
 test-e2e-chainlet-launch: rm-testcache
-	cd e2e && go test -race -run TestChainletLaunch .
+	cd e2e && go test -v -race -run TestChainletLaunch .
+test-e2e-api-endpoints: rm-testcache
+	cd e2e && go test -v -race -run TestAPIEndpoints .
 
 rm-testcache:
 	go clean -testcache

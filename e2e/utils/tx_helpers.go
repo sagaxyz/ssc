@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/tidwall/gjson"
 )
 

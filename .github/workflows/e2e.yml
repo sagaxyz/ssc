@@ -1,10 +1,13 @@
 name: End to end tests
 
 on:
+  push:
+    branches:
+      - fix/e2e-tests
   pull_request:
     branches:
       - main
-      - release/**
+      - release/**      
   workflow_dispatch:
 
 jobs:

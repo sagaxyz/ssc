@@ -1,8 +1,125 @@
 package keeper_test
 
 import (
+	"bytes"
+	"strings"
+	"testing"
+
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
+
+func decodeStrings(data []byte) []Op {
+	parts := strings.Split(string(bytes.Trim(data, "\x00")), ",")
+	if len(parts) == 1 && parts[0] == "" {
+		return nil
+	}
+
+	ops := make([]Op, 0, len(parts))
+	for _, part := range parts {
+		if len(part) <= 1 {
+			continue
+		}
+		ops = append(ops, Op{
+			m:       part[:1],
+			version: part[1:],
+		})
+	}
+	return ops
+}
+
+func executeVersions(t *testing.T, ops []Op, deleteAt int) (result []string, gasUsed uint64, err error) {
+	s := TestSuite{}
+	s.SetT(t)
+	s.SetupTest()
+
+	gasMeter := storetypes.NewGasMeter(1_000_000)
+	ctx := s.ctx.WithGasMeter(gasMeter)
+
+	staticVer := "42.42.42"
+	_, err = s.msgServer.CreateChainletStack(s.ctx, types.NewMsgCreateChainletStack(
+		creator.String(), "test", "test", "test/test:"+staticVer, staticVer, "abcd"+staticVer, fees, false,
+	))
+	if err != nil {
+		return
+	}
+	_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), "test", staticVer))
+	if err != nil {
+		return
+	}
+
+	for i, op := range ops {
+		switch op.m {
+		case "i":
+			_, err = s.msgServer.UpdateChainletStack(s.ctx, types.NewMsgUpdateChainletStack(
+				creator.String(), "test", "test/test:"+op.version, op.version, "abcd"+op.version, false,
+			))
+			if err != nil {
+				return
+			}
+		case "r":
+			_, err = s.msgServer.DisableChainletStackVersion(s.ctx, types.NewMsgDisableChainletStackVersion(creator.String(), "test", op.version))
+			if err != nil {
+				return
+			}
+		}
+		if i == deleteAt {
+			// Delete version cache
+			s.chainletKeeper.DeleteVersions()
+		}
+	}
+
+	// Make sure the versions are loaded at the end of this function
+	_, err = s.chainletKeeper.LatestVersion(ctx, "test", "1.2.3")
+	if err != nil {
+		return
+	}
+
+	result = s.chainletKeeper.Versions("test")
+	gasUsed = ctx.GasMeter().GasConsumed()
+	return
+}
+
+type Op struct {
+	m       string
+	version string
+}
+
+func FuzzVersions(f *testing.F) {
+	corpus := [][]string{
+		{"i0.1.3", "r1.2.3", "i1.2.4", "i2.0.0", "i2.1.0", "r2.1.0"},
+		{"i0.1.2", "i0.1.3", "i1.2.3", "i1.2.4", "i2.0.0", "i2.1.0", "i2.1.1", "r0.1.2", "r0.1.3", "r1.2.3", "r2.0.0", "r2.1.0", "r2.1.1"},
+		{"i0.1.2", "i0.1.3", "i1.2.3", "i1.2.4", "i2.0.0", "i2.1.0", "i2.1.1"},
+	}
+	for _, c := range corpus {
+		f.Add([]byte(strings.Join(c, ",")), int(3), int(8))
+	}
+
+	f.Fuzz(func(t *testing.T, _ops []byte, deleteAtA, deleteAtB int) {
+		ops := decodeStrings(_ops)
+
+		aResult, aGasUsed, err := executeVersions(t, ops, deleteAtA)
+		if err != nil {
+			return
+		}
+		bResult, bGasUsed, err := executeVersions(t, ops, deleteAtB)
+		if err != nil {
+			return
+		}
+		if len(aResult) != len(bResult) {
+			t.Errorf("different length (%q): A[%d]=%q, B[%d]=%q", ops, deleteAtA, aResult, deleteAtB, bResult)
+		}
+		for i := range aResult {
+			if aResult[i] != bResult[i] {
+				t.Errorf("different entries (%q): A[%d]=%q, B[%d]=%q", ops, deleteAtA, aResult, deleteAtB, bResult)
+			}
+		}
+		if aGasUsed != bGasUsed {
+			t.Errorf("different gas used (%q): A[%d]=%d, B[%d]=%d", ops, deleteAtA, aGasUsed, deleteAtB, bGasUsed)
+		}
+	})
+}
 
 func (s *TestSuite) TestVersionsLoading() {
 	tests := []struct {

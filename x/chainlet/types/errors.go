@@ -18,7 +18,7 @@ var (
 	ErrJSONMarhsal             = sdkerrors.Register(ModuleName, 6907, "error marshalling json")
 	ErrChainletStartFailure    = sdkerrors.Register(ModuleName, 6908, "failed to start chainlet")
 	ErrTooManyChainlets        = sdkerrors.Register(ModuleName, 6909, "chainlet limit exceeded")
-	ErrUnauthorized            = sdkerrors.Register(ModuleName, 6910, "not authorized to launch a service chainlet")
+	ErrUnauthorized            = sdkerrors.Register(ModuleName, 6910, "not authorized")
 	ErrInvalidPacketTimeout    = sdkerrors.Register(ModuleName, 6911, "invalid packet timeout")
 	ErrInvalidVersion          = sdkerrors.Register(ModuleName, 6912, "invalid version")
 	ErrInvalidFees             = sdkerrors.Register(ModuleName, 6913, "invalid fees")

@@ -158,6 +158,7 @@ import (
 	upgrade03 "github.com/sagaxyz/ssc/app/upgrades/0.3"
 	upgrade1 "github.com/sagaxyz/ssc/app/upgrades/1.0"
 	upgrade2 "github.com/sagaxyz/ssc/app/upgrades/2"
+	upgrade21 "github.com/sagaxyz/ssc/app/upgrades/2.1"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -1266,6 +1267,7 @@ func (app *App) RegisterUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade03.Name, upgrade03.UpgradeHandler(app.mm, app.configurator))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade1.Name, upgrade1.UpgradeHandler(app.mm, app.configurator, app.AccountKeeper, app.BankKeeper, app.ProviderKeeper, app.DacKeeper, *app.ChainletKeeper, app.BillingKeeper))
 	app.UpgradeKeeper.SetUpgradeHandler(upgrade2.Name, upgrade2.UpgradeHandler(app.mm, app.configurator))
+	app.UpgradeKeeper.SetUpgradeHandler(upgrade21.Name, upgrade21.UpgradeHandler(app.mm, app.configurator))
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
@@ -1298,6 +1300,8 @@ func (app *App) RegisterUpgradeHandlers() {
 			},
 		}
 	case upgrade2.Name:
+		storeUpgrades = &storetypes.StoreUpgrades{}
+	case upgrade21.Name:
 		storeUpgrades = &storetypes.StoreUpgrades{}
 	default:
 	}

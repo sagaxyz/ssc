@@ -48,6 +48,7 @@ jobs:
           [
             test-e2e-basic-ibc-transfer,
             test-e2e-pfm-ibc-transfer,
+            test-e2e-gmp-pfm-transfer,
             test-e2e-chainlet-launch,
             test-e2e-api-endpoints,
           ]

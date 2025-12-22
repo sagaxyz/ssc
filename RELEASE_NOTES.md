@@ -8,7 +8,7 @@ This release introduces critical bug fixes, infrastructure improvements, and enh
 
 ### 🆕 **New in This Release:**
 - **Determinism Fix**: Critical fix for gas consumption differences in chainlet version cache loading
-- **CCV Middleware Removal**: Removed deprecated CCV provider IBC middleware
+- **CCV Middleware Removal**: Removed CCV provider IBC middleware
 - **Enhanced E2E Testing**: Comprehensive API endpoint testing and improved test infrastructure
 - **gRPC Gateway Fix**: Fixed missing gRPC gateway registration for billing module (added in `v1.0.1`)
 - **Improved Test Coverage**: Expanded end-to-end test suite with new test scenarios
@@ -34,7 +34,7 @@ This release introduces critical bug fixes, infrastructure improvements, and enh
 
 #### **CCV Provider IBC Middleware Removal**
 - **Removed**: CCV (Cross Chain Validation) provider IBC middleware from transfer stack
-- **Reason**: Deprecated middleware no longer needed for current architecture
+- **Reason**: Middleware not needed for current architecture
 - **Impact**: Simplified IBC stack configuration
 - **Migration**: No action required - middleware was automatically removed during upgrade
 
@@ -75,7 +75,7 @@ This release introduces critical bug fixes, infrastructure improvements, and enh
 - **Testing**: Expanded end-to-end test infrastructure
 
 #### **Performance**
-- **Gas Efficiency**: Deterministic gas consumption prevents consensus issues
+- **Deterministic Gas Consumption**: Deterministic gas consumption prevents consensus issues
 - **Reliability**: More stable chainlet version management
 
 ---

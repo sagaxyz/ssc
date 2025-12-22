@@ -1,5 +1,97 @@
 # Saga Security Chain (SSC) Release Notes
 
+## Version 2.0.0
+
+### 🚀 Major Features
+
+This release introduces critical bug fixes, infrastructure improvements, and enhanced testing capabilities. Version 2.0.0 focuses on improving determinism, removing deprecated middleware, and expanding end-to-end test coverage.
+
+### 🆕 **New in This Release:**
+- **Determinism Fix**: Critical fix for gas consumption differences in chainlet version cache loading
+- **CCV Middleware Removal**: Removed deprecated CCV provider IBC middleware
+- **Enhanced E2E Testing**: Comprehensive API endpoint testing and improved test infrastructure
+- **gRPC Gateway Fix**: Fixed missing gRPC gateway registration for billing module
+- **Improved Test Coverage**: Expanded end-to-end test suite with new test scenarios
+
+---
+
+### 🔧 **Critical Bug Fixes**
+
+#### **Gas Consumption Determinism Fix** (#128)
+- **Issue**: Non-deterministic gas consumption when loading chainlet versions cache could cause consensus failures
+- **Fix**: Modified `loadVersions()` to use a cache context with infinite gas meter, ensuring consistent gas consumption across all nodes
+- **Impact**: Prevents consensus failures due to gas consumption differences between validators
+- **Files Changed**: `x/chainlet/keeper/versions.go`, `x/chainlet/keeper/versions_test.go`
+
+#### **Missing gRPC Gateway Registration Fix**
+- **Issue**: Billing module gRPC gateway routes were not properly registered
+- **Fix**: Added missing `app.bmm.RegisterGRPCGatewayRoutes()` call in `RegisterAPIRoutes()`
+- **Impact**: Enables proper REST API access to billing module endpoints
+
+---
+
+### 🗑️ **Removed Features**
+
+#### **CCV Provider IBC Middleware Removal**
+- **Removed**: CCV (Consumer-Controlled Validation) provider IBC middleware from transfer stack
+- **Reason**: Deprecated middleware no longer needed for current architecture
+- **Impact**: Simplified IBC stack configuration
+- **Migration**: No action required - middleware was automatically removed during upgrade
+
+---
+
+### 🧪 **Testing Improvements**
+
+#### **New API Endpoints Test Suite**
+- **Added**: Comprehensive test suite for all RPC, gRPC, and REST API endpoints
+- **Coverage**: Tests all exposed endpoints including chainlet, billing, escrow, and other module endpoints
+- **File**: `e2e/api_endpoints_test.go`
+
+#### **E2E Test Fixes** (#127)
+- **Fixed**: Various end-to-end test failures and improvements
+- **Enhanced**: Better test reliability and error handling
+- **Updated**: Test dependencies and infrastructure
+
+#### **PFM Transfer Test Enhancements**
+- **Improved**: Packet Forwarding Middleware (PFM) transfer test scenarios
+- **Enhanced**: Better coverage of multi-hop IBC transfers
+
+#### **Basic IBC Test Updates**
+- **Updated**: IBC connection and channel establishment tests
+- **Improved**: Test reliability and error messages
+
+---
+
+### 📊 **Technical Improvements**
+
+#### **Code Quality**
+- **Determinism**: Fixed non-deterministic gas consumption in version cache loading
+- **Reliability**: Improved consensus stability
+- **Testing**: Enhanced test coverage and reliability
+
+#### **Infrastructure**
+- **Middleware**: Simplified IBC stack by removing deprecated CCV middleware
+- **API**: Fixed gRPC gateway registration for complete API access
+- **Testing**: Expanded end-to-end test infrastructure
+
+#### **Performance**
+- **Gas Efficiency**: Deterministic gas consumption prevents consensus issues
+- **Reliability**: More stable chainlet version management
+
+---
+
+### 🐛 **Known Issues**
+- None at this time
+
+---
+
+### 🙏 **Acknowledgments**
+- Contributors who identified and fixed the gas determinism issue
+- Test infrastructure improvements by the team
+- Community feedback that helped identify issues
+
+---
+
 ## Version 1.0.0
 
 ### 🚀 Major Features

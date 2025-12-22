@@ -10,7 +10,7 @@ This release introduces critical bug fixes, infrastructure improvements, and enh
 - **Determinism Fix**: Critical fix for gas consumption differences in chainlet version cache loading
 - **CCV Middleware Removal**: Removed deprecated CCV provider IBC middleware
 - **Enhanced E2E Testing**: Comprehensive API endpoint testing and improved test infrastructure
-- **gRPC Gateway Fix**: Fixed missing gRPC gateway registration for billing module
+- **gRPC Gateway Fix**: Fixed missing gRPC gateway registration for billing module (added in `v1.0.1`)
 - **Improved Test Coverage**: Expanded end-to-end test suite with new test scenarios
 
 ---
@@ -23,10 +23,10 @@ This release introduces critical bug fixes, infrastructure improvements, and enh
 - **Impact**: Prevents consensus failures due to gas consumption differences between validators
 - **Files Changed**: `x/chainlet/keeper/versions.go`, `x/chainlet/keeper/versions_test.go`
 
-#### **Missing gRPC Gateway Registration Fix**
+#### **Missing gRPC Gateway Registration Fix (added in `v1.0.1`)**
 - **Issue**: Billing module gRPC gateway routes were not properly registered
 - **Fix**: Added missing `app.bmm.RegisterGRPCGatewayRoutes()` call in `RegisterAPIRoutes()`
-- **Impact**: Enables proper REST API access to billing module endpoints
+- **Impact**: Enables proper REST API access to all module endpoints
 
 ---
 

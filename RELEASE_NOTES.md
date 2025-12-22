@@ -33,7 +33,7 @@ This release introduces critical bug fixes, infrastructure improvements, and enh
 ### 🗑️ **Removed Features**
 
 #### **CCV Provider IBC Middleware Removal**
-- **Removed**: CCV (Consumer-Controlled Validation) provider IBC middleware from transfer stack
+- **Removed**: CCV (Cross Chain Validation) provider IBC middleware from transfer stack
 - **Reason**: Deprecated middleware no longer needed for current architecture
 - **Impact**: Simplified IBC stack configuration
 - **Migration**: No action required - middleware was automatically removed during upgrade

@@ -760,17 +760,19 @@ func New(
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Build transfer stack with middleware
-	// Order: transfer -> GMP -> packet-forward -> CCV provider
+	// Order: transfer -> packet-forward -> GMP
+	// GMP must be outermost so it processes incoming packets first,
+	// extracts the PFM forward instructions from the payload, then PFM can forward.
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
-	// GMP middleware wraps transfer to inspect and process ICS-20 packet memos
-	transferStack = gmpmodule.NewIBCModule(transferStack)
 	transferStack = packetforward.NewIBCMiddleware(
 		transferStack,
 		app.PacketForwardKeeper,
 		0, // retries on timeout
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 	)
+	// GMP middleware wraps PFM to inspect ICS-20 packet memos and extract forward instructions
+	transferStack = gmpmodule.NewIBCModule(transferStack)
 
 	/**** IBC Routing ****/
 	icaControllerStack := icacontroller.NewIBCMiddleware(icaControllerKeeper)

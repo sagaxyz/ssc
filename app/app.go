@@ -760,7 +760,7 @@ func New(
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Build transfer stack with middleware
-	// Order: transfer -> packet-forward -> GMP
+	// Order (for incoming packets): GMP -> packet-forward -> transfer
 	// GMP must be outermost so it processes incoming packets first,
 	// extracts the PFM forward instructions from the payload, then PFM can forward.
 	var transferStack porttypes.IBCModule

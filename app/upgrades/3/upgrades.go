@@ -34,6 +34,19 @@ func UpgradeHandler(mm *module.Manager, configurator module.Configurator, transf
 			"saga1kkay5yc0nccqxmgurkc34zgnete6eh462m2hu9",
 		}
 
+		firstChannel := "channel-36"
+		lastChannel := "channel-4"
+
+		if sdkCtx.ChainID() == "ssc-staging-1" {
+			firstChannel = "channel-0"
+			lastChannel = "channel-0"
+		}
+
+		if sdkCtx.ChainID() == "sscd-a" {
+			firstChannel = "channel-0"
+			lastChannel = "channel-1"
+		}
+
 		// get all the balances and forward them to the same addresses but on channel-4
 		for _, address := range addresses {
 			addr, err := sdk.AccAddressFromBech32(address)
@@ -44,12 +57,12 @@ func UpgradeHandler(mm *module.Manager, configurator module.Configurator, transf
 			for _, balance := range balances {
 				msg := &transfertypes.MsgTransfer{
 					SourcePort:       "transfer",
-					SourceChannel:    "channel-4",
+					SourceChannel:    firstChannel,
 					Token:            balance,
 					Sender:           addr.String(),
 					Receiver:         addr.String(),
-					TimeoutTimestamp: uint64(sdkCtx.BlockTime().Add(time.Hour * 24).UnixNano()), // allow 1 day for the transfer
-					Memo:             fmt.Sprintf("recovery transfer for address %s, coin %s", address, balance.String()),
+					TimeoutTimestamp: uint64(sdkCtx.BlockTime().Add(time.Second * 600).UnixNano()), // allow 1 day for the transfer
+					Memo:             fmt.Sprintf(`{"forward":{"port":"transfer","channel":"%s","receiver":"%s"}}`, lastChannel, address),
 				}
 				res, err := transferKeeper.Transfer(sdkCtx, msg)
 				if err != nil {

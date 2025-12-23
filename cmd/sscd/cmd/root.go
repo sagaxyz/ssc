@@ -32,6 +32,7 @@ import (
 	// this line is used by starport scaffolding # root/moduleImport
 
 	"github.com/sagaxyz/ssc/app"
+	"github.com/sagaxyz/ssc/crypto/keyring"
 	appparams "github.com/sagaxyz/ssc/app/params"
 )
 
@@ -72,7 +73,8 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("")
+		WithViper("").
+		WithKeyringOptions(keyring.WithEthereum)
 
 	rootCmd := &cobra.Command{
 		Use:   app.Name + "d",

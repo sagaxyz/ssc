@@ -92,6 +92,8 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	evmcryptocodec "github.com/cosmos/evm/crypto/codec"
+	"github.com/cosmos/evm/crypto/ethsecp256k1"
 	"github.com/cosmos/gogoproto/proto"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
@@ -341,6 +343,12 @@ func New(
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
+
+	evmcryptocodec.RegisterInterfaces(interfaceRegistry)
+	legacyAmino.RegisterConcrete(&ethsecp256k1.PubKey{},
+		ethsecp256k1.PubKeyName, nil)
+	legacyAmino.RegisterConcrete(&ethsecp256k1.PrivKey{},
+		ethsecp256k1.PrivKeyName, nil)
 
 	voteExtOp := func(bApp *baseapp.BaseApp) {
 		//voteExtHandler := NewVoteExtensionHandler()
@@ -1028,7 +1036,7 @@ func New(
 				BankKeeper:      app.BankKeeper,
 				SignModeHandler: txConfig.SignModeHandler(),
 				FeegrantKeeper:  app.FeeGrantKeeper,
-				SigGasConsumer:  authante.DefaultSigVerificationGasConsumer,
+				SigGasConsumer:  ante.SigVerificationGasConsumer,
 				TxFeeChecker: sagaante.CheckTxFeeWithValidatorMinGasPrices(
 					sagaante.BondedValidator(app.StakingKeeper),
 					0,

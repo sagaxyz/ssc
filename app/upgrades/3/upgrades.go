@@ -61,7 +61,7 @@ func UpgradeHandler(mm *module.Manager, configurator module.Configurator, transf
 					Token:            balance,
 					Sender:           addr.String(),
 					Receiver:         addr.String(),
-					TimeoutTimestamp: uint64(sdkCtx.BlockTime().Add(time.Second * 600).UnixNano()), // allow 1 day for the transfer
+					TimeoutTimestamp: uint64(sdkCtx.BlockTime().Add(time.Hour * 24).UnixNano()), // allow 1 day for the transfer
 					Memo:             fmt.Sprintf(`{"forward":{"port":"transfer","channel":"%s","receiver":"%s"}}`, lastChannel, address),
 				}
 				res, err := transferKeeper.Transfer(sdkCtx, msg)

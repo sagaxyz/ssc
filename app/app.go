@@ -527,6 +527,13 @@ func New(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.GmpKeeper = gmpmodulekeeper.NewKeeper(
+		appCodec,
+		keys[gmpmoduletypes.StoreKey],
+		app.GetSubspace(gmpmoduletypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+	)
+
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	app.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
@@ -534,7 +541,7 @@ func New(
 		app.TransferKeeper, // will be zero-value here, reference is set later on with SetTransferKeeper.
 		app.IBCKeeper.ChannelKeeper,
 		app.BankKeeper,
-		app.IBCKeeper.ChannelKeeper,
+		app.GmpKeeper,
 		govModuleAddress,
 	)
 
@@ -726,13 +733,6 @@ func New(
 	)
 	epochsModule := epochsmodule.NewAppModule(app.EpochsKeeper)
 
-	app.GmpKeeper = *gmpmodulekeeper.NewKeeper(
-		appCodec,
-		keys[gmpmoduletypes.StoreKey],
-		app.GetSubspace(gmpmoduletypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-	)
-
 	app.LiquidKeeper = *liquidmodulekeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[liquidmoduletypes.StoreKey]),
@@ -754,7 +754,7 @@ func New(
 		),
 	)
 
-	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper, app.AccountKeeper, app.BankKeeper)
+	gmpModule := gmpmodule.NewAppModule(appCodec, app.GmpKeeper)
 
 	liquidModule := liquidmodule.NewAppModule(appCodec, &app.LiquidKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper)
 
@@ -773,7 +773,7 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 	)
 	// GMP middleware wraps PFM to inspect ICS-20 packet memos and extract forward instructions
-	transferStack = gmpmodule.NewIBCModule(transferStack)
+	transferStack = gmpmodule.NewIBCModule(transferStack, app.GmpKeeper)
 
 	/**** IBC Routing ****/
 	icaControllerStack := icacontroller.NewIBCMiddleware(icaControllerKeeper)

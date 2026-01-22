@@ -9,7 +9,7 @@ RUN apt-get update -y
 
 COPY . .
 
-RUN git config --global --add url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+RUN git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 RUN make build
 
 FROM golang:${GO_VERSION}-alpine3.22

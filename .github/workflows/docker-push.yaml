@@ -8,7 +8,14 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: github.com/sagaxyz/*
     steps:
+      - name: Set up access to private Go modules
+        env:
+          GITHUB_USER: ${{ secrets.GH_USER }}
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout
         uses: actions/checkout@v4
       - name: Extract tag name
@@ -35,4 +42,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            GITHUB_USER=${{ secrets.GH_USER }}
+            GITHUB_TOKEN=${{ secrets.GH_ACCESS_TOKEN }}
           tags: sagaxyz/ssc:${{ steps.tag_name.outputs.formatted_tag }}

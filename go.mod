@@ -238,3 +238,5 @@ require (
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/cosmos/gaia => github.com/cosmos/gaia/v25 v25.1.1
+
+replace github.com/cometbft/cometbft => github.com/sagaxyz/cometbft-sec-tachyon v0.38.21-0.20260113214209-9ac677707f85

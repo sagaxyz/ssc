@@ -5,17 +5,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		paramstore paramtypes.Subspace
-
-		channelKeeper types.ChannelKeeper
+		cdc         codec.BinaryCodec
+		storeKey    storetypes.StoreKey
+		paramstore  paramtypes.Subspace
+		ics4Wrapper porttypes.ICS4Wrapper
 	}
 )
 
@@ -23,19 +23,18 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper,
-) *Keeper {
+	ics4Wrapper porttypes.ICS4Wrapper,
+) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		paramstore: ps,
-
-		channelKeeper: channelKeeper,
+	return Keeper{
+		cdc:         cdc,
+		storeKey:    storeKey,
+		paramstore:  ps,
+		ics4Wrapper: ics4Wrapper,
 	}
 }
 

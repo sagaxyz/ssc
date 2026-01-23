@@ -12,6 +12,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/sagaxyz/ssc/x/gmp/keeper"
 	"github.com/sagaxyz/ssc/x/gmp/types"
 )
 
@@ -43,12 +44,14 @@ type Forward struct {
 }
 
 type IBCModule struct {
-	app porttypes.IBCModule
+	app    porttypes.IBCModule
+	keeper keeper.Keeper
 }
 
-func NewIBCModule(app porttypes.IBCModule) IBCModule {
+func NewIBCModule(app porttypes.IBCModule, keeper keeper.Keeper) IBCModule {
 	return IBCModule{
-		app: app,
+		app:    app,
+		keeper: keeper,
 	}
 }
 
@@ -161,6 +164,10 @@ func (im IBCModule) OnRecvPacket(
 			ctx.Logger().Debug(fmt.Sprintf("failed to unpack: %s", err.Error()))
 			return im.app.OnRecvPacket(ctx, channelVersion, modulePacket, relayer)
 		}
+
+		// here we modify the packet data to forward it to the next module, but first we store it in the keeper
+		im.keeper.SetPacket(ctx, modulePacket)
+
 		pfmPayload := args[0].(string)
 		data.Memo = pfmPayload
 		modulePacket.Data, err = types.ModuleCdc.MarshalJSON(&data)

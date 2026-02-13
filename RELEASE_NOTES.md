@@ -1,5 +1,69 @@
 # Saga Security Chain (SSC) Release Notes
 
+## Version 3.0.0
+
+### 🚀 Major Features
+
+This release introduces critical fixes for transaction ordering from external partners. Version 3.0.0 focuses on ensuring correct processing order for IBC packets from partners like Axelar and ensuring smooth upgrades through module migrations.
+
+### 🆕 **New in This Release:**
+- **Correct Transaction Ordering**: Fixed IBC middleware stack ordering to ensure proper processing of transactions from external partners like Axelar
+- **Module Migrations**: Standard module migrations for version compatibility
+- **GMP Integration**: Proper integration of General Message Passing (GMP) middleware for Axelar compatibility
+- **Resubmitting Failed IBC Transfers**: This release provides the ability to resubmit failed IBC transfers that have timed out.
+
+---
+
+### 🔧 **Critical Bug Fixes**
+
+#### **IBC Middleware Stack Ordering Fix**
+- **Issue**: Incorrect ordering of IBC middleware stack could cause transactions from external partners (such as Axelar) to be processed in the wrong order, leading to failed or incorrectly processed transfers
+- **Fix**: Corrected the IBC middleware stack ordering to ensure GMP (General Message Passing) middleware processes incoming packets first, extracts Packet Forwarding Middleware (PFM) forward instructions from the payload, then allows PFM to forward packets correctly
+- **Correct Order**: For incoming packets: **GMP → packet-forward → transfer**
+  - GMP must be outermost to process incoming packets first
+  - GMP extracts PFM forward instructions from the payload
+  - PFM then forwards packets based on the extracted instructions
+  - Transfer module handles the final packet processing
+- **Impact**: Ensures transactions from external partners like Axelar are processed in the correct sequence, preventing failed transfers and ensuring proper multi-hop IBC transfers
+
+
+---
+
+### 🔄 **Upgrade Process**
+
+#### **Module Migrations**
+- **Standard Migrations**: All module migrations are executed automatically during the upgrade
+- **Version Map**: Module version map is updated to reflect the new consensus versions
+- **Migration Safety**: All migrations are tested and verified before deployment
+
+---
+
+### 📊 **Technical Improvements**
+
+#### **IBC Middleware Stack**
+- **Correct Ordering**: Fixed middleware stack to process packets in the correct order for external partner integrations
+- **GMP Integration**: Proper integration of GMP middleware for Axelar General Message Passing protocol
+- **PFM Compatibility**: Ensures Packet Forwarding Middleware receives properly formatted forward instructions from GMP
+
+#### **External Partner Support**
+- **Axelar Compatibility**: Improved support for Axelar transactions by ensuring correct processing order
+- **Multi-Hop Transfers**: Enhanced reliability of multi-hop IBC transfers through proper middleware ordering
+- **Transaction Reliability**: Improved reliability of cross-chain transactions from external partners
+
+---
+
+### 🐛 **Known Issues**
+- None at this time
+
+---
+
+### 🙏 **Acknowledgments**
+- Contributors who identified and resolved the transaction ordering issue
+- External partners like Axelar for their collaboration and feedback
+- Validators who participated in testing the upgrade
+
+---
+
 ## Version 2.0.0
 
 ### 🚀 Major Features

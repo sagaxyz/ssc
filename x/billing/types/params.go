@@ -66,11 +66,22 @@ func validatePlatformValidatorsParam(v interface{}) error {
 	if !ok {
 		return fmt.Errorf("could not unmarshal platform-validators parm for validation")
 	}
+	return ValidatePlatformValidators(vals)
+}
+
+// ValidatePlatformValidators validates that all platform validator addresses are valid
+// and that there are no duplicates.
+func ValidatePlatformValidators(vals []string) error {
+	seen := make(map[string]bool)
 	for _, val := range vals {
 		_, err := sdk.AccAddressFromBech32(val)
 		if err != nil {
 			return fmt.Errorf("invalid platform validator address: %s", val)
 		}
+		if seen[val] {
+			return fmt.Errorf("duplicate platform validator address: %s", val)
+		}
+		seen[val] = true
 	}
 	return nil
 }

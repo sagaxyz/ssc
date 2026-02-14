@@ -76,6 +76,9 @@ func (k Keeper) GetAuthority() string {
 }
 
 func (k Keeper) SetPlatformValidators(ctx sdk.Context, vals []string) error {
+	if err := types.ValidatePlatformValidators(vals); err != nil {
+		return err
+	}
 	params := k.GetParams(ctx)
 	params.PlatformValidators = vals
 	k.SetParams(ctx, params)

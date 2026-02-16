@@ -99,7 +99,7 @@ func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchCha
 	// launching a service chainlet means we can skip the billing setup and just create the chainlet
 	if msg.IsServiceChainlet {
 		if !admin {
-			return &types.MsgLaunchChainletResponse{}, types.ErrUnauthorized
+			return &types.MsgLaunchChainletResponse{}, types.ErrUnauthorized.Wrap("unable to launch service chainlet")
 		}
 
 		chainlet.Tags = msg.Tags

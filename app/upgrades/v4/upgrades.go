@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -20,9 +21,12 @@ func UpgradeHandler(mm *module.Manager, configurator module.Configurator, stakin
 			return nil, err
 		}
 
-		// set default params to the liquid module
-		defaultParams := liquidtypes.DefaultParams()
-		err = liquidKeeper.SetParams(ctx, defaultParams)
+		// set params to the liquid module
+		params := liquidtypes.Params{
+			GlobalLiquidStakingCap:    math.LegacyNewDecFromIntWithPrec(math.NewInt(25), 2), // 0.25
+			ValidatorLiquidStakingCap: math.LegacyNewDecFromIntWithPrec(math.NewInt(5), 1),  // 0.5
+		}
+		err = liquidKeeper.SetParams(ctx, params)
 		if err != nil {
 			return vm, fmt.Errorf("error setting params: %w", err)
 		}

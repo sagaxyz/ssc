@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	liquidmodulekeeper "github.com/cosmos/gaia/v25/x/liquid/keeper"
@@ -21,29 +20,21 @@ func UpgradeHandler(mm *module.Manager, configurator module.Configurator, stakin
 			return nil, err
 		}
 
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 		// set default params to the liquid module
 		defaultParams := liquidtypes.DefaultParams()
-		err = liquidKeeper.SetParams(sdkCtx, defaultParams)
+		err = liquidKeeper.SetParams(ctx, defaultParams)
 		if err != nil {
 			return vm, fmt.Errorf("error setting params: %w", err)
 		}
 
 		// add all validators to the liquid module
-		liquidValidators := make(map[string]liquidtypes.LiquidValidator)
 		allVals, err := stakingKeeper.GetAllValidators(ctx)
 		if err != nil {
 			return vm, fmt.Errorf("unable to get all validators: %w", err)
 		}
 		for _, val := range allVals {
-			if _, ok := liquidValidators[val.OperatorAddress]; !ok {
-				liquidValidators[val.OperatorAddress] = liquidtypes.NewLiquidValidator(val.OperatorAddress)
-			}
-		}
-
-		for _, liquidVal := range liquidValidators {
-			if err := liquidKeeper.SetLiquidValidator(ctx, liquidVal); err != nil {
+			lVal := liquidtypes.NewLiquidValidator(val.OperatorAddress)
+			if err := liquidKeeper.SetLiquidValidator(ctx, lVal); err != nil {
 				return vm, fmt.Errorf("error migrating liquid validator: %w", err)
 			}
 		}

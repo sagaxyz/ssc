@@ -23,8 +23,8 @@ func UpgradeHandler(mm *module.Manager, configurator module.Configurator, stakin
 
 		// set params to the liquid module
 		params := liquidtypes.Params{
-			GlobalLiquidStakingCap:    math.LegacyNewDecFromIntWithPrec(math.NewInt(25), 2), // 0.25
-			ValidatorLiquidStakingCap: math.LegacyNewDecFromIntWithPrec(math.NewInt(5), 1),  // 0.5
+			GlobalLiquidStakingCap:    math.LegacyNewDecFromIntWithPrec(math.NewInt(80), 2), // 0.80
+			ValidatorLiquidStakingCap: math.LegacyOneDec(),                                  // 1
 		}
 		err = liquidKeeper.SetParams(ctx, params)
 		if err != nil {
